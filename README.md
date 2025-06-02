@@ -73,9 +73,9 @@ We follow a branching strategy inspired by **Git Flow**.
     -   Created from `main` for critical production bugs that need immediate attention.
     -   Once fixed, they are merged back into both `main` and `develop`.
 
-## MVP Setup
+## MVC Setup
 
-- For this project, we are using Next.js for both the frontend and backend, Firebase Database for storage, and GitHub Actions with Python for the bots. We will be following the MVP (Model-Controller-View) setup:
+- For this project, we are using Next.js for both the frontend and backend, Firebase Database for storage, and GitHub Actions with Python for the bots. We will be following the MVC (Model-View-Controller) setup:
 
 - The model is defined in `clubhub-web/src/model`, setting up a client for the Firebase cloud database that we are using.
 
