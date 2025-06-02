@@ -25,7 +25,7 @@ Campus Compass is a social-media-style hub for U of T’s 99,794 students where 
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the `clubhub-web` directory and add your Firebase configuration and other necessary environment variables.
+    Create a `.env` file in the `clubhub-web` directory and add your Firebase configuration.
     ```
     NEXT_PUBLIC_FIREBASE_API_KEY=""
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
@@ -73,9 +73,9 @@ We follow a branching strategy inspired by **Git Flow**.
     -   Created from `main` for critical production bugs that need immediate attention.
     -   Once fixed, they are merged back into both `main` and `develop`.
 
-### MVP Setup
+## MVP Setup
 
-- For this project, we use the MVP (Model-View-Controller) setup
+- For this project, we are using Next.js for both the frontend and backend, Firebase Database for storage, and GitHub Actions with Python for the bots. We will be following the MVP (Model-Controller-View) setup:
 
 - The model is defined in `clubhub-web/src/model`, setting up a client for the Firebase cloud database that we are using.
 
