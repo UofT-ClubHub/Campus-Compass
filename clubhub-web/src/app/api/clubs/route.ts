@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
         const nameFilter = searchParams.get('name');
         const descriptionFilter = searchParams.get('description');
         const campusFilter = searchParams.get('campus');
+        // Sorting filters
+        const sortBy = searchParams.get('sort_by')
+        const sortOrder = searchParams.get('sort_order');
 
         const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
@@ -37,8 +40,20 @@ export async function GET(request: NextRequest) {
         clubs = clubs.filter(club => 
             (!nameFilter || (club.name && club.name.toLowerCase().includes(nameFilter.toLowerCase()))) &&
             (!descriptionFilter || (club.description && club.description.toLowerCase().includes(descriptionFilter.toLowerCase()))) &&
-            (!campusFilter || (club.campus && club.campus.toLowerCase().includes(campusFilter.toLowerCase())))
+            (!campusFilter || (club.campus && club.campus.toLowerCase() === campusFilter.toLowerCase()))
         );
+
+        // Sort by specified field and order if provided
+        if (sortBy && ['followers'].includes(sortBy)) {
+            const order = sortOrder === 'asc' ? 1 : -1;
+            clubs.sort((a, b) => {
+                const aVal = a[sortBy as keyof Club];
+                const bVal = b[sortBy as keyof Club];
+                if (!aVal || !bVal) return 0;
+                if (aVal === bVal) return 0;
+                return aVal > bVal ? order : -order;
+            });
+        }
 
         return NextResponse.json(clubs, { status: 200 });
 
