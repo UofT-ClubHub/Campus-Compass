@@ -83,3 +83,4 @@ We follow a branching strategy inspired by **Git Flow**.
     - The basic GET endpoints have been set up for each of the database collections: Clubs, Posts, Users
 
 - The view is defined in `clubhub-web/src/app` using `.tsx` (Typescript) files.
+    - An authentication page has been set up in `clubhub-web/src/app/auth` where users can sign up, log in, or reset their passwords.
