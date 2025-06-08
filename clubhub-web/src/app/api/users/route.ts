@@ -1,12 +1,6 @@
 import firebase from '@/model/firebase';
+import { User } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface User {
-    id?: string;
-    name?: string;
-    email?: string;
-    campus?: string;
-}
 
 export async function GET(request: NextRequest) {
     try {
@@ -25,13 +19,13 @@ export async function GET(request: NextRequest) {
             if (!doc.exists) {
                 return NextResponse.json({ message: 'user not found' }, { status: 404 });
             }
-            return NextResponse.json({ id: doc.id, ...doc.data() as User }, { status: 200 });
+            return NextResponse.json({ ...doc.data(), id: doc.id }, { status: 200 });
         }
 
         // Otherwise fetch all and apply filters
         const snapshot = await usersCollection.get();
     
-        let users: User[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as User }));
+        let users: User[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as User));
 
         // Apply all filters if they exist
         users = users.filter(user => 

@@ -1,8 +1,14 @@
+'use client';
+
 import Image from "next/image";
+import firebase from '@/model/firebase';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
@@ -24,6 +30,20 @@ export default function Home() {
             Save and see your changes instantly.
           </li>
         </ol>
+
+        {loading && <p>Loading user...</p>}
+        {user && (
+          <div className="mt-4 p-4 border rounded-md">
+            <p className="text-lg font-semibold">Current User:</p>
+            <p>Email: {user.email}</p>
+            <button 
+              onClick={() => firebase.auth().signOut()}
+              className="mt-2 px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
