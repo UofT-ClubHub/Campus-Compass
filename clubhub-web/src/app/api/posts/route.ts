@@ -1,18 +1,6 @@
 import firebase from '@/model/firebase';
+import { Post } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Post {
-    id?: string;
-    title?: string;
-    details?: string;
-    campus?: string;
-    club?: string;
-    category?: string;
-    hashtags?: string[];
-    date_occuring?: string;
-    date_posted?: string;
-    likes?: number;
-}
 
 export async function GET(request: NextRequest) {
     try {
@@ -37,13 +25,13 @@ export async function GET(request: NextRequest) {
             if (!doc.exists) {
                 return NextResponse.json({ message: 'post not found' }, { status: 404 });
             }
-            return NextResponse.json({ id: doc.id, ...doc.data() as Post }, { status: 200 });
+            return NextResponse.json({ ...doc.data(), id: doc.id }, { status: 200 });
         }
 
         // Otherwise fetch all and apply filters
         const snapshot = await postsCollection.get();
     
-        let posts: Post[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Post }));
+        let posts: Post[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
 
         // Apply all filters if they exist
         posts = posts.filter(post => 

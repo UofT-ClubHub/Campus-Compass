@@ -1,12 +1,6 @@
 import firebase from '@/model/firebase';
+import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Club {
-    id?: string;
-    name?: string;
-    description?: string;
-    campus?: string;
-}
 
 export async function GET(request: NextRequest) {
     try {
@@ -28,13 +22,13 @@ export async function GET(request: NextRequest) {
             if (!doc.exists) {
                 return NextResponse.json({ message: 'Club not found' }, { status: 404 });
             }
-            return NextResponse.json({ id: doc.id, ...doc.data() as Club }, { status: 200 });
+            return NextResponse.json({ ...doc.data(), id: doc.id }, { status: 200 });
         }
 
         // Otherwise fetch all and apply filters
         const snapshot = await clubsCollection.get();
     
-        let clubs: Club[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Club }));
+        let clubs: Club[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Club));
 
         // Apply all filters if they exist
         clubs = clubs.filter(club => 

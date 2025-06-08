@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import firebase from '@/model/firebase';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 type AuthMode = 'login' | 'register' | 'reset';
 
@@ -16,6 +17,13 @@ export default function AuthPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const auth = firebase.auth();
+    const { user: authUser, loading: authLoading } = useAuth();
+
+    useEffect(() => {
+        if (!authLoading && authUser) {
+            router.push('/');
+        }
+    }, [authUser, authLoading, router]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,6 +55,10 @@ export default function AuthPage() {
             setLoading(false);
         }
     };
+
+    if (authLoading) {
+        return <div className="flex justify-center items-center min-h-screen text-white">Loading...</div>;
+    }
 
     return (
         <div className="flex justify-center items-center min-h-screen">
