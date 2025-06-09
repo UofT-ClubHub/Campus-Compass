@@ -35,17 +35,42 @@ export default function AuthPage() {
             if (mode === 'register') {
                 if (password !== confirmPassword) {
                     setError('Passwords do not match');
+                    setLoading(false);
                     return;
                 }
-                await auth.createUserWithEmailAndPassword(email, password);
-                setMessage('Account created successfully! Redirecting...');
-                setTimeout(() => router.push('/'), 2000);
-            } 
-            else if (mode === 'login') {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const newUser = userCredential.user;
+                if (newUser) {
+                    // Wait for the user to be authenticated
+                    const idToken = await newUser.getIdToken();
+                    
+                    const a = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json' ,
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            id: newUser.uid,
+                            name: '',
+                            email: newUser.email || '',
+                            campus: '',
+                            bio: '',
+                            followed_clubs: [],
+                            liked_posts: [],
+                            is_admin: false,
+                            is_executive: false,
+                            managed_clubs: []
+                        }),
+                    });
+                    console.log('User created in Firestore:', await a.json());
+                    setMessage('Account created successfully! Redirecting...');
+                    setTimeout(() => router.push('/'), 3000);
+                }
+            } else if (mode === 'login') {
                 await auth.signInWithEmailAndPassword(email, password);
                 router.push('/');
-            } 
-            else if (mode === 'reset') {
+            } else if (mode === 'reset') {
                 await auth.sendPasswordResetEmail(email);
                 setMessage('Password reset email sent! Check your inbox.');
             }
