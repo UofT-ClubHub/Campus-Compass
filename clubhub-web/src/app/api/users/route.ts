@@ -1,6 +1,7 @@
 import firebase from '@/model/firebase';
 import { User } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
+import { auth, firestore } from '../firebaseAdmin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -35,6 +36,49 @@ export async function GET(request: NextRequest) {
         );
 
         return NextResponse.json(users, { status: 200 });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+
+export async function POST(request: NextRequest) {
+    try {
+        // Verify the user is authenticated using Firebase ID token
+        const authorization = request.headers.get('Authorization');
+        if (!authorization || !authorization.startsWith('Bearer ')) {
+            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        }
+        const idToken = authorization.split('Bearer ')[1];
+
+        let decodedToken;
+        try {
+            decodedToken = await auth.verifyIdToken(idToken);
+        } catch (error) {
+            console.error('Error verifying ID token:', error);
+            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        }
+
+        const uid = decodedToken.uid;
+        const userData: User = await request.json();
+
+        if (uid !== userData.id) {
+            return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+        }
+
+        const usersCollection = firestore.collection('Users');
+        const userDocRef = usersCollection.doc(uid);
+
+        const userDoc = await userDocRef.get();
+        if (userDoc.exists) {
+            return NextResponse.json({ message: 'user already exists' }, { status: 409 });
+        }
+
+        // Add new user document with UID as the document ID
+        await userDocRef.set(userData);
+
+        return NextResponse.json(userData, { status: 201 });
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

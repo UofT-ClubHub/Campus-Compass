@@ -8,6 +8,7 @@ export interface User {
     liked_posts: string[];
     is_admin: boolean;
     is_executive: boolean;
+    managed_clubs: string[];
 }
 
 export interface Club {
