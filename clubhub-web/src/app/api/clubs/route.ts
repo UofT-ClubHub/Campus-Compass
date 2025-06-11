@@ -55,3 +55,48 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function POST(request: NextRequest) {
+    try {
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+
+        // Validate required fields
+        if (!data.description || !data.campus) {
+            return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Create new club document
+        const docRef = await clubsCollection.add(data);
+        return NextResponse.json({ id: docRef.id, ...data }, { status: 201 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function PUT(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const documentId = searchParams.get('id');
+        if (!documentId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+        }
+
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(documentId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        await docRef.update(data);
+        return NextResponse.json({ id: documentId, ...data }, { status: 200 });
+    }
+    catch {
+        return NextResponse.json({ error: 'Failed to update club' }, { status: 500 });
+    }
+}
