@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
         // Create new club document
         const docRef = await clubsCollection.add(data);
-        return NextResponse.json({ id: docRef.id, ...data }, { status: 201 });
+        return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
     }
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -94,7 +94,10 @@ export async function PUT(request: NextRequest) {
         }
 
         await docRef.update(data);
-        return NextResponse.json({ id: clubId, ...data }, { status: 200 });
+        const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
+        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
+        //uncomment line underneath if the above 2 lines are commented out
+        // return NextResponse.json({ id: clubId, ...data }, { status: 200 });
     }
     catch {
         return NextResponse.json({ error: 'Failed to update club' }, { status: 500 });
