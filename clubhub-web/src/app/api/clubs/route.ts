@@ -79,24 +79,48 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const { searchParams } = request.nextUrl;
-        const documentId = searchParams.get('id');
-        if (!documentId) {
+        const clubId = searchParams.get('id');
+        if (!clubId) {
             return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
         }
 
         const data = await request.json();
         const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
-        const docRef = clubsCollection.doc(documentId);
+        const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
         }
 
         await docRef.update(data);
-        return NextResponse.json({ id: documentId, ...data }, { status: 200 });
+        return NextResponse.json({ id: clubId, ...data }, { status: 200 });
     }
     catch {
         return NextResponse.json({ error: 'Failed to update club' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const clubId = searchParams.get('id');
+        if (!clubId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+        }
+
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(clubId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        await docRef.delete();
+        return NextResponse.json({ message: 'Club deleted successfully' }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
