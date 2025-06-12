@@ -11,7 +11,11 @@ export async function GET(request: NextRequest) {
         const campusFilter = searchParams.get('campus');
         const clubFilter = searchParams.get('club');
         const categoryFilter = searchParams.get('category');
-        const hashtagsFilter = searchParams.get('hashtags');
+
+        // Get back arrays for hashtags
+        const hashtagsFilterRaw = searchParams.get('hashtags');
+        const hashtagsFilter = hashtagsFilterRaw ? JSON.parse(hashtagsFilterRaw) : [];
+
         // Sorting filters
         const sortBy = searchParams.get('sort_by')
         const sortOrder = searchParams.get('sort_order');
@@ -30,17 +34,21 @@ export async function GET(request: NextRequest) {
 
         // Otherwise fetch all and apply filters
         const snapshot = await postsCollection.get();
-    
+
         let posts: Post[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
 
         // Apply all filters if they exist
-        posts = posts.filter(post => 
+        posts = posts.filter(post =>
             (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
             (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
             (!campusFilter || (post.campus && post.campus.toLowerCase() === campusFilter.toLowerCase())) &&
-            (!clubFilter || (post.club && post.club.toLowerCase() === clubFilter.toLowerCase())) &&
+            (!clubFilter || (post.club && post.club.toLowerCase().includes(clubFilter.toLowerCase()))) &&
             (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
-            (!hashtagsFilter || (post.hashtags && post.hashtags.some(tag => tag.toLowerCase() === hashtagsFilter!.toLowerCase())))
+            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.some((tag: string) =>
+                post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
+
+            )))
+
         );
 
         // Sort by specified field and order if provided
@@ -56,7 +64,7 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json(posts, { status: 200 });
-    
+
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
