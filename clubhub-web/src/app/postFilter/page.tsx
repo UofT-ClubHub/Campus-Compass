@@ -15,7 +15,7 @@ export default function clubSearchPage() {
   const [hashtagsFilter, setHashtagsFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
-  const filterClubs = async () => {
+  const filterPosts = async () => {
     const params = new URLSearchParams();
 
     nameFilter ? params.append('title', nameFilter) : null;
@@ -102,16 +102,16 @@ export default function clubSearchPage() {
             className="p-2 border rounded"
           >
             <option value="">Select Type of Event</option>
-            <option value="UTSC">Event</option>
-            <option value="UTSG">Gala</option>
-            <option value="UTM">Hackathon</option>
+            <option value="Event">Event</option>
+            <option value="Gala">Gala</option>
+            <option value="Hackathon">Hackathon</option>
           </select>
         </div>
         <button
           onClick={() => {
             // Implement search logic here
             console.log("Searching for posts with filters:", {nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, categoryFilter});
-            filterClubs();
+            filterPosts();
           }}
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >Search for Posts 
