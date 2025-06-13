@@ -3,6 +3,7 @@
 import Image from "next/image";
 import firebase from '@/model/firebase';
 import { useAuth } from '@/hooks/useAuth';
+import Link from "next/link";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -69,6 +70,10 @@ export default function Home() {
           >
             Read our docs
           </a>
+
+          <Link href="/clubSearch">
+      <button>Go to Club Search Page</button>
+    </Link>
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">

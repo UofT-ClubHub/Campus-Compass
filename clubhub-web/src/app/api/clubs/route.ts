@@ -16,6 +16,15 @@ export async function GET(request: NextRequest) {
         const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
 
+        console.log('Fetching clubs with filters:', {
+            documentId,
+            nameFilter,
+            descriptionFilter,
+            campusFilter,
+            sortBy,
+            sortOrder
+        });
+
         // Fetch by document ID if provided
         if (documentId) {
             const doc = await clubsCollection.doc(documentId).get();
