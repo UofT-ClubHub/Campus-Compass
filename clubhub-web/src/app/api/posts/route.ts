@@ -61,3 +61,75 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function POST(request: NextRequest) {
+    try {
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const postsCollection = firestore.collection('Posts');
+
+        // Validate required fields
+        if (!data.title || !data.details || !data.campus || !data.club || !data.category || !data.date_occuring || !data.date_posted) {
+            return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Create new club document
+        const docRef = await postsCollection.add(data);
+        return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function PUT(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const postId = searchParams.get('id');
+        if (!postId) {
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });
+        }
+
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const postsCollection = firestore.collection('Posts');
+        const docRef = postsCollection.doc(postId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+        }
+
+        await docRef.update(data);
+        const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
+        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
+        //uncomment line underneath if the above 2 lines are commented out
+        // return NextResponse.json({ id: postId, ...data }, { status: 200 });
+    }
+    catch {
+        return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const postId = searchParams.get('id');
+        if (!postId) {
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });
+        }
+
+        const firestore = firebase.firestore();
+        const postsCollection = firestore.collection('Posts');
+        const docRef = postsCollection.doc(postId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'post not found' }, { status: 404 });
+        }
+
+        await docRef.delete();
+        return NextResponse.json({ message: 'post deleted successfully' }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
