@@ -1,6 +1,6 @@
-import firebase from '@/model/firebase';
 import { Post } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
+import { auth, firestore } from '../firebaseAdmin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -15,8 +15,6 @@ export async function GET(request: NextRequest) {
         // Sorting filters
         const sortBy = searchParams.get('sort_by')
         const sortOrder = searchParams.get('sort_order');
-
-        const firestore = firebase.firestore();
         const postsCollection = firestore.collection('Posts');
 
         // Fetch by document ID if provided
@@ -65,7 +63,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const data = await request.json();
-        const firestore = firebase.firestore();
         const postsCollection = firestore.collection('Posts');
 
         // Validate required fields
@@ -87,11 +84,9 @@ export async function PUT(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
-            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });
-        }
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        }
 
         const data = await request.json();
-        const firestore = firebase.firestore();
         const postsCollection = firestore.collection('Posts');
         const docRef = postsCollection.doc(postId);
         const doc = await docRef.get();
@@ -115,10 +110,8 @@ export async function DELETE(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
-            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });
-        }
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        }
 
-        const firestore = firebase.firestore();
         const postsCollection = firestore.collection('Posts');
         const docRef = postsCollection.doc(postId);
         const doc = await docRef.get();

@@ -27,6 +27,24 @@ export default function AdminPage() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMessage]);
+
     // Fetch current user's full data to check for is_admin
     useEffect(() => {
         const fetchCurrentUserData = async () => {
@@ -218,20 +236,7 @@ export default function AdminPage() {
                 </div>
             </div>
         )
-    }
-
-    if (error) {
-        return (
-            <div className="flex justify-center items-center min-h-screen bg-slate-50">
-                <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
-                    <h2 className="text-xl font-semibold text-red-600 mb-3">Access Error</h2>
-                    <p className="text-red-500">{error}</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (!currentUserData?.is_admin) {
+    }    if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-slate-50">
                 <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
@@ -249,7 +254,7 @@ export default function AdminPage() {
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Panel</h1>
                     <p className="text-slate-600 text-lg mb-2">
-                        Welcome, <span className="text-blue-600 font-semibold">{currentUserData.name || currentUserData.email}</span>
+                        Welcome, <span className="text-blue-600 font-semibold">{currentUserData?.name || currentUserData?.email}</span>
                     </p>
                 </div>
 
