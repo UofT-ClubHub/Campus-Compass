@@ -55,3 +55,75 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function POST(request: NextRequest) {
+    try {
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+
+        // Validate required fields
+        if (!data.description || !data.campus) {
+            return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Create new club document
+        const docRef = await clubsCollection.add(data);
+        return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function PUT(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const clubId = searchParams.get('id');
+        if (!clubId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+        }
+
+        const data = await request.json();
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(clubId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        await docRef.update(data);
+        const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
+        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
+        //uncomment line underneath if the above 2 lines are commented out
+        // return NextResponse.json({ id: clubId, ...data }, { status: 200 });
+    }
+    catch {
+        return NextResponse.json({ error: 'Failed to update club' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const clubId = searchParams.get('id');
+        if (!clubId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+        }
+
+        const firestore = firebase.firestore();
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(clubId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        await docRef.delete();
+        return NextResponse.json({ message: 'Club deleted successfully' }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
