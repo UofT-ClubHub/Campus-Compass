@@ -1,6 +1,6 @@
-import firebase from '@/model/firebase';
 import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
+import { auth, firestore } from '../firebaseAdmin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,8 +12,6 @@ export async function GET(request: NextRequest) {
         // Sorting filters
         const sortBy = searchParams.get('sort_by')
         const sortOrder = searchParams.get('sort_order');
-
-        const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
 
         // Fetch by document ID if provided
@@ -59,7 +57,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const data = await request.json();
-        const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
 
         // Validate required fields
@@ -81,11 +78,10 @@ export async function PUT(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const clubId = searchParams.get('id');
         if (!clubId) {
-            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 }); 
         }
 
         const data = await request.json();
-        const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
         const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();
@@ -109,10 +105,9 @@ export async function DELETE(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const clubId = searchParams.get('id');
         if (!clubId) {
-            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });        
         }
 
-        const firestore = firebase.firestore();
         const clubsCollection = firestore.collection('Clubs');
         const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();

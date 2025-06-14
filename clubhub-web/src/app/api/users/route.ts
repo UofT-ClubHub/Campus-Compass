@@ -1,7 +1,7 @@
 import firebase from '@/model/firebase';
 import { User } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin'; // Ensure firestore is imported from admin SDK
+import { auth, firestore } from '../firebaseAdmin';
 
 export async function GET(request: NextRequest) {
     try {

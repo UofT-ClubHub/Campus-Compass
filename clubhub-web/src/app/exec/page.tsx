@@ -1,126 +1,311 @@
 "use client"
 
-import { useState, useEffect, type FormEvent } from "react"
-import { useAuth } from "@/hooks/useAuth"
-import type { User, Club, Post } from "@/model/types"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, type FormEvent } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import type { User, Club, Post } from "@/model/types";
+import { useRouter } from "next/navigation";
 
 export default function ExecPage() {
-  const { user: authUser, loading: authLoading } = useAuth()
-  const [userData, setUserData] = useState<User | null>(null)
-  const [managedClubs, setManagedClubs] = useState<Club[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  
+  const { user: authUser, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [userData, setUserData] = useState<User | null>(null);
+  const [managedClubs, setManagedClubs] = useState<Club[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   // Form states
-  const [showAddExecForm, setShowAddExecForm] = useState<string | null>(null)
-  const [newExecEmail, setNewExecEmail] = useState("")
-  const [showEditClubForm, setShowEditClubForm] = useState<string | null>(null)
-  const [editingClub, setEditingClub] = useState<Partial<Club>>({})
-  const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null)
-  const [newPost, setNewPost] = useState<Partial<Post>>({ title: "", details: "" })
-  const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map())
+  const [showAddExecForm, setShowAddExecForm] = useState<string | null>(null);
+  const [newExecEmail, setNewExecEmail] = useState("");
+  const [showEditClubForm, setShowEditClubForm] = useState<string | null>(null);
+  const [editingClub, setEditingClub] = useState<Partial<Club>>({});
+  const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
+  const [newPost, setNewPost] = useState<Partial<Post>>({ title: "", details: "" });
+  const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
+  
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   useEffect(() => {
-    if (authLoading) return
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+  useEffect(() => {
+    if (authLoading) return;
     if (!authUser) {
-      router.push("/auth")
-      return
+      router.push("/auth");
+      return;
     }
 
     const fetchUserData = async () => {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
       try {
-        const response = await fetch(`/api/users?id=${authUser.uid}`)
+        const response = await fetch(`/api/users?id=${authUser.uid}`);
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message)
+          const errorData = await response.json();
+          throw new Error(errorData.successMessage);
         }
-        const user: User = await response.json()
-        setUserData(user)
-
-        if (!user.is_executive) {
-          setError("Access Denied: You are not an executive!")
-          setIsLoading(false)
-          return
+        const user: User = await response.json();
+        setUserData(user); if (!user.is_executive) {
+          setError("Access Denied: You are not an executive!");
+          setIsLoading(false);
+          return;
         }
 
         if (user.managed_clubs && user.managed_clubs.length > 0) {
           const clubsDataPromises = user.managed_clubs.map(async (clubId: string) => {
-            const clubResponse = await fetch(`/api/clubs?id=${clubId}`)
+            const clubResponse = await fetch(`/api/clubs?id=${clubId}`);
             if (!clubResponse.ok) {
-              console.warn(`Failed to fetch club ${clubId}`)
-              return null
+              return null;
             }
-            return clubResponse.json()
-          })
-          const clubsResults = await Promise.all(clubsDataPromises)
-          setManagedClubs(clubsResults.filter((club) => club !== null) as Club[])
+            return clubResponse.json();
+          });
+          const clubsResults = await Promise.all(clubsDataPromises);
+          setManagedClubs(clubsResults.filter((club) => club !== null) as Club[]);
         }
       } catch (err: any) {
-        setError(err.message)
+        setError(err.successMessage);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUserData()
-  }, [authUser, authLoading, router])
+    fetchUserData();
+  }, [authUser, authLoading, router]);
 
   useEffect(() => {
     const fetchExecutiveDetails = async () => {
       if (managedClubs.length === 0) {
-        setExecutiveDetailsMap(new Map())
-        return
+        setExecutiveDetailsMap(new Map());
+        return;
       }
 
-      const newExecDetailsMap = new Map<string, User[]>()
+      const newExecDetailsMap = new Map<string, User[]>();
       await Promise.all(
         managedClubs.map(async (club) => {
           if (club.id && club.executives && club.executives.length > 0) {
             const execDetailsPromises = club.executives.map(async (execId) => {
               try {
-                const response = await fetch(`/api/users?id=${execId}`)
+                const response = await fetch(`/api/users?id=${execId}`);
                 if (!response.ok) {
-                  console.warn(`Failed to fetch user ${execId} for club ${club.id}`)
-                  return null
+                  return null;
                 }
-                const execUser = await response.json() as User
-                return execUser
+                const execUser = await response.json() as User;
+                return execUser;
               } catch (error) {
-                console.error(`Error fetching user ${execId} for club ${club.id}:`, error)
-                return null
+                return null;
               }
-            })
+            });
             const resolvedExecs = (await Promise.all(execDetailsPromises)).filter(
               (exec) => exec !== null,
-            ) as User[]
+            ) as User[];
             if (resolvedExecs.length > 0) {
-              newExecDetailsMap.set(club.id, resolvedExecs)
+              newExecDetailsMap.set(club.id, resolvedExecs);
             }
           }
         }),
-      )
-      setExecutiveDetailsMap(newExecDetailsMap)
-    }
+      );
+      setExecutiveDetailsMap(newExecDetailsMap);
+    };
 
     if (managedClubs.length > 0) {
-      fetchExecutiveDetails()
+      fetchExecutiveDetails();
     }
-  }, [managedClubs])
-
+  }, [managedClubs]);
   const handleAddExecutive = async (e: FormEvent, clubId: string) => {
-    // TODO
+    e.preventDefault();
+    if (!newExecEmail) {
+      setSuccessMessage("Please enter an email.");
+      return;
+    }
+
+    try {
+      const userResponse = await fetch(`/api/users?email=${encodeURIComponent(newExecEmail)}`);
+      if (!userResponse.ok) {
+        setError("Failed to fetch user data.");
+        return;
+      }
+      const users = await userResponse.json();
+      if (!users || users.length === 0) {
+        setError("User not found with the provided email.");
+        return;
+      }
+      const execUser = users[0] as User; const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
+      if (!updatedManagedClubs.includes(clubId)) {
+        updatedManagedClubs.push(clubId);
+      }
+
+      const updateUserPayload = {
+        id: execUser.id,
+        is_executive: true,
+        managed_clubs: updatedManagedClubs,
+      };
+
+      const idToken = await authUser?.getIdToken();
+      const updateUserResponse = await fetch(`/api/users`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify(updateUserPayload),
+      });
+
+      if (!updateUserResponse.ok) {
+        setError("Failed to update user as executive.");
+        return;
+      }
+
+      const clubToUpdate = managedClubs.find(club => club.id === clubId);
+      if (!clubToUpdate) {
+        setError("Club not found.");
+        return;
+      }
+      const updatedExecutives = Array.isArray(clubToUpdate.executives) ? [...clubToUpdate.executives] : [];
+      if (!updatedExecutives.includes(execUser.id)) {
+        updatedExecutives.push(execUser.id);
+      }
+
+      const updateClubResponse = await fetch(`/api/clubs?id=${clubId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ executives: updatedExecutives }),
+      })
+
+      if (!updateClubResponse.ok) {
+        const errorData = await updateClubResponse.json()
+        // Revert user update if club update fails
+        const revertUserPayload = {
+          id: execUser.id,
+          is_executive: execUser.is_executive, // original state
+          managed_clubs: execUser.managed_clubs, // original state
+        }
+        await fetch(`/api/users`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify(revertUserPayload),
+        })
+        setError(`Failed to update club executives: ${errorData.successMessage}`);
+        return;
+      }
+
+      // Update local state
+      setManagedClubs(prevClubs =>
+        prevClubs.map(club =>
+          club.id === clubId ? { ...club, executives: updatedExecutives } : club
+        )
+      )
+      // Add new executive to the details map
+      setExecutiveDetailsMap(prevMap => {
+        const newMap = new Map(prevMap)
+        const currentExecs = newMap.get(clubId) || []
+        if (!currentExecs.find(ex => ex.id === execUser.id)) {
+          newMap.set(clubId, [...currentExecs, execUser])
+        }
+        return newMap;
+      })
+      setNewExecEmail("")
+      setShowAddExecForm(null)
+      setSuccessMessage("Executive added successfully!")
+    } catch (err: any) {
+      console.error("Error adding executive:", err)
+      setSuccessMessage(`Error: ${err.successMessage}`)
+    }
   }
 
   const handleEditClubInfo = async (e: FormEvent, clubId: string) => {
-    // TODO
+    e.preventDefault()
+    if (!editingClub.name || !editingClub.description || !editingClub.campus) {
+      setSuccessMessage("Name, description, and campus are required.")
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/clubs?id=${clubId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingClub),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.successMessage || "Failed to update club info.")
+      }
+
+      const updatedClub = await response.json()
+
+      // Update local state
+      setManagedClubs(prevClubs =>
+        prevClubs.map(club => (club.id === clubId ? { ...club, ...updatedClub } : club))
+      )
+      setShowEditClubForm(null)
+      setEditingClub({})
+      setSuccessMessage("Club information updated successfully!")
+    } catch (err: any) {
+      console.error("Error editing club info:", err)
+      setSuccessMessage(`Error: ${err.successMessage}`)
+    }
   }
 
   const handleCreatePost = async (e: FormEvent, clubId: string) => {
-    // TODO
+    e.preventDefault()
+    const club = managedClubs.find(c => c.id === clubId)
+    if (!club) {
+      setSuccessMessage("Club not found.")
+      return
+    }
+
+    if (!newPost.title || !newPost.details || !newPost.category) {
+      setSuccessMessage("Title, details, and category are required for a post.")
+      return
+    }
+
+    const postData: Partial<Post> = {
+      ...newPost,
+      club: club.name,
+      campus: club.campus,
+      date_posted: new Date().toISOString(),
+      likes: 0,
+      date_occuring: newPost.date_occuring ? new Date(newPost.date_occuring).toISOString() : new Date().toISOString(),
+      hashtags: newPost.hashtags || [],
+      image: newPost.image || "",
+      links: newPost.links || [],
+    }
+
+    try {
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(postData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.successMessage || "Failed to create post.")
+      }
+
+      // Reset form and close
+      setNewPost({ title: "", details: "" })
+      setShowCreatePostForm(null)
+      setSuccessMessage("Post created successfully!")
+
+    } catch (err: any) {
+      setError(`Error creating post: ${err.successMessage}`)
+    }
   }
 
   if (authLoading || isLoading) {
@@ -134,41 +319,32 @@ export default function ExecPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-50">
-        <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
-          <h2 className="text-xl font-semibold text-red-600 mb-3">Access Error</h2>
-          <p className="text-red-500">{error}</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!userData?.is_executive) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-50">
-        <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
-          <h2 className="text-xl font-semibold text-red-600 mb-3">Access Denied</h2>
-          <p className="text-red-500">You do not have executive permissions.</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="max-w-5xl mx-auto">
-
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Executive Dashboard</h1>
-          <p className="text-slate-600 text-lg mb-2">
-            Welcome, <span className="text-blue-600 font-semibold">{userData.name}</span>
-          </p>
-          <div className="inline-block bg-slate-200 px-4 py-1 rounded-full text-sm font-medium text-slate-700">
-            Managing {managedClubs.length} {managedClubs.length === 1 ? "Club" : "Clubs"}
-          </div>
+      <div className="max-w-5xl mx-auto">        <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">Executive Dashboard</h1>
+        <p className="text-slate-600 text-lg mb-2">
+          Welcome, <span className="text-blue-600 font-semibold">{userData?.name || "User"}</span>
+        </p>
+        <div className="inline-block bg-slate-200 px-4 py-1 rounded-full text-sm font-medium text-slate-700">
+          Managing {managedClubs.length} {managedClubs.length === 1 ? "Club" : "Clubs"}
         </div>
+      </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            className={`p-4 mb-4 text-sm rounded-lg ${"bg-green-100 text-green-700"}`}
+            role="alert"
+          >
+            {successMessage}
+          </div>
+        )}
 
         {/* Clubs list */}
         {managedClubs.length > 0 ? (
@@ -248,7 +424,7 @@ export default function ExecPage() {
                     </button>
                   </div>
                 </div>
-                
+
                 {(club.executives && club.executives.length > 0) || (club.links && club.links.length > 0) ? (
                   <div className="px-4 pb-4 pt-2 border-t border-slate-100">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -258,27 +434,27 @@ export default function ExecPage() {
                           <div className="flex flex-wrap gap-2">
                             {executiveDetailsMap.get(club.id)
                               ? executiveDetailsMap.get(club.id)!.map((execUser, index) => (
-                                  <div
-                                    key={execUser.id || index}
-                                    className="bg-slate-100 text-slate-700 p-2 rounded shadow-sm min-w-[150px]"
-                                  >
-                                    <p className="text-sm font-semibold truncate" title={execUser.name}>
-                                      {execUser.name || "N/A"}
-                                    </p>
-                                    <p className="text-xs text-slate-500 truncate" title={execUser.email}>
-                                      {execUser.email || "N/A"}
-                                    </p>
-                                  </div>
-                                ))
+                                <div
+                                  key={execUser.id || index}
+                                  className="bg-slate-100 text-slate-700 p-2 rounded shadow-sm min-w-[150px]"
+                                >
+                                  <p className="text-sm font-semibold truncate" title={execUser.name}>
+                                    {execUser.name || "N/A"}
+                                  </p>
+                                  <p className="text-xs text-slate-500 truncate" title={execUser.email}>
+                                    {execUser.email || "N/A"}
+                                  </p>
+                                </div>
+                              ))
                               : club.executives.map((execId, index) => ( // Show placeholders if details not yet fetched
-                                  <div
-                                    key={execId || index}
-                                    className="bg-slate-100 p-2 rounded shadow-sm min-w-[150px] animate-pulse"
-                                  >
-                                    <div className="h-4 bg-slate-200 rounded w-20 mb-1"></div>
-                                    <div className="h-3 bg-slate-200 rounded w-28"></div>
-                                  </div>
-                                ))}
+                                <div
+                                  key={execId || index}
+                                  className="bg-slate-100 p-2 rounded shadow-sm min-w-[150px] animate-pulse"
+                                >
+                                  <div className="h-4 bg-slate-200 rounded w-20 mb-1"></div>
+                                  <div className="h-3 bg-slate-200 rounded w-28"></div>
+                                </div>
+                              ))}
                           </div>
                         </div>
                       )}
