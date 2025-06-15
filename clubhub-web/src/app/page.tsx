@@ -1,49 +1,48 @@
 'use client';
 
-import Image from "next/image";
-import firebase from '@/model/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { Autocomplete } from "@mantine/core"
 import { EventCard } from "../../components/event-card"
-import Link from "next/link";
+import { Post } from "@/model/types";
+import { useEffect, useState } from "react";
 
 
 export default function Home() {
   const { user, loading } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const events = [
-    {
-      id: 1,
-      title: "Welcome to Campus",
-      description: "Join us for an orientation event to kickstart the semester!",
-      image: "/placeholder.jpg",
-      date: "2023-09-01",
-      time: "10:00 AM - 2:00 PM",
-      location: "Main Auditorium",
-    },
-    {
-      id: 2,
-      title: "Club Fair",
-      description: "Explore various clubs and organizations on campus.",
-      image: "/placeholder.jpg",
-      date: "2023-09-05",
-      time: "11:00 AM - 4:00 PM",
-      location: "Student Union Building",
-    }
-  ]
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoadingPosts(true);
+        const response = await fetch('/api/posts?sort_by=likes&sort_order=desc');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch posts: ${response.statusText}`);
+        }
+        const data: Post[] = await response.json();
+        setPosts(data.slice(0, 3)); // Get top 3 posts
+        setError(null);
+      } catch (err: any) {
+        setError(err.message);
+        setPosts([]);
+      } finally {
+        setLoadingPosts(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   return (
     <div>
       <section className="relative h-[60vh] min-h-[300px] overflow-hidden">
-        <div className="absolute inset-0 bg-black/50 z-10" />
-
-        <Image
+        <div className="absolute inset-0 bg-black/50 z-10" />        
+        <img
           src="/utsc.jpg"
           alt="UofT Image"
-          layout="fill"
-          objectFit="cover"
-          className="z-0"
-          priority
+          className="z-0 object-cover w-full h-full"
         />
 
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white px-4">
@@ -84,21 +83,21 @@ export default function Home() {
                 <p className="text-center text-[#1E3765]">Stay updated with the latest events happening on campus.</p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                {events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    id={event.id}
-                    title={event.title}
-                    description={event.description}
-                    image={event.image}
-                    date={event.date}
-                    time={event.time}
-                    location={event.location}
-                    isRSVP={false} // Placeholder, implement RSVP logic later
-                  />
-                ))}
-              </div>
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+              
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+                  {posts.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      isRSVP={false} // Placeholder, implement RSVP logic later
+                    />
+                  ))}
+                </div>
+              )}
         </div>
       </section>
     </div>

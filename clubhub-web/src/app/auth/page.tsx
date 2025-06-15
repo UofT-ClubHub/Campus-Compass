@@ -82,24 +82,24 @@ export default function AuthPage() {
     };
 
     if (authLoading) {
-        return <div className="flex justify-center items-center min-h-screen text-white">Loading...</div>;
+        return <div className="flex justify-center items-center min-h-screen text-gray-800">Loading...</div>; // Changed text-white to text-gray-800
     }
 
     return (
         <div className="flex justify-center items-center min-h-screen">
-            <div className="w-full max-w-md p-8 rounded-lg text-white">
+            <div className="w-full max-w-md p-8 rounded-lg text-gray-800"> {/* Changed text-white to text-gray-800 */}
                 <h1 className="text-2xl font-bold mb-6 text-center">
                     {mode === 'login' ? 'Log In' : mode === 'register' ? 'Create Account' : 'Reset Password'}
                 </h1>
                 
                 {error && (
-                    <div role="alert" className="bg-red-500 text-white p-3 mb-4 rounded">
+                    <div role="alert" className="bg-red-500 text-gray-100 p-3 mb-4 rounded"> {/* Changed text-white to text-gray-100 for better contrast on red */}
                         <span>{error}</span>
                     </div>
                 )}
                 
                 {message && (
-                    <div role="alert" className="bg-green-500 text-white p-3 mb-4 rounded">
+                    <div role="alert" className="bg-green-500 text-gray-100 p-3 mb-4 rounded"> {/* Changed text-white to text-gray-100 for better contrast on green */}
                         <span>{message}</span>
                     </div>
                 )}
@@ -115,7 +115,7 @@ export default function AuthPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 rounded text-white border border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none"
+                            className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
                         />
                     </div>
                     
@@ -130,7 +130,7 @@ export default function AuthPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full p-2 rounded text-white border border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none"
+                                className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
                             />
                         </div>
                     )}
@@ -146,7 +146,7 @@ export default function AuthPage() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="w-full p-2 rounded text-white border border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none"
+                                className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
                             />
                         </div>
                     )}
@@ -155,7 +155,7 @@ export default function AuthPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full p-2 bg-blue-600 hover:bg-blue-800 active:bg-blue-900 text-white rounded font-medium"
+                            className="w-full p-2 bg-blue-600 hover:bg-blue-800 active:bg-blue-900 text-white rounded font-medium" /* Kept text-white for contrast on blue button */
                         >
                             {loading ? 'Processing...' : mode === 'login' ? 'Log In' : mode === 'register' ? 'Create Account' : 'Send Reset Email'}
                         </button>

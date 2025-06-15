@@ -20,6 +20,7 @@ export default function AdminPage() {
     const [editIsAdmin, setEditIsAdmin] = useState(false);
     const [editIsExecutive, setEditIsExecutive] = useState(false);
     const [editManagedClubs, setEditManagedClubs] = useState<string[]>([]);
+    const [managedClubDetails, setManagedClubDetails] = useState<Array<{ id: string; name: string }>>([]);
 
     const [clubSearchTerm, setClubSearchTerm] = useState('');
     const [searchedClubs, setSearchedClubs] = useState<Club[]>([]);
@@ -166,6 +167,44 @@ export default function AdminPage() {
         return () => clearTimeout(timeoutId);
     }, [clubSearchTerm, fetchClubs]);
 
+    useEffect(() => {
+        const fetchClubNames = async () => {
+            if (!authUser || !editManagedClubs || editManagedClubs.length === 0) {
+                setManagedClubDetails([]);
+                return;
+            }
+            // Ensure authUser.getIdToken is available
+            if (typeof authUser.getIdToken !== 'function') {
+                setManagedClubDetails(editManagedClubs.map(id => ({ id, name: `ID: ${id} (Loading...)` })));
+                return;
+            }
+
+            try {
+                const token = await authUser.getIdToken();
+                const clubDetailsPromises = editManagedClubs.map(async (clubId) => {
+                    const response = await fetch(`/api/clubs?id=${clubId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    if (!response.ok) {
+                        return { id: clubId, name: `ID: ${clubId} (Error loading name)` };
+                    }
+                    const clubData: Club = await response.json();
+                    return { id: clubData.id, name: clubData.name || `ID: ${clubData.id} (Name not found)` };
+                });
+                const resolvedClubDetails = await Promise.all(clubDetailsPromises);
+                setManagedClubDetails(resolvedClubDetails);
+            } catch (err) {
+                setManagedClubDetails(editManagedClubs.map(id => ({ id, name: `ID: ${id} (Error)` })));
+            }
+        };
+
+        if (isEditing && selectedUser) {
+            fetchClubNames();
+        } else {
+            setManagedClubDetails([]);
+        }
+    }, [editManagedClubs, isEditing, selectedUser, authUser]);
+
     const handleSelectUser = (user: User) => {
         setSelectedUser(user);
         setEditIsAdmin(user.is_admin);
@@ -174,7 +213,7 @@ export default function AdminPage() {
         setIsEditing(true);
         setError(null);
         setSuccessMessage(null);
-    };
+    };    
 
     const handleUpdateUser = async () => {
         if (!selectedUser || !authUser) return;
@@ -182,11 +221,13 @@ export default function AdminPage() {
         setSuccessMessage(null);
         try {
             const token = await authUser.getIdToken();
+            
+            // First, update the user data
             const payload: any = {
                 id: selectedUser.id,
                 is_admin: editIsAdmin,
                 is_executive: editIsExecutive,
-                managed_clubs: editManagedClubs,
+                managed_clubs: editIsExecutive ? editManagedClubs : [],
             };
 
             const response = await fetch('/api/users', {
@@ -203,6 +244,75 @@ export default function AdminPage() {
                 throw new Error(errorData.error);
             }
             const updatedUser = await response.json();
+
+            // Now update club executives lists
+            const originalManagedClubs = selectedUser.managed_clubs || [];
+            const newManagedClubs = editIsExecutive ? editManagedClubs : [];
+            
+            // Find clubs that were added
+            const clubsToAdd = newManagedClubs.filter(clubId => !originalManagedClubs.includes(clubId));
+            
+            // Find clubs that were removed
+            const clubsToRemove = originalManagedClubs.filter(clubId => !newManagedClubs.includes(clubId));
+
+            // Update clubs where user was added as executive
+            for (const clubId of clubsToAdd) {
+                try {
+                    // Fetch current club data
+                    const clubResponse = await fetch(`/api/clubs?id=${clubId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    
+                    if (clubResponse.ok) {
+                        const clubData = await clubResponse.json();
+                        const updatedExecutives = [...(clubData.executives || []), selectedUser.id];
+                        
+                        // Update club executives
+                        await fetch(`/api/clubs?id=${clubId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                executives: updatedExecutives
+                            }),
+                        });
+                    }
+                } catch (clubErr) {
+                    console.error(`Failed to add user to club ${clubId} executives:`, clubErr);
+                }
+            }
+
+            // Update clubs where user was removed as executive
+            for (const clubId of clubsToRemove) {
+                try {
+                    // Fetch current club data
+                    const clubResponse = await fetch(`/api/clubs?id=${clubId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    
+                    if (clubResponse.ok) {
+                        const clubData = await clubResponse.json();
+                        const updatedExecutives = (clubData.executives || []).filter((exec: string) => exec !== selectedUser.id);
+                        
+                        // Update club executives
+                        await fetch(`/api/clubs?id=${clubId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                executives: updatedExecutives
+                            }),
+                        });
+                    }
+                } catch (clubErr) {
+                    console.error(`Failed to remove user from club ${clubId} executives:`, clubErr);
+                }
+            }
+
             setSelectedUser(updatedUser);
             setSuccessMessage('User updated successfully!');
             setIsEditing(false);
@@ -215,16 +325,36 @@ export default function AdminPage() {
         }
     };
 
-    const handleAddClubToManaged = (clubId: string) => {
-        if (!editManagedClubs.includes(clubId)) {
-            setEditManagedClubs([...editManagedClubs, clubId]);
+    const handleAddClubToManaged = (clubIdToAdd: string) => {
+        if (!selectedUser) {
+            setError("User details are missing for this action.");
+            return;
         }
+        if (editManagedClubs.includes(clubIdToAdd)) {
+            // Club is already managed, just clear search
+            setClubSearchTerm('');
+            setSearchedClubs([]);
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+
+        // Update the UI for the user's managed clubs list in the form
+        setEditManagedClubs(prevClubs => [...prevClubs, clubIdToAdd]);
         setClubSearchTerm('');
         setSearchedClubs([]);
-    };
+    }; 
+    
+    const handleRemoveClubFromManaged = (clubIdToRemove: string) => {
+        if (!selectedUser) {
+            setError("User details are missing for this action.");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
 
-    const handleRemoveClubFromManaged = (clubId: string) => {
-        setEditManagedClubs(editManagedClubs.filter(id => id !== clubId));
+        // Update the UI for the user's managed clubs list in the form
+        setEditManagedClubs(prevClubs => prevClubs.filter(id => id !== clubIdToRemove));
     };
 
     if (authLoading || isLoading) {
@@ -236,7 +366,7 @@ export default function AdminPage() {
                 </div>
             </div>
         )
-    }    if (!currentUserData?.is_admin && !isLoading && !authLoading) {
+    } if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-slate-50">
                 <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
@@ -362,13 +492,13 @@ export default function AdminPage() {
                             )}
                             <div className="mt-4">
                                 <p className="text-sm font-medium text-slate-600 mb-2">Current Managed Clubs:</p>
-                                {editManagedClubs.length > 0 ? (
+                                {managedClubDetails.length > 0 ? (
                                     <div className="space-y-2">
-                                        {editManagedClubs.map(clubId => (
-                                            <div key={clubId} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
-                                                <span className="text-slate-700">{clubId}</span>
+                                        {managedClubDetails.map(clubDetail => (
+                                            <div key={clubDetail.id} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
+                                                <span className="text-slate-700">{clubDetail.name}</span>
                                                 <button
-                                                    onClick={() => handleRemoveClubFromManaged(clubId)}
+                                                    onClick={() => handleRemoveClubFromManaged(clubDetail.id)}
                                                     className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
                                                 >
                                                     Remove
@@ -377,7 +507,7 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-slate-500 text-sm">No clubs managed.</p>
+                                    <p className="text-slate-500 text-sm">{isEditing && selectedUser && editManagedClubs.length > 0 ? 'Loading club names...' : 'No clubs managed.'}</p>
                                 )}
                             </div>
                         </div>

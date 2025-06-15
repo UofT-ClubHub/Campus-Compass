@@ -21,6 +21,8 @@ export default function ExecPage() {
   const [editingClub, setEditingClub] = useState<Partial<Club>>({});
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
   const [newPost, setNewPost] = useState<Partial<Post>>({ title: "", details: "" });
+  const [hashtagsInput, setHashtagsInput] = useState("");
+  const [linksInput, setLinksInput] = useState("");
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
   
   useEffect(() => {
@@ -260,22 +262,24 @@ export default function ExecPage() {
       setSuccessMessage(`Error: ${err.successMessage}`)
     }
   }
-
   const handleCreatePost = async (e: FormEvent, clubId: string) => {
     e.preventDefault()
     const club = managedClubs.find(c => c.id === clubId)
     if (!club) {
-      setSuccessMessage("Club not found.")
+      setError("Club not found.")
       return
     }
 
     if (!newPost.title || !newPost.details || !newPost.category) {
-      setSuccessMessage("Title, details, and category are required for a post.")
+      setError("Title, details, and category are required for a post.")
       return
     }
 
-    const postData: Partial<Post> = {
-      ...newPost,
+    // Prepare the post data with all required fields
+    const postData = {
+      title: newPost.title,
+      details: newPost.details,
+      category: newPost.category,
       club: club.name,
       campus: club.campus,
       date_posted: new Date().toISOString(),
@@ -286,6 +290,8 @@ export default function ExecPage() {
       links: newPost.links || [],
     }
 
+    console.log("Sending post data:", postData) // Debug log
+
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
@@ -295,16 +301,18 @@ export default function ExecPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.successMessage || "Failed to create post.")
+        throw new Error(errorData.error || errorData.message || "Failed to create post.")
       }
-
+      
       // Reset form and close
-      setNewPost({ title: "", details: "" })
+      setNewPost({ title: "", details: "", category: "" })
+      setHashtagsInput("")
+      setLinksInput("")
       setShowCreatePostForm(null)
       setSuccessMessage("Post created successfully!")
 
     } catch (err: any) {
-      setError(`Error creating post: ${err.successMessage}`)
+      setError(`Error creating post: ${err.message}`)
     }
   }
 
@@ -604,21 +612,20 @@ export default function ExecPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">
-                            Hashtags (comma-separated):
-                          </label>
+                          <label className="block text-sm font-medium text-slate-600 mb-1">Hashtags (comma-separated):</label>
                           <input
                             type="text"
-                            value={newPost.hashtags?.join(", ") || ""}
-                            onChange={(e) =>
+                            value={hashtagsInput}
+                            onChange={(e) => {
+                              setHashtagsInput(e.target.value);
                               setNewPost((prev) => ({
                                 ...prev,
                                 hashtags: e.target.value
                                   .split(",")
                                   .map((tag) => tag.trim())
                                   .filter((tag) => tag.length > 0),
-                              }))
-                            }
+                              }));
+                            }}
                             placeholder="tag1, tag2, tag3"
                             className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
                           />
@@ -646,23 +653,22 @@ export default function ExecPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">
-                            Links (comma-separated):
-                          </label>
+                          <label className="block text-sm font-medium text-slate-600 mb-1">Links (comma-separated):</label>
                           <input
-                            type="text"
-                            value={newPost.links?.join(", ") || ""}
-                            onChange={(e) =>
-                              setNewPost((prev) => ({
-                                ...prev,
-                                links: e.target.value
-                                  .split(",")
-                                  .map((link) => link.trim())
-                                  .filter((link) => link.length > 0),
-                              }))
-                            }
-                            placeholder="https://link1.com, https://link2.com"
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
+                          type="text"
+                          value={linksInput}
+                          onChange={(e) => {
+                            setLinksInput(e.target.value);
+                            setNewPost((prev) => ({
+                            ...prev,
+                            links: e.target.value
+                              .split(",")
+                              .map((link) => link.trim())
+                              .filter((link) => link.length > 0),
+                            }));
+                          }}
+                          placeholder="https://link1.com, https://link2.com"
+                          className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
                           />
                         </div>
                       </div>
