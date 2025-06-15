@@ -5,6 +5,8 @@ import firebase from '@/model/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { Autocomplete } from "@mantine/core"
 import { EventCard } from "../../components/event-card"
+import Link from "next/link";
+
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -70,8 +72,7 @@ export default function Home() {
                 },
               }}
             />
-          </div>
-
+          </div>~
         </div>
       </section>
 
@@ -100,8 +101,6 @@ export default function Home() {
               </div>
         </div>
       </section>
-
-      
     </div>
   );
 }
