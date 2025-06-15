@@ -24,7 +24,7 @@ export function Header() {
         <nav className="flex items-center gap-5">
           <Link href="/" className="text-lg font-semibold text-[#1E3765] hover:text-[#6FC7EA] transition-colors">Campus Compass</Link> 
           <Link href="/clubSearch" className="text-gray-700 hover:text-[#6FC7EA] transition-colors">Clubs</Link>
-          <Link href="/" className="text-gray-700 hover:text-[#6FC7EA] transition-colors">Events</Link>
+          <Link href="/postFilter" className="text-gray-700 hover:text-[#6FC7EA] transition-colors">Posts</Link>
         </nav>
         <nav className="flex items-center gap-4">
           {loading && (

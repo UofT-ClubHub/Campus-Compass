@@ -1,8 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import firebase from "@/model/firebase";
-import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Post } from "@/model/types";
 
@@ -58,7 +55,7 @@ export default function clubSearchPage() {
       {/* Header and Search Section */}
       <div className="w-full bg-gray-50 pt-6 pb-8">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">Event Search</h1>
+          <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">Post Search</h1>
 
           {/* Compact Search Filters */}
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-4 mb-4">
@@ -120,10 +117,10 @@ export default function clubSearchPage() {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
               >
-                <option value="">Select Type of Event</option>
-                <option value="Event">Event</option>
-                <option value="Gala">Gala</option>
-                <option value="Hackathon">Hackathon</option>
+                <option value="">Select Type of Post</option>
+                <option value="Post">Event</option>
+                <option value="Gala">Hiring</option>
+                <option value="Hackathon">Announcement</option>
               </select>
             </div>
           </div>
@@ -151,7 +148,7 @@ export default function clubSearchPage() {
                   Searching...
                 </span>
               ) : (
-                "Search for Events"
+                "Search for Posts"
               )}
             </button>
           </div>
@@ -162,7 +159,7 @@ export default function clubSearchPage() {
       <div className="w-full bg-gray-50 pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
-            <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">Event Results</h2>
+            <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">Post Results</h2>
 
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -192,8 +189,8 @@ export default function clubSearchPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">No events found</h3>
-                <p className="text-gray-500 text-sm">Try adjusting your filters to find more events</p>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">No posts found</h3>
+                <p className="text-gray-500 text-sm">Try adjusting your filters to find more posts</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -201,14 +198,22 @@ export default function clubSearchPage() {
                   <div
                     key={post.id}
                     className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
-                  >
-                    {/* Image Section */}
+                  >                    {/* Image Section */}
                     <div className="relative h-48 bg-gray-200">
                       <img
-                        src="/placeholder.svg?height=200&width=400"
+                        src={post.image || "/placeholder.jpg"}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
+                      {/* Likes counter overlay */}
+                      <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded-full flex items-center gap-1">
+                        <svg className="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span className="text-sm">
+                          {post.likes || 0}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Content Section */}
