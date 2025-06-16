@@ -91,5 +91,5 @@
 - Monitor system logs for errors, crashes and unexpected behaviour
 
 ### Roll Back Strategy
-- Keep a backup of previous versions
+- Keep a backup of previous versions and branches
 - Restore the latest database backup if data becomes corrupted
