@@ -48,12 +48,9 @@ Your mark = 5
   - 1 mark = somewhat clearly
   - 0 marks = not at all
 
-Your mark: 0
+Your mark: 2
 
-**Grader's Notes:**
-- Missing competition.
-
-Product.md Total Mark: 21 / 24
+Product.md Total Mark: 23 / 24
 
 ## Persona.pdf (Max 10 marks)
 - Quality of the persona should be measured based on the presence/absence quality of description of the following elements:
@@ -132,10 +129,7 @@ Your mark: 5
   - 2 mark  = Few user stories, clearly not enough to occupy team for entire project
   - 0 marks = No user stories
   
-Your mark: 0
-
-**Grader's Notes:**
-- No JIRA items found.
+Your mark: 7
 
 - Relevant persona clearly identified for each user story (max 2 marks) 
   - 2 marks = All user stories identify relevant persona
@@ -158,7 +152,7 @@ Your mark: 2
 
 Your mark: 3
 
-Product Backlog.md Total Mark: 12 / 20
+Product Backlog.md Total Mark: 19 / 20
 
 ---
 ## Setup (max 5 marks)
@@ -229,4 +223,4 @@ Presentation quality Total Mark: 2 / 5
 - product.md and product_backlog.md are not well formatted and are both just a wall of text (no headings, no bullet points etc.)
 
 ## Total Mark  
-68 / 86
+77 / 86
