@@ -444,16 +444,16 @@ export default function AdminPage() {
 
                 {isEditing && selectedUser && (
                     <section className="bg-white rounded-lg shadow-sm p-6 border border-slate-200">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-6">Edit User: {selectedUser.name || selectedUser.email}</h2>
-                        <div className="mb-4">
+                        <h2 className="text-xl font-semibold text-slate-800 mb-6">Edit User: {selectedUser.name || selectedUser.email}</h2>                        <div className="mb-4">
                             <label className="flex items-center text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={editIsAdmin}
                                     onChange={(e) => setEditIsAdmin(e.target.checked)}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                                    disabled={true}
+                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded opacity-50 cursor-not-allowed"
                                 />
-                                Is Admin
+                                Is Admin (Read-only)
                             </label>
                         </div>
 
