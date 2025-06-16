@@ -77,7 +77,7 @@ We follow a branching strategy inspired by **Git Flow**.
 
 - For this project, we are using Next.js for both the frontend and backend, Firebase Database for storage, and GitHub Actions with Python for the bots. We will be following the MVC (Model-View-Controller) setup:
 
-- The model is defined in `clubhub-web/src/model`, setting up a client for the Firebase cloud database that we are using.
+- The model is defined in `clubhub-web/src/model`, setting up a client for the Firebase cloud database that we are using and defining data structures for Clubs, Posts, and Users.
 
 - The controllers are defined in `clubhub-web/src/app/api`, and are used to interact with the client, performing CRUD operations.
     - The basic GET endpoints have been set up for each of the database collections: Clubs, Posts, Users
