@@ -17,7 +17,7 @@
   - **Achievable:** We have previous experience creating a database using Firebase
   - **Relevant:** Core requirement for our application to be able to create and search for Clubs/Posts
   - **Time-bound:** Complete within Sprint 1
-- Implment a user authentication system
+- Implement a user authentication system
   - **Specific:**  Build registration, login and session handling
   - **Measurable:** System passes all of the authentication test cases when creating an account or logging in 
   - **Achievable:** We have prior experience handling authentication using Firebase
@@ -35,7 +35,7 @@
 - Authentication
   - Implements secure Firebase authentication
 - API Endpoints
-  - GET, POST, PUT, DELETE endpoints for our api
+  - GET, POST, PUT, DELETE endpoints for our API
 - Clubs/Search Filtering
   - Using our endpoints, filter clubs/events stored in our database based on factors such as name, campus, description, etc
 - Admin/Club Executive Page
@@ -68,14 +68,14 @@
 
 ### Dependencies and Limitations
 - **Dependencies:** Firebase, Next.js, Tailwind CSS
-- **Limititations:** 
+- **Limitations:** 
   - Instagram has added additional security features that we have to work around
   - Limited functionality of the website due to the early stage of development
 
 ## Additional Thoughts on Considerations for Full Organizational Deployment
 
 ### Detailed Instruction - Steps to Carry Out the Deployment
-- Ensure all dependencies are properlly installed
+- Ensure all dependencies are properly installed
 - Back up the database before deployment
 - Perform a smoke test to verify proper functionality
 
@@ -83,7 +83,7 @@
 - Perform tests to ensure proper functionality of features
 - Check database integrity
 - Confirm proper integration between front and back end
-- Test key uesr flows such as user registration/login and club/post filtering
+- Test key user flows such as user registration/login and club/post filtering
 
 
 ### Post Deployment Monitoring
