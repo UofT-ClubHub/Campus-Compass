@@ -106,3 +106,5 @@ Despite this scale, there is **no centralized platform** for clubs and students 
 hub for all things club-related.
 
 It transforms fragmented student engagement into a **structured, campus-specific experience**, ensuring that no student misses out on what their campus community has to offer.
+
+Sources: https://www.utoronto.ca/about-u-of-t/quick-facts
