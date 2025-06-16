@@ -12,7 +12,7 @@
 
 ### Specific Goals
 - Design & Implement database schema 
-  - **Specific:** Create and design a databse that supports Users, Posts and Clubs
+  - **Specific:** Create and design a database that supports Users, Posts and Clubs
   - **Measurable:** Database is able to store Users, Posts and Clubs
   - **Achievable:** We have previous experience creating a database using Firebase
   - **Relevant:** Core requirement for our application to be able to create and search for Clubs/Posts
