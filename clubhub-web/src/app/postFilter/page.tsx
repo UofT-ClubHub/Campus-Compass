@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Post } from "@/model/types";
 
-export default function clubSearchPage() {
+export default function postearchPage() {
   const [clubList, setClubList] = useState<Post[]>([]);
   const [nameFilter, setNameFilter] = useState("");
   const [campusFilter, setCampusFilter] = useState("");
@@ -48,6 +48,15 @@ export default function clubSearchPage() {
 
     console.log("Filtered clubs:", data);
   }
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      filterPosts();
+    }, 500); // waits 500ms after user stops typing
+  
+    return () => clearTimeout(delay); // cancel previous timeout if input changes
+  }, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, categoryFilter]);
+  
 
 
   return (
@@ -123,34 +132,6 @@ export default function clubSearchPage() {
                 <option value="Hackathon">Announcement</option>
               </select>
             </div>
-          </div>
-
-          {/* Search Button */}
-          <div className="text-center">
-            <button
-              onClick={() => {
-                console.log("Searching for posts with filters:", {
-                  nameFilter,
-                  campusFilter,
-                  descriptionFilter,
-                  clubFilter,
-                  hashtagsFilter,
-                  categoryFilter,
-                })
-                filterPosts()
-              }}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-200 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Searching...
-                </span>
-              ) : (
-                "Search for Posts"
-              )}
-            </button>
           </div>
         </div>
       </div>
