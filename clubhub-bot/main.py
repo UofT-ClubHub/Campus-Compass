@@ -39,6 +39,6 @@ with open("output.json", "w", encoding="utf-8") as f:
 firebase_client.upload_posts("output.json", mapping)
 
 # Clean up the output file
-# if os.path.exists("output.json"):
-#     os.remove("output.json")
-#     print("\nCleaned up output.json")
+if os.path.exists("output.json"):
+    os.remove("output.json")
+    print("\nCleaned up output.json")

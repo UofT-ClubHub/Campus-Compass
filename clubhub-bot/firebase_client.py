@@ -36,7 +36,7 @@ def get_instagram_links():
         data = club.to_dict() or {}
         instagram_link = data.get("instagram", "").strip()
         campus = data.get("campus", "").strip()
-        club_name = data.get("name", "").strip()
+        club_id = data.get("id", "").strip()
         if instagram_link:
             # Remove @ symbol if present
             instagram_link = instagram_link.lstrip('@')
@@ -46,7 +46,7 @@ def get_instagram_links():
             # Map the link to its campus
             mapping[formatted_link] = {
                 "campus": campus,
-                "club_name": club_name
+                "id": club_id
             }
 
     print(mapping)
@@ -92,7 +92,7 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
             if src_key in item and item[src_key] is not None:
                 val = item[src_key]
                 if src_key == "url":
-                    doc_data["club"] = mapping.get(owner_url, {}).get("club_name")
+                    doc_data["club"] = mapping.get(owner_url, {}).get("id")
                     doc_data["campus"] = mapping.get(owner_url, {}).get("campus")
                     doc_data["category"] = llm_utils.classify_post(item.get("caption"))
                     doc_data["title"] = llm_utils.get_title(item.get("caption"))
