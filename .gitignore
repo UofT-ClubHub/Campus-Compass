@@ -1,1 +1,5 @@
 clubhub-web/env
+clubhub-bot/.env
+clubhub-bot/.venv
+clubhub-bot/__pycache__
+clubhub-bot/serviceAccountKey.json
