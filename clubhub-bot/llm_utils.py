@@ -12,13 +12,14 @@ login(token=os.getenv("HF_TOKEN"))
 _classifier = pipeline(
     "zero-shot-classification",
     model="facebook/bart-large-mnli",
-    use_auth_token=os.getenv("HF_TOKEN")
+    device="cpu"
 )
 
 # LLM for title generation
 _title_gen = pipeline(
     "text2text-generation",
-    model="google/flan-t5-base"
+    model="google/flan-t5-base",
+    device="cpu"
 )
 
 def classify_post(text: str, labels: list[str] | None = None) -> str:
