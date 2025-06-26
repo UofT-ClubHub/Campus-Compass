@@ -1,14 +1,12 @@
 import json
 import os
 import firebase_client
-from firebase_client import db
 from apify_client import ApifyClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-instagram_links = firebase_client.get_instagram_links()
-
+instagram_links, mapping = firebase_client.get_instagram_links()
 
 # Initialize the ApifyClient with your API token
 apify_api_key = os.getenv("APIFY_API_KEY")
@@ -38,5 +36,9 @@ items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
 with open("output.json", "w", encoding="utf-8") as f:
     json.dump(items, f, indent=4, ensure_ascii=False)
 
+firebase_client.upload_posts("output.json", mapping)
 
-firebase_client.upload_posts("output.json", collection_name="Posts")
+# Clean up the output file
+# if os.path.exists("output.json"):
+#     os.remove("output.json")
+#     print("\nCleaned up output.json")
