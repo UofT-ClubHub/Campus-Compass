@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@mantine/core": "^8.1.0",
-    "@mantine/hooks": "^8.1.0",
+    "@mantine/core": "^8.1.1",
+    "@mantine/hooks": "^8.1.1",
     "firebase": "^11.8.1",
     "firebase-admin": "^13.4.0",
     "lucide-react": "^0.515.0",
