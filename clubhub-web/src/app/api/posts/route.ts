@@ -1,6 +1,7 @@
 import { Post } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
+import { getCurrentUserId } from '../getID';
 
 export async function GET(request: NextRequest) {
     try {
