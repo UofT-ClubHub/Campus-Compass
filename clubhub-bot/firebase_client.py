@@ -5,6 +5,9 @@ import os
 import json
 from dotenv import load_dotenv
 import llm_utils
+import requests
+import base64
+from io import BytesIO
 
 load_dotenv()  
 
@@ -97,6 +100,9 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                     doc_data["category"] = llm_utils.classify_post(item.get("caption"))
                     doc_data["title"] = llm_utils.get_title(item.get("caption"))
                     doc_data["links"] = [post_url]
+                elif src_key == "displayUrl":
+                    # Convert image URL to base64
+                    doc_data[dst_key] = url_to_base64(val)
                 else:
                     doc_data[dst_key] = val
 
@@ -110,3 +116,14 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
 
     batch.commit()  
     print(f"\n✅ Uploaded {len(items)} documents to '{collection_name}'")
+
+def url_to_base64(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        image_data = BytesIO(response.content)
+        base64_string = base64.b64encode(image_data.getvalue()).decode('utf-8')
+        return f"data:image/{url.split('.')[-1]};base64,{base64_string}"
+    except Exception as e:
+        print(f"Error converting image to base64: {e}")
+        return url  # Return original URL if conversion fails
