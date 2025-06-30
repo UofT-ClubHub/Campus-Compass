@@ -1,4 +1,4 @@
-import { Post } from '@/model/types';
+import { Post, Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
 
@@ -35,12 +35,21 @@ export async function GET(request: NextRequest) {
 
         let posts: Post[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
 
+        let clubIds: string[] = [];
+        if (clubFilter) {
+            const clubsCollection = firestore.collection('Clubs');
+            const clubsSnapshot = await clubsCollection.get();
+            const clubs: Club[] = clubsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Club));
+            const matchingClubs = clubs.filter(club => club.name && club.name.toLowerCase().includes(clubFilter.toLowerCase()));
+            clubIds = matchingClubs.map(club => club.id);
+        }
+
         // Apply all filters if they exist
         posts = posts.filter(post =>
             (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
             (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
             (!campusFilter || (post.campus && post.campus.toLowerCase() === campusFilter.toLowerCase())) &&
-            (!clubFilter || (post.club && post.club.toLowerCase().includes(clubFilter.toLowerCase()))) &&
+            (!clubFilter || (post.club && clubIds.includes(post.club))) &&
             (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
             (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.some((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
