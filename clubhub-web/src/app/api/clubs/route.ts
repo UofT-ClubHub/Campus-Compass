@@ -1,7 +1,7 @@
 import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
-import { getCurrentUserId } from '../getID';
+import { checkExecPermissions, getCurrentUserId } from '../amenities';
 
 export async function GET(request: NextRequest) {
     try {
@@ -95,6 +95,12 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
         }
 
+        // Authorization check for editing club
+        const { authorized, error, status } = await checkExecPermissions(request, clubId);
+        if (!authorized) {
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        }
+
         await docRef.update(data);
         const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
         return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
@@ -119,6 +125,12 @@ export async function DELETE(request: NextRequest) {
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        // Authorization check for editing club
+        const { authorized, error, status } = await checkExecPermissions(request, clubId);
+        if (!authorized) {
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
         await docRef.delete();

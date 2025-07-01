@@ -1,7 +1,7 @@
 import { Post } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
-import { getCurrentUserId } from '../getID';
+import { checkPostPermissions, checkExecPermissions } from '../amenities';
 
 export async function GET(request: NextRequest) {
     try {
@@ -79,6 +79,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
+        // check if user is executive of club
+        const { authorized, error, status } = await checkExecPermissions(request, data.club);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        }
+
         // Create new club document
         const docRef = await postsCollection.add(data);
         return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
@@ -93,7 +99,8 @@ export async function PUT(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
-            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        }
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        
+        }
 
         const data = await request.json();
         const postsCollection = firestore.collection('Posts');
@@ -101,6 +108,12 @@ export async function PUT(request: NextRequest) {
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+        }
+
+        // Authorization check if user can edit post
+        const { authorized, error, status } = await checkPostPermissions(request, postId);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
         await docRef.update(data);
@@ -126,6 +139,12 @@ export async function DELETE(request: NextRequest) {
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'post not found' }, { status: 404 });
+        }
+
+        // Authorization check if user can delete post
+        const { authorized, error, status } = await checkPostPermissions(request, postId);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
         await docRef.delete();
