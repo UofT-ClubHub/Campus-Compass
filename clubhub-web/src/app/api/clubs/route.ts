@@ -1,7 +1,7 @@
 import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
-import { checkExecPermissions, getCurrentUserId } from '../amenities';
+import { checkExecPermissions } from '../amenities';
 
 export async function GET(request: NextRequest) {
     try {
