@@ -13,9 +13,9 @@ export default function clubSearchPage() {
   const [nameFilter, setNameFilter] = useState("")
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
-  const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState("");
+  const [loadingMore, setLoadingMore] = useState(false);
   const limit = 2;
   
 
@@ -34,8 +34,15 @@ export default function clubSearchPage() {
   }, [authUser]);
 
   const clubSearch = async (isNewSearch = false) => {
+    if (loading || loadingMore) return;
+
+    if (isNewSearch) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      console.log("YURRRR")
       const params = new URLSearchParams()
 
       nameFilter ? params.append("name", nameFilter) : null
@@ -43,11 +50,16 @@ export default function clubSearchPage() {
       descriptionFilter ? params.append("description", descriptionFilter) : null
       params.append("sort_by", "followers")
       params.append("sort_order", "desc") // or 'asc' for ascending
-      params.append("offset", offset.toString()) // Pagination
+      params.append("offset", isNewSearch ? "" : offset) // Pagination
       params.append("limit", limit.toString());
-      const res = await fetch(`/api/clubs?${params.toString()}`, {
+
+      const fetchPromise = fetch(`/api/clubs?${params.toString()}`, {
         method: "GET",
-      })
+      });
+
+      // delay for fetch
+      const delayPromise = new Promise(resolve => setTimeout(resolve, isNewSearch ? 0 : 500));
+      const [res] = await Promise.all([fetchPromise, delayPromise]);
 
       if (!res.ok) {
         throw new Error("Failed to fetch clubs")
@@ -55,36 +67,35 @@ export default function clubSearchPage() {
 
       const data = await res.json()
       
-      setOffset(offset + data.length);
-      //setLoading(false);
+      if (data.length > 0) {
+        setOffset(data[data.length - 1].id);
+      }
       setHasMore(data.length === limit);
-      console.log("hasMore", hasMore);
       
-
       if (isNewSearch){
         setClubs(data as Club[])
       } else{
-        setClubs(prevClubs => [...prevClubs, ...(data as Club[])])
+        setClubs(prevClubs => {
+          const existingIds = new Set(prevClubs.map(c => c.id));
+          const newClubs = (data as Club[]).filter(club => !existingIds.has(club.id));
+          return [...prevClubs, ...newClubs];
+        })
       }
 
-      //setHasMore(data.length > 0) // Check if there are more clubs to load
-
-      // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
       console.log("Club list updated:", data)
-      console.log("page", page)
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
-      setLoading(false)
-      console.log("we here", page);
-      // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
-      // console.log('Club list updated:', data);
+      if (isNewSearch) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   }
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      setPage(1); // Reset to first page on new search
       setHasMore(true); // Reset hasMore for new search
       clubSearch(true);
     }, 500); // waits 500ms after user stops typing
@@ -92,21 +103,13 @@ export default function clubSearchPage() {
     return () => clearTimeout(delay); // cancel previous timeout if input changes
   }, [nameFilter, campusFilter, descriptionFilter]);
 
-//   // Fetch data when the page changes (pagination)
-// useEffect(() => {
-//   if (offset > 0) {
-//       clubSearch();
-//   }
-// }, [offset]);
-
-// Infinite scrolling logic
 // Infinite scrolling logic
 useEffect(() => {
   const handleScroll = () => {
     // Check if we're near the bottom of the page
     if (
       window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&  
-      hasMore
+      hasMore && !loading && !loadingMore
     ) {
       console.log("Near bottom, fetching more...");
       clubSearch();
@@ -122,7 +125,7 @@ useEffect(() => {
   return () => {
     window.removeEventListener('scroll', handleScroll);
   };
-}, [hasMore, offset]); // Include loading in dependencies
+}, [hasMore, offset, loading, loadingMore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -210,6 +213,15 @@ useEffect(() => {
                   // console.log("Rendering club:", club),
                   <ClubCard key={club.id} club={club} currentUser={currentUser} />
                 ))}
+              </div>
+            )}
+            {loadingMore && (
+              <div className="flex justify-center items-center py-8">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
               </div>
             )}
           </div>
