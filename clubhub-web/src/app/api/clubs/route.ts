@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const campusFilter = searchParams.get("campus");
     const sortBy = searchParams.get("sort_by");
     const sortOrder = searchParams.get("sort_order") || "asc";
-    const limit = parseInt(searchParams.get("limit") || "2");
+    const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const clubsCollection = firestore.collection("Clubs");

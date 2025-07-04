@@ -16,7 +16,7 @@ export default function clubSearchPage() {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const limit = 2;
+  const limit = 10;
   
 
   // Fetch current user data
@@ -84,6 +84,7 @@ export default function clubSearchPage() {
       } else {
         setLoadingMore(false);
       }
+      console.log("check", offset);
     }
   }
 

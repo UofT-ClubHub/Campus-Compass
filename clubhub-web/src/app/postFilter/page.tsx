@@ -16,40 +16,76 @@ export default function PostFilterPage() {
   const [hashtagsFilter, setHashtagsFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 2;
+  const [hasMore, setHasMore] = useState(true);
 
-  const filterPosts = async () => {
-    const params = new URLSearchParams();
+  const filterPosts = async (isNewSearch = false) => {
+    if (loadingMore) return;
 
-    nameFilter ? params.append('title', nameFilter) : null;
-    campusFilter ? params.append('campus', campusFilter) : null;
-    clubFilter ? params.append('club', clubFilter) : null;
-    categoryFilter ? params.append('category', categoryFilter) : null;
-    descriptionFilter ? params.append('details', descriptionFilter) : null;
-    params.append('sort_by', "likes");
-    params.append('sort_order', "desc");
+    const currentOffset = isNewSearch ? 0 : offset;
 
-    if (hashtagsFilter) {
-      const hashtags = hashtagsFilter.split(',').map(tag => tag.trim());
-      // Ensure hashtags are lowercase 
-      params.append('hashtags', JSON.stringify(hashtags.map(tag => tag.toLowerCase())));
-    }
-    
-
-    const response = await fetch(`/api/posts?${params.toString()}`, {
-      method: "GET",
-    })
-    if (!response.ok) {
-      console.log("Failed to fetch posts:", response.statusText);
-      return;
+    if (isNewSearch) {
+      setPosts([]);
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
     }
 
-    const data = await response.json();
-    if (!Array.isArray(data)) {
-      console.log("Unexpected response format:", data);
-      return;
-    }    setPosts(data as Post[]);
+    try{
 
-    console.log("Filtered posts:", data);
+      const params = new URLSearchParams();
+      
+      nameFilter ? params.append('title', nameFilter) : null;
+      campusFilter ? params.append('campus', campusFilter) : null;
+      clubFilter ? params.append('club', clubFilter) : null;
+      categoryFilter ? params.append('category', categoryFilter) : null;
+      descriptionFilter ? params.append('details', descriptionFilter) : null;
+      params.append('sort_by', "likes");
+      params.append('sort_order', "desc");
+      params.append("offset", currentOffset.toString())
+      params.append("limit", limit.toString());
+      
+      if (hashtagsFilter) {
+        const hashtags = hashtagsFilter.split(',').map(tag => tag.trim());
+        // Ensure hashtags are lowercase 
+        params.append('hashtags', JSON.stringify(hashtags.map(tag => tag.toLowerCase())));
+      }
+      
+      
+      const response = await fetch(`/api/posts?${params.toString()}`, {
+        method: "GET",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to fetch clubs") // Throws error to be caught
+      }
+      
+      const data = await response.json();
+
+      setOffset(currentOffset + data.length);
+      setHasMore(data.length === limit);
+      
+      if (isNewSearch){
+        setPosts(data as Post[])
+      } else{
+        setPosts(prevPosts => {
+          return [...prevPosts, ...data as Post[]];
+        })
+      }
+
+      
+      console.log("Filtered posts:", data);
+    } catch (error) {
+      console.log("Error fetching clubs:", error)
+    } finally {
+      if (isNewSearch) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+      console.log("yurr", offset);
+    }
   }
 
   useEffect(() => {
@@ -67,11 +103,35 @@ export default function PostFilterPage() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      filterPosts();
+      setHasMore(true); // Reset hasMore to true for new search
+      setOffset(0); // Reset offset for new search
+      filterPosts(true);
     }, 500); // waits 500ms after user stops typing
   
     return () => clearTimeout(delay); // cancel previous timeout if input changes
   }, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, categoryFilter]);
+
+  // Infinite Scrolling Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+        return;
+      }
+      setLoadingMore(true);
+      setTimeout(() => {
+        filterPosts();
+      }, 500);
+    };
+  
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    console.log("Scroll event listener added");
+  
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMore, offset, loadingMore]);
   
   // Handle like updates to keep posts in sync
   const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
@@ -230,9 +290,19 @@ export default function PostFilterPage() {
                 ))}
               </div>
             )}
+            {loadingMore && (
+              <div className="flex justify-center items-center py-8">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
 }
