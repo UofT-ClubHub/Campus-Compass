@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
         const campusFilter = searchParams.get('campus');
         const clubFilter = searchParams.get('club');
         const categoryFilter = searchParams.get('category');
+        const limit = parseInt(searchParams.get("limit") || "10");
+        const offset = parseInt(searchParams.get("offset") || "0");
 
         // Get back arrays for hashtags
         const hashtagsFilterRaw = searchParams.get('hashtags');
@@ -70,7 +72,9 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        return NextResponse.json(posts, { status: 200 });
+        const paginated = posts.slice(offset, offset + limit);
+    
+    return NextResponse.json(paginated, { status: 200 });
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

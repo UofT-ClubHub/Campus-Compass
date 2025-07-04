@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import type { Club, User } from "@/model/types"
 import { ClubCard } from "../../../components/club-card"
 import { useAuth } from "@/hooks/useAuth"
@@ -13,6 +13,12 @@ export default function clubSearchPage() {
   const [nameFilter, setNameFilter] = useState("")
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const limit = 3;
+  const loadingRef = useRef(false);
+  
 
   // Fetch current user data
   useEffect(() => {
@@ -28,47 +34,91 @@ export default function clubSearchPage() {
     fetchUserData();
   }, [authUser]);
 
-  const clubSearch = async () => {
+  const clubSearch = async (isNewSearch = false) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+
+    const currentOffset = isNewSearch ? 0 : offset;
+
+    if (isNewSearch) {
+      setClubs([]);
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
       const params = new URLSearchParams()
 
       nameFilter ? params.append("name", nameFilter) : null
       campusFilter ? params.append("campus", campusFilter) : null
       descriptionFilter ? params.append("description", descriptionFilter) : null
-      params.append("sort_by", "followers")
-      params.append("sort_order", "desc") // or 'asc' for ascending
+      params.append("offset", currentOffset.toString())
+      params.append("limit", limit.toString());
 
       const res = await fetch(`/api/clubs?${params.toString()}`, {
         method: "GET",
-      })
+      });
 
       if (!res.ok) {
         throw new Error("Failed to fetch clubs")
       }
 
       const data = await res.json()
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response format")
-      }      setClubs(data as Club[])
+      
+      setOffset(currentOffset + data.length);
+      setHasMore(data.length === limit);
+      
+      if (isNewSearch){
+        setClubs(data as Club[])
+      } else{
+        setClubs(prevClubs => {
+          const newClubs = data.filter((newClub: Club) => !prevClubs.some(existingClub => existingClub.id === newClub.id));
+          return [...prevClubs, ...newClubs];
+        })
+      }
 
-      // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
       console.log("Club list updated:", data)
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
-      setLoading(false)
-      // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
-      // console.log('Club list updated:', data);
+      if (isNewSearch) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+      loadingRef.current = false;
     }
   }
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      clubSearch();
+      setHasMore(true); // Reset hasMore for new search
+      setOffset(0); // Reset offset for new search
+      clubSearch(true);
     }, 500); // waits 500ms after user stops typing
   
     return () => clearTimeout(delay); // cancel previous timeout if input changes
   }, [nameFilter, campusFilter, descriptionFilter]);
+
+// Infinite scrolling logic
+useEffect(() => {
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
+      return;
+    }
+    clubSearch();
+  };
+
+  // Add scroll event listener
+  window.addEventListener('scroll', handleScroll);
+  console.log("Scroll event listener added");
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+  };
+}, [hasMore, offset, loadingMore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,13 +203,24 @@ export default function clubSearchPage() {
               </div>            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {clubs.map((club: Club) => (
+                  // console.log("Rendering club:", club),
                   <ClubCard key={club.id} club={club} currentUser={currentUser} />
                 ))}
+              </div>
+            )}
+            {loadingMore && (
+              <div className="flex justify-center items-center py-8">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
+      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
 }
