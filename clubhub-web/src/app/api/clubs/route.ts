@@ -10,8 +10,9 @@ export async function GET(request: NextRequest) {
     const descriptionFilter = searchParams.get("description");
     const campusFilter = searchParams.get("campus");
     const sortBy = searchParams.get("sort_by");
-    const sortOrder = searchParams.get("sort_order");
+    const sortOrder = searchParams.get("sort_order") || "asc";
     const limit = parseInt(searchParams.get("limit") || "2");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     const clubsCollection = firestore.collection("Clubs");
 
@@ -61,18 +62,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Pagination (cursor-based using 'followers')
-    const startAfterId = searchParams.get("offset") || "";
-    const startIndex = startAfterId
-      ? clubs.findIndex((club) => club.id === startAfterId)
-      : -1;
-
-    const paginated = clubs.slice(
-      startIndex >= 0 ? startIndex + 1 : 0,
-      (startIndex >= 0 ? startIndex + 1 : 0) + limit
-    );
-
-    console.log("FINIOSHED");
+    const paginated = clubs.slice(offset, offset + limit);
+    
     return NextResponse.json(paginated, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

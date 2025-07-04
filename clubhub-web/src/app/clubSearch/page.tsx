@@ -14,7 +14,7 @@ export default function clubSearchPage() {
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
   const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState("");
+  const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const limit = 2;
   
@@ -36,7 +36,10 @@ export default function clubSearchPage() {
   const clubSearch = async (isNewSearch = false) => {
     if (loading || loadingMore) return;
 
+    const currentOffset = isNewSearch ? 0 : offset;
+
     if (isNewSearch) {
+      setClubs([]);
       setLoading(true);
     } else {
       setLoadingMore(true);
@@ -48,18 +51,12 @@ export default function clubSearchPage() {
       nameFilter ? params.append("name", nameFilter) : null
       campusFilter ? params.append("campus", campusFilter) : null
       descriptionFilter ? params.append("description", descriptionFilter) : null
-      params.append("sort_by", "followers")
-      params.append("sort_order", "desc") // or 'asc' for ascending
-      params.append("offset", isNewSearch ? "" : offset) // Pagination
+      params.append("offset", currentOffset.toString())
       params.append("limit", limit.toString());
 
-      const fetchPromise = fetch(`/api/clubs?${params.toString()}`, {
+      const res = await fetch(`/api/clubs?${params.toString()}`, {
         method: "GET",
       });
-
-      // delay for fetch
-      const delayPromise = new Promise(resolve => setTimeout(resolve, isNewSearch ? 0 : 500));
-      const [res] = await Promise.all([fetchPromise, delayPromise]);
 
       if (!res.ok) {
         throw new Error("Failed to fetch clubs")
@@ -67,18 +64,14 @@ export default function clubSearchPage() {
 
       const data = await res.json()
       
-      if (data.length > 0) {
-        setOffset(data[data.length - 1].id);
-      }
+      setOffset(currentOffset + data.length);
       setHasMore(data.length === limit);
       
       if (isNewSearch){
         setClubs(data as Club[])
       } else{
         setClubs(prevClubs => {
-          const existingIds = new Set(prevClubs.map(c => c.id));
-          const newClubs = (data as Club[]).filter(club => !existingIds.has(club.id));
-          return [...prevClubs, ...newClubs];
+          return [...prevClubs, ...data as Club[]];
         })
       }
 
@@ -97,6 +90,7 @@ export default function clubSearchPage() {
   useEffect(() => {
     const delay = setTimeout(() => {
       setHasMore(true); // Reset hasMore for new search
+      setOffset(0); // Reset offset for new search
       clubSearch(true);
     }, 500); // waits 500ms after user stops typing
   
@@ -106,26 +100,24 @@ export default function clubSearchPage() {
 // Infinite scrolling logic
 useEffect(() => {
   const handleScroll = () => {
-    // Check if we're near the bottom of the page
-    if (
-      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&  
-      hasMore && !loading && !loadingMore
-    ) {
-      console.log("Near bottom, fetching more...");
-      clubSearch();
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+      return;
     }
+    setLoadingMore(true);
+    setTimeout(() => {
+      clubSearch();
+    }, 500);
   };
 
   // Add scroll event listener
   window.addEventListener('scroll', handleScroll);
   console.log("Scroll event listener added");
-  console.log("check here", window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100, hasMore);
 
   // Cleanup
   return () => {
     window.removeEventListener('scroll', handleScroll);
   };
-}, [hasMore, offset, loading, loadingMore]);
+}, [hasMore, offset, loadingMore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
