@@ -12,9 +12,6 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sort_by");
     const sortOrder = searchParams.get("sort_order");
     const limit = parseInt(searchParams.get("limit") || "2");
-    const startAfterFollowers = parseInt(
-      searchParams.get("start_after") || "0"
-    );
 
     const clubsCollection = firestore.collection("Clubs");
 
@@ -65,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Pagination (cursor-based using 'followers')
-    const startAfterId = searchParams.get("start_after") || "";
+    const startAfterId = searchParams.get("offset") || "";
     const startIndex = startAfterId
       ? clubs.findIndex((club) => club.id === startAfterId)
       : -1;
@@ -75,6 +72,7 @@ export async function GET(request: NextRequest) {
       (startIndex >= 0 ? startIndex + 1 : 0) + limit
     );
 
+    console.log("FINIOSHED");
     return NextResponse.json(paginated, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -14,7 +14,9 @@ export default function clubSearchPage() {
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
   const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const limit = 2;
   
 
   // Fetch current user data
@@ -41,11 +43,8 @@ export default function clubSearchPage() {
       descriptionFilter ? params.append("description", descriptionFilter) : null
       params.append("sort_by", "followers")
       params.append("sort_order", "desc") // or 'asc' for ascending
-      if (clubs.length > 0) {
-        const lastClub = clubs[clubs.length - 1];
-        params.append("start_after", `${lastClub?.id}`);
-      }
-      params.append("limit", "2");
+      params.append("offset", offset.toString()) // Pagination
+      params.append("limit", limit.toString());
       const res = await fetch(`/api/clubs?${params.toString()}`, {
         method: "GET",
       })
@@ -55,9 +54,12 @@ export default function clubSearchPage() {
       }
 
       const data = await res.json()
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response format")
-      }      
+      
+      setOffset(offset + data.length);
+      //setLoading(false);
+      setHasMore(data.length === limit);
+      console.log("hasMore", hasMore);
+      
 
       if (isNewSearch){
         setClubs(data as Club[])
@@ -65,7 +67,7 @@ export default function clubSearchPage() {
         setClubs(prevClubs => [...prevClubs, ...(data as Club[])])
       }
 
-      setHasMore(data.length > 0) // Check if there are more clubs to load
+      //setHasMore(data.length > 0) // Check if there are more clubs to load
 
       // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
       console.log("Club list updated:", data)
@@ -90,31 +92,37 @@ export default function clubSearchPage() {
     return () => clearTimeout(delay); // cancel previous timeout if input changes
   }, [nameFilter, campusFilter, descriptionFilter]);
 
-  // Fetch data when the page changes (pagination)
-useEffect(() => {
-  if (page > 1) {
-      clubSearch();
-  }
-}, [page]);
+//   // Fetch data when the page changes (pagination)
+// useEffect(() => {
+//   if (offset > 0) {
+//       clubSearch();
+//   }
+// }, [offset]);
 
 // Infinite scrolling logic
+// Infinite scrolling logic
 useEffect(() => {
-  const observer = new IntersectionObserver(
-      (entries) => {
-          if (entries[0].isIntersecting && hasMore) {
-              setPage((prevPage) => prevPage + 1); // Increment the page number
-          }
-      },
-      { threshold: 1.0 }
-  );
-
-  const target = document.querySelector("#scroll-anchor");
-  if (target) observer.observe(target);
-
-  return () => {
-      if (target) observer.unobserve(target);
+  const handleScroll = () => {
+    // Check if we're near the bottom of the page
+    if (
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&  
+      hasMore
+    ) {
+      console.log("Near bottom, fetching more...");
+      clubSearch();
+    }
   };
-}, [hasMore]);
+
+  // Add scroll event listener
+  window.addEventListener('scroll', handleScroll);
+  console.log("Scroll event listener added");
+  console.log("check here", window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100, hasMore);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+  };
+}, [hasMore, offset]); // Include loading in dependencies
 
   return (
     <div className="min-h-screen bg-gray-50">
