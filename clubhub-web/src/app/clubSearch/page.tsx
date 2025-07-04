@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import type { Club, User } from "@/model/types"
 import { ClubCard } from "../../../components/club-card"
 import { useAuth } from "@/hooks/useAuth"
@@ -16,7 +16,8 @@ export default function clubSearchPage() {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const limit = 10;
+  const limit = 3;
+  const loadingRef = useRef(false);
   
 
   // Fetch current user data
@@ -34,7 +35,8 @@ export default function clubSearchPage() {
   }, [authUser]);
 
   const clubSearch = async (isNewSearch = false) => {
-    if (loading || loadingMore) return;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
 
@@ -71,7 +73,8 @@ export default function clubSearchPage() {
         setClubs(data as Club[])
       } else{
         setClubs(prevClubs => {
-          return [...prevClubs, ...data as Club[]];
+          const newClubs = data.filter((newClub: Club) => !prevClubs.some(existingClub => existingClub.id === newClub.id));
+          return [...prevClubs, ...newClubs];
         })
       }
 
@@ -84,7 +87,7 @@ export default function clubSearchPage() {
       } else {
         setLoadingMore(false);
       }
-      console.log("check", offset);
+      loadingRef.current = false;
     }
   }
 
@@ -101,13 +104,10 @@ export default function clubSearchPage() {
 // Infinite scrolling logic
 useEffect(() => {
   const handleScroll = () => {
-    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+    if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
       return;
     }
-    setLoadingMore(true);
-    setTimeout(() => {
-      clubSearch();
-    }, 500);
+    clubSearch();
   };
 
   // Add scroll event listener

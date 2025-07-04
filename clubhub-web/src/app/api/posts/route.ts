@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
         const clubFilter = searchParams.get('club');
         const categoryFilter = searchParams.get('category');
         const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = parseInt(searchParams.get("offset") || "0");
+        const offset = parseInt(searchParams.get("offset") || "0");
 
         // Get back arrays for hashtags
         const hashtagsFilterRaw = searchParams.get('hashtags');

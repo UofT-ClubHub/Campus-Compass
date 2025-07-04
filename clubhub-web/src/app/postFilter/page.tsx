@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Post, User } from "@/model/types";
 import { PostCard } from "../../../components/post-card";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,11 +18,13 @@ export default function PostFilterPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
-  const limit = 2;
+  const limit = 3;
   const [hasMore, setHasMore] = useState(true);
+  const loadingRef = useRef(false);
 
   const filterPosts = async (isNewSearch = false) => {
-    if (loadingMore) return;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
 
@@ -70,7 +72,8 @@ export default function PostFilterPage() {
         setPosts(data as Post[])
       } else{
         setPosts(prevPosts => {
-          return [...prevPosts, ...data as Post[]];
+          const newPosts = data.filter((newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id));
+          return [...prevPosts, ...newPosts];
         })
       }
 
@@ -84,7 +87,7 @@ export default function PostFilterPage() {
       } else {
         setLoadingMore(false);
       }
-      console.log("yurr", offset);
+      loadingRef.current = false;
     }
   }
 
@@ -114,13 +117,10 @@ export default function PostFilterPage() {
   // Infinite Scrolling Logic
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+      if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
         return;
       }
-      setLoadingMore(true);
-      setTimeout(() => {
-        filterPosts();
-      }, 500);
+      filterPosts();
     };
   
     // Add scroll event listener
