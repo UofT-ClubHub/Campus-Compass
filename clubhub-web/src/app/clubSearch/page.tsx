@@ -13,6 +13,9 @@ export default function clubSearchPage() {
   const [nameFilter, setNameFilter] = useState("")
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  
 
   // Fetch current user data
   useEffect(() => {
@@ -28,8 +31,9 @@ export default function clubSearchPage() {
     fetchUserData();
   }, [authUser]);
 
-  const clubSearch = async () => {
+  const clubSearch = async (isNewSearch = false) => {
     try {
+      console.log("YURRRR")
       const params = new URLSearchParams()
 
       nameFilter ? params.append("name", nameFilter) : null
@@ -37,7 +41,11 @@ export default function clubSearchPage() {
       descriptionFilter ? params.append("description", descriptionFilter) : null
       params.append("sort_by", "followers")
       params.append("sort_order", "desc") // or 'asc' for ascending
-
+      if (clubs.length > 0) {
+        const lastClub = clubs[clubs.length - 1];
+        params.append("start_after", `${lastClub?.id}`);
+      }
+      params.append("limit", "2");
       const res = await fetch(`/api/clubs?${params.toString()}`, {
         method: "GET",
       })
@@ -49,14 +57,24 @@ export default function clubSearchPage() {
       const data = await res.json()
       if (!Array.isArray(data)) {
         throw new Error("Invalid response format")
-      }      setClubs(data as Club[])
+      }      
+
+      if (isNewSearch){
+        setClubs(data as Club[])
+      } else{
+        setClubs(prevClubs => [...prevClubs, ...(data as Club[])])
+      }
+
+      setHasMore(data.length > 0) // Check if there are more clubs to load
 
       // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
       console.log("Club list updated:", data)
+      console.log("page", page)
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
       setLoading(false)
+      console.log("we here", page);
       // console.log("Searching for clubs with filters:", {nameFilter, campusFilter, descriptionFilter});
       // console.log('Club list updated:', data);
     }
@@ -64,11 +82,39 @@ export default function clubSearchPage() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      clubSearch();
+      setPage(1); // Reset to first page on new search
+      setHasMore(true); // Reset hasMore for new search
+      clubSearch(true);
     }, 500); // waits 500ms after user stops typing
   
     return () => clearTimeout(delay); // cancel previous timeout if input changes
   }, [nameFilter, campusFilter, descriptionFilter]);
+
+  // Fetch data when the page changes (pagination)
+useEffect(() => {
+  if (page > 1) {
+      clubSearch();
+  }
+}, [page]);
+
+// Infinite scrolling logic
+useEffect(() => {
+  const observer = new IntersectionObserver(
+      (entries) => {
+          if (entries[0].isIntersecting && hasMore) {
+              setPage((prevPage) => prevPage + 1); // Increment the page number
+          }
+      },
+      { threshold: 1.0 }
+  );
+
+  const target = document.querySelector("#scroll-anchor");
+  if (target) observer.observe(target);
+
+  return () => {
+      if (target) observer.unobserve(target);
+  };
+}, [hasMore]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,6 +199,7 @@ export default function clubSearchPage() {
               </div>            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {clubs.map((club: Club) => (
+                  // console.log("Rendering club:", club),
                   <ClubCard key={club.id} club={club} currentUser={currentUser} />
                 ))}
               </div>
@@ -160,6 +207,7 @@ export default function clubSearchPage() {
           </div>
         </div>
       </div>
+      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
 }
