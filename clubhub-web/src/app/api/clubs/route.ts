@@ -1,6 +1,7 @@
-import { Club } from "@/model/types";
-import { NextRequest, NextResponse } from "next/server";
-import { auth, firestore } from "../firebaseAdmin";
+import { Club } from '@/model/types';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth, firestore } from '../firebaseAdmin';
+import { checkExecPermissions } from '../amenities';
 
 export async function GET(request: NextRequest) {
   try {
@@ -100,11 +101,32 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  try {
-    const { searchParams } = request.nextUrl;
-    const clubId = searchParams.get("id");
-    if (!clubId) {
-      return NextResponse.json({ message: "Missing club id" }, { status: 400 });
+    try {
+        const { searchParams } = request.nextUrl;
+        const clubId = searchParams.get('id');
+        if (!clubId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 }); 
+        }
+
+        const data = await request.json();
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(clubId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        // Authorization check for editing club
+        const { authorized, error, status } = await checkExecPermissions(request, clubId);
+        if (!authorized) {
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        }
+
+        await docRef.update(data);
+        const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
+        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
+        //uncomment line underneath if the above 2 lines are commented out
+        // return NextResponse.json({ id: clubId, ...data }, { status: 200 });
     }
 
     const data = await request.json();
@@ -132,11 +154,28 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = request.nextUrl;
-    const clubId = searchParams.get("id");
-    if (!clubId) {
-      return NextResponse.json({ message: "Missing club id" }, { status: 400 });
+    try {
+        const { searchParams } = request.nextUrl;
+        const clubId = searchParams.get('id');
+        if (!clubId) {
+            return NextResponse.json({ message: 'Missing club id' }, { status: 400 });        
+        }
+
+        const clubsCollection = firestore.collection('Clubs');
+        const docRef = clubsCollection.doc(clubId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return NextResponse.json({ message: 'Club not found' }, { status: 404 });
+        }
+
+        // Authorization check for editing club
+        const { authorized, error, status } = await checkExecPermissions(request, clubId);
+        if (!authorized) {
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        }
+
+        await docRef.delete();
+        return NextResponse.json({ message: 'Club deleted successfully' }, { status: 200 });
     }
 
     const clubsCollection = firestore.collection("Clubs");
