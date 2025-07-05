@@ -45,6 +45,12 @@ export function Header() {
                 <span className="font-medium">{user.email}</span>
               </div>
                 <Link 
+                href="/profile" 
+                className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out"
+                >
+                Profile
+                </Link>
+                <Link 
                 href="/admin" 
                 className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out"
                 >

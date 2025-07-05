@@ -2,10 +2,9 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Autocomplete } from "@mantine/core"
-import { EventCard } from "../../components/event-card"
+import { PostCard } from "../../components/post-card"
 import { Post } from "@/model/types";
 import { useEffect, useState } from "react";
-
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -89,11 +88,10 @@ export default function Home() {
               
               {!loadingPosts && !error && posts.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                  {posts.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      isRSVP={false} // Placeholder, implement RSVP logic later
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
                     />
                   ))}
                 </div>

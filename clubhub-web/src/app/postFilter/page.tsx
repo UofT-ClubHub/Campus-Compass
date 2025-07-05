@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Post } from "@/model/types";
+import { useState, useEffect, useRef } from "react";
+import { Post, User } from "@/model/types";
+import { PostCard } from "../../../components/post-card";
+import { useAuth } from "@/hooks/useAuth";
 
-export default function clubSearchPage() {
-  const [clubList, setClubList] = useState<Post[]>([]);
+export default function PostFilterPage() {
+  const { user: authUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [nameFilter, setNameFilter] = useState("");
   const [campusFilter, setCampusFilter] = useState("");
   const [descriptionFilter, setDescriptionFilter] = useState("");
@@ -12,43 +16,157 @@ export default function clubSearchPage() {
   const [hashtagsFilter, setHashtagsFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 3;
+  const [hasMore, setHasMore] = useState(true);
+  const loadingRef = useRef(false);
 
-  const filterPosts = async () => {
-    const params = new URLSearchParams();
+  const filterPosts = async (isNewSearch = false) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
-    nameFilter ? params.append('title', nameFilter) : null;
-    campusFilter ? params.append('campus', campusFilter) : null;
-    clubFilter ? params.append('club', clubFilter) : null;
-    categoryFilter ? params.append('category', categoryFilter) : null;
-    descriptionFilter ? params.append('details', descriptionFilter) : null;
-    params.append('sort_by', "likes");
-    params.append('sort_order', "desc");
+    const currentOffset = isNewSearch ? 0 : offset;
 
-    if (hashtagsFilter) {
-      const hashtags = hashtagsFilter.split(',').map(tag => tag.trim());
-      // Ensure hashtags are lowercase 
-      params.append('hashtags', JSON.stringify(hashtags.map(tag => tag.toLowerCase())));
-    }
-    
-
-    const response = await fetch(`/api/posts?${params.toString()}`, {
-      method: "GET",
-    })
-    if (!response.ok) {
-      console.error("Failed to fetch posts:", response.statusText);
-      return;
+    if (isNewSearch) {
+      setPosts([]);
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
     }
 
-    const data = await response.json();
-    if (!Array.isArray(data)) {
-      console.error("Unexpected response format:", data);
-      return;
-    }
-    setClubList(data as Post[]);
+    try{
 
-    console.log("Filtered clubs:", data);
+      const params = new URLSearchParams();
+      
+      nameFilter ? params.append('title', nameFilter) : null;
+      campusFilter ? params.append('campus', campusFilter) : null;
+      clubFilter ? params.append('club', clubFilter) : null;
+      categoryFilter ? params.append('category', categoryFilter) : null;
+      descriptionFilter ? params.append('details', descriptionFilter) : null;
+      params.append('sort_by', "likes");
+      params.append('sort_order', "desc");
+      params.append("offset", currentOffset.toString())
+      params.append("limit", limit.toString());
+      
+      if (hashtagsFilter) {
+        const hashtags = hashtagsFilter.split(',').map(tag => tag.trim());
+        // Ensure hashtags are lowercase 
+        params.append('hashtags', JSON.stringify(hashtags.map(tag => tag.toLowerCase())));
+      }
+      
+      
+      const response = await fetch(`/api/posts?${params.toString()}`, {
+        method: "GET",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to fetch clubs") // Throws error to be caught
+      }
+      
+      const data = await response.json();
+
+      setOffset(currentOffset + data.length);
+      setHasMore(data.length === limit);
+      
+      if (isNewSearch){
+        setPosts(data as Post[])
+      } else{
+        setPosts(prevPosts => {
+          const newPosts = data.filter((newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id));
+          return [...prevPosts, ...newPosts];
+        })
+      }
+
+      
+      console.log("Filtered posts:", data);
+    } catch (error) {
+      console.log("Error fetching clubs:", error)
+    } finally {
+      if (isNewSearch) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+      loadingRef.current = false;
+    }
   }
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (authUser) {
+        const response = await fetch(`/api/users?id=${authUser.uid}`);
+        if (response.ok) {
+          const userData = await response.json();
+          setCurrentUser(userData);
+        }
+      }
+    };
+    fetchUserData();
+  }, [authUser]);
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setHasMore(true); // Reset hasMore to true for new search
+      setOffset(0); // Reset offset for new search
+      filterPosts(true);
+    }, 500); // waits 500ms after user stops typing
+  
+    return () => clearTimeout(delay); // cancel previous timeout if input changes
+  }, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, categoryFilter]);
+
+  // Infinite Scrolling Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
+        return;
+      }
+      filterPosts();
+    };
+  
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    console.log("Scroll event listener added");
+  
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMore, offset, loadingMore]);
+  
+  // Handle like updates to keep posts in sync
+  const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+    // Update posts
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: newLikes }
+          : post
+      )
+    );
+    
+    // Update currentUser liked_posts
+    setCurrentUser(prevUser => {
+      if (!prevUser) return prevUser;
+      
+      const currentLikedPosts = prevUser.liked_posts || [];
+      let updatedLikedPosts;
+      
+      if (isLiked) {
+        // Add postId if not already present
+        updatedLikedPosts = currentLikedPosts.includes(postId) 
+          ? currentLikedPosts 
+          : [...currentLikedPosts, postId];
+      } else {
+        // Remove postId
+        updatedLikedPosts = currentLikedPosts.filter(id => id !== postId);
+      }
+      
+      return {
+        ...prevUser,
+        liked_posts: updatedLikedPosts
+      };
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,46 +229,19 @@ export default function clubSearchPage() {
                 className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
               />
 
-              {/* Category Filter */}
+              {/* Category Filter */}              
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
               >
                 <option value="">Select Type of Post</option>
-                <option value="Post">Event</option>
-                <option value="Gala">Hiring</option>
-                <option value="Hackathon">Announcement</option>
+                <option value="Event">Event</option>
+                <option value="Hiring Opportunity">Hiring Opportunity</option>
+                <option value="General Announcement">General Announcement</option>
+                <option value="Survey">Survey</option>
               </select>
             </div>
-          </div>
-
-          {/* Search Button */}
-          <div className="text-center">
-            <button
-              onClick={() => {
-                console.log("Searching for posts with filters:", {
-                  nameFilter,
-                  campusFilter,
-                  descriptionFilter,
-                  clubFilter,
-                  hashtagsFilter,
-                  categoryFilter,
-                })
-                filterPosts()
-              }}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-200 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Searching...
-                </span>
-              ) : (
-                "Search for Posts"
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -172,7 +263,7 @@ export default function clubSearchPage() {
                   </div>
                 ))}
               </div>
-            ) : clubList.length === 0 ? (
+            ) : posts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg
@@ -191,99 +282,27 @@ export default function clubSearchPage() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">No posts found</h3>
                 <p className="text-gray-500 text-sm">Try adjusting your filters to find more posts</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {clubList.map((post) => (
-                  <div
-                    key={post.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
-                  >                    {/* Image Section */}
-                    <div className="relative h-48 bg-gray-200">
-                      <img
-                        src={post.image || "/placeholder.jpg"}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {/* Likes counter overlay */}
-                      <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded-full flex items-center gap-1">
-                        <svg className="h-4 w-4 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                        </svg>
-                        <span className="text-sm">
-                          {post.likes || 0}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="p-6 space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                        {post.title}
-                      </h3>
-
-                      {post.details && <p className="text-sm text-gray-600 line-clamp-3">{post.details}</p>}
-
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <svg className="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <span className="text-sm text-gray-600">{post.category}</span>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <svg className="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                          <span className="text-sm text-gray-600">{post.campus}</span>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <svg className="h-4 w-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                            />
-                          </svg>
-                          <span className="text-sm text-gray-600">{post.likes} likes</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3 pt-4">
-                        <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-                          View Details
-                        </button>
-                        <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                          RSVP
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+              </div>            
+              ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {posts.map((post: Post) => (
+                  <PostCard key={post.id} post={post} currentUser={currentUser} onLikeUpdate={handleLikeUpdate} />
                 ))}
+              </div>
+            )}
+            {loadingMore && (
+              <div className="flex justify-center items-center py-8">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
+      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
 }
