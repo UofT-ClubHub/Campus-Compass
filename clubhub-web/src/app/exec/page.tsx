@@ -191,7 +191,8 @@ export default function ExecPage() {
 
       const updateClubResponse = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+                   Authorization: `Bearer ${idToken}` },
         body: JSON.stringify({ executives: updatedExecutives }),
       })
 
@@ -247,9 +248,11 @@ export default function ExecPage() {
     }
 
     try {
+      const idToken = await authUser?.getIdToken();
       const response = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+                   Authorization: `Bearer ${idToken}` },
         body: JSON.stringify(editingClub),
       })
 

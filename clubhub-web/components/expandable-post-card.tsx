@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2 } from "lucide-react";
 import type { Post, Club } from "@/model/types";
 import firebase from "@/model/firebase";
+import { useAuth } from '@/hooks/useAuth';
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -73,28 +74,39 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
 
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editedPost),
-      });
+      const authUser = firebase.auth().currentUser;
+      
+      if (authUser) {
+        const token = await authUser.getIdToken();
 
-      if (response.ok) {
-        const savedPost = await response.json();
-        setIsEditing(false);
-        
-        if (onEdit) onEdit(savedPost);
-        if (onSave) onSave(savedPost);
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(editedPost),
+        });
 
-        // Force a re-render by updating the post prop reference
-        Object.assign(post, savedPost);
-      } else {
-        const errorData = await response.json();
-        console.log('Failed to save post', errorData);
-        if (onSaveError) {
+        if (response.ok) {
+          const savedPost = await response.json();
+          setIsEditing(false);
+          
+          if (onEdit) onEdit(savedPost);
+          if (onSave) onSave(savedPost);
+
+          // Force a re-render by updating the post prop reference
+          Object.assign(post, savedPost);
+        } else {
+          const errorData = await response.json();
+          console.log('Failed to save post', errorData);
+          if (onSaveError) {
             onSaveError(errorData.error || 'Failed to save post');
+          }
+        }
+      } else {
+        if (onSaveError) {
+          onSaveError('Please log in to save posts');
         }
       }
     } catch (error) {

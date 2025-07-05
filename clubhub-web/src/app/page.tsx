@@ -47,10 +47,17 @@ export default function Home() {
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white px-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-8 text-center drop-shadow-lg">Campus Compass</h1>
           
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md p-2">
             <Autocomplete
-              placeholder="Search for clubs, events, or resources"
-              data={[]}
+              placeholder="Search for resources"
+              data={[
+                "Clubs",
+                "Events",
+                "Resources",
+                "Community Service",
+                "Workshops",
+                "Networking"
+              ]}
               styles={{
                 input: {
                   backgroundColor: "rgba(255, 255, 255, 0.9)",
