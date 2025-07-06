@@ -3,14 +3,36 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Autocomplete } from "@mantine/core"
 import { PostCard } from "../../components/post-card"
-import { Post } from "@/model/types";
+import { Post, User } from "@/model/types";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user: authUser, loading } = useAuth();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch user data when auth user changes
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (authUser) {
+        try {
+          const response = await fetch(`/api/users?id=${authUser.uid}`);
+          if (response.ok) {
+            const userData: User = await response.json();
+            setCurrentUser(userData);
+          }
+        } catch (error) {
+          console.log('Error fetching user data:', error);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    };
+
+    fetchUserData();
+  }, [authUser]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -36,6 +58,7 @@ export default function Home() {
 
   // Handle like updates
   const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+    // Update posts
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
@@ -43,6 +66,27 @@ export default function Home() {
           : post
       )
     );
+    
+    // Update currentUser liked_posts
+    setCurrentUser(prevUser => {
+      if (!prevUser) return prevUser;
+      
+      const currentLikedPosts = prevUser.liked_posts || [];
+      let updatedLikedPosts;
+      
+      if (isLiked) {
+        updatedLikedPosts = currentLikedPosts.includes(postId) 
+          ? currentLikedPosts 
+          : [...currentLikedPosts, postId];
+      } else {
+        updatedLikedPosts = currentLikedPosts.filter(id => id !== postId);
+      }
+      
+      return {
+        ...prevUser,
+        liked_posts: updatedLikedPosts
+      };
+    });
   };
 
   return (
@@ -110,7 +154,7 @@ export default function Home() {
                     <PostCard
                       key={post.id}
                       post={post}
-                      currentUser={user}
+                      currentUser={currentUser}
                       onLikeUpdate={handleLikeUpdate}
                     />
                   ))}

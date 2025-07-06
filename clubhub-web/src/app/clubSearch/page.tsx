@@ -16,7 +16,7 @@ export default function clubSearchPage() {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const limit = 3;
+  const limit = 4;
   const loadingRef = useRef(false);
   
 

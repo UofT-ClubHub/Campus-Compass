@@ -536,7 +536,7 @@ export default function ExecPage() {
             title: '',
             details: '',
             club: clubForPost.id,
-            campus: clubForPost.campus,
+            campus: '', // Default to empty string so user must select
             category: '',
             date_posted: new Date().toISOString(),
             date_occuring: '',

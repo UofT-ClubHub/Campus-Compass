@@ -14,14 +14,17 @@ interface ExpandablePostCardProps {
   onSave?: (post: Post) => void;
   onSaveError?: (error: string) => void;
   onLikeUpdate?: (postId: string, newLikes: number, isLiked: boolean) => void;
+  onDelete?: (postId: string) => void;
+  onRefresh?: () => void;
   isCreating?: boolean;
 }
 
-export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave, onSaveError, onLikeUpdate, isCreating = false }: ExpandablePostCardProps) {
+export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave, onSaveError, onLikeUpdate, onDelete, onRefresh, isCreating = false }: ExpandablePostCardProps) {
   const [clubName, setClubName] = useState("");
   const [isEditing, setIsEditing] = useState(isCreating); // Start in editing mode if creating
   const [editedPost, setEditedPost] = useState<Post>(post);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [clubId, setClubId] = useState<string | null>(null);
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
@@ -66,11 +69,80 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     e.stopPropagation();
     setIsEditing(true);
   };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert('Please log in to delete posts');
+        return;
+      }
+
+      const idToken = await user.getIdToken();
+      
+      const response = await fetch(`/api/posts?id=${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (response.ok) {
+        if (onDelete) {
+          onDelete(post.id);
+        }
+        if (onRefresh) {
+          onRefresh();
+        }
+        onClose();
+      } else {
+        const errorData = await response.text();
+        console.log('Failed to delete post:', response.status, errorData);
+        alert('Failed to delete post. You may not have permission to delete this post.');
+      }
+    } catch (error) {
+      console.log('Error deleting post:', error);
+      alert('Error occurred while deleting post');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsSaving(true);
 
     try {
+      const requiredFields = {
+        title: editedPost.title,
+        details: editedPost.details,
+        campus: editedPost.campus,
+        club: editedPost.club,
+        category: editedPost.category,
+        date_occuring: editedPost.date_occuring,
+        date_posted: editedPost.date_posted
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([key, value]) => !value || value.trim() === '')
+        .map(([key]) => key);
+
+      if (missingFields.length > 0) {
+        if (onSaveError) {
+          onSaveError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+        }
+        return;
+      }
+
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
 
@@ -101,7 +173,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           const errorData = await response.json();
           console.log('Failed to save post', errorData);
           if (onSaveError) {
-            onSaveError(errorData.error || 'Failed to save post');
+            onSaveError(errorData.message || errorData.error || 'Failed to save post');
           }
         }
       } else {
@@ -258,7 +330,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             <X className="h-5 w-5" />
           </button>
 
-          {/* Edit/Save/Cancel buttons for club admins */}
+          {/* Edit/Save/Cancel/Delete buttons for club admins */}
           {(isClubAdmin || isCreating) && (
             <div className="absolute top-4 left-4 flex gap-2">
               {isEditing ? (
@@ -280,13 +352,25 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={handleEdit}
-                  className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  Edit
-                </button>
+                <>
+                  <button
+                    onClick={handleEdit}
+                    className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Edit
+                  </button>
+                  {!isCreating && (
+                    <button
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -318,34 +402,44 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             <div className="space-y-6">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   value={editedPost.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description <span className="text-red-500">*</span>
+                </label>
                 <textarea
                   value={editedPost.details}
                   onChange={(e) => handleInputChange('details', e.target.value)}
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={editedPost.category}
                   onChange={(e) => handleInputChange('category', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 >
+                  <option value="">Select a category</option>
                   <option value="Event">Event</option>
                   <option value="Hiring Opportunity">Hiring Opportunity</option>
                   <option value="General Announcement">General Announcement</option>
@@ -355,12 +449,16 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
               {/* Campus */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Campus</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Campus <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={editedPost.campus}
                   onChange={(e) => handleInputChange('campus', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 >
+                  <option value="">Select a campus</option>
                   <option value="UTSG">UTSG</option>
                   <option value="UTSC">UTSC</option>
                   <option value="UTM">UTM</option>
@@ -368,12 +466,15 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               </div>              
               {/* Event Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Event Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Date <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="datetime-local"
                   value={editedPost.date_occuring ? new Date(editedPost.date_occuring).toISOString().slice(0, 16) : ''}
                   onChange={(e) => handleInputChange('date_occuring', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
 

@@ -168,6 +168,20 @@ export default function PostFilterPage() {
     });
   };
 
+  // Handle post deletion
+  const handleDeletePost = (postId: string) => {
+    setPosts(prevPosts => 
+      prevPosts.filter(post => post.id !== postId)
+    );
+  };
+
+  // Refresh posts from API
+  const refreshPosts = async () => {
+    setOffset(0);
+    setHasMore(true);
+    await filterPosts(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header and Search Section */}
@@ -286,7 +300,7 @@ export default function PostFilterPage() {
               ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {posts.map((post: Post) => (
-                  <PostCard key={post.id} post={post} currentUser={currentUser} onLikeUpdate={handleLikeUpdate} />
+                  <PostCard key={post.id} post={post} currentUser={currentUser} onLikeUpdate={handleLikeUpdate} onDelete={handleDeletePost} onRefresh={refreshPosts} />
                 ))}
               </div>
             )}

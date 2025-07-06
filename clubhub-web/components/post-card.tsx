@@ -11,6 +11,8 @@ interface PostCardProps {
   onEdit?: (post: Post) => void;
   onUpdate?: () => void; // Callback to refresh parent component
   onLikeUpdate?: (postId: string, newLikes: number, isLiked: boolean) => void; // Callback for like updates
+  onDelete?: (postId: string) => void; // Callback for post deletion
+  onRefresh?: () => void; // Callback to refresh parent component's post list
   className?: string;
 }
 
@@ -20,6 +22,8 @@ export function PostCard({
   onEdit,
   onUpdate,
   onLikeUpdate,
+  onDelete,
+  onRefresh,
   className = "" 
 }: PostCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -131,6 +135,8 @@ export function PostCard({
           onClose={handleCloseOverlay}
           onEdit={onEdit}
           onLikeUpdate={onLikeUpdate}
+          onDelete={onDelete}
+          onRefresh={onRefresh}
         />
       )}
     </>
