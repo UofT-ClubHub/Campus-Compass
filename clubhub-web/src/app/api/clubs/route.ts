@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       clubs.sort((a, b) => {
         const aVal = a[sortBy as keyof Club];
         const bVal = b[sortBy as keyof Club];
-        if (!aVal || !bVal) return 0;
+        if (aVal == null || bVal == null) return 0;
         if (aVal === bVal) return 0;
         return aVal > bVal ? order : -order;
       });

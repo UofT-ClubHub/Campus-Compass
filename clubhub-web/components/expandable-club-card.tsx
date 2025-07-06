@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, MapPin, Users, ExternalLink, Instagram } from "lucide-react";
+import { X, MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import firebase from "@/model/firebase";
 
@@ -127,7 +127,8 @@ export function ExpandableClubCard({
 
   const handleInstagramClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(club.instagram, '_blank', 'noopener,noreferrer');
+    const handle = club.instagram.startsWith('@') ? club.instagram.substring(1) : club.instagram;
+    window.open(`https://www.instagram.com/${handle}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -212,7 +213,7 @@ export function ExpandableClubCard({
                   onClick={handleInstagramClick}
                   className="flex items-center gap-2 text-pink-600 hover:text-pink-800 transition-colors text-sm font-medium"
                 >
-                  {club.instagram.replace('https://www.instagram.com/', '@').replace('https://instagram.com/', '@')}
+                  {club.instagram.startsWith('@') ? club.instagram : `@${club.instagram}`}
                 </button>
               </div>
             )}

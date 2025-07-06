@@ -54,11 +54,9 @@ export async function GET(request: NextRequest) {
             (!campusFilter || (post.campus && post.campus.toLowerCase() === campusFilter.toLowerCase())) &&
             (!clubFilter || (post.club && clubIds.includes(post.club))) &&
             (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
-            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.some((tag: string) =>
+            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
-
             )))
-
         );
 
         // Sort by specified field and order if provided

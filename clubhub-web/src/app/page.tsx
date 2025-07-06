@@ -13,6 +13,24 @@ export default function Home() {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      const response = await fetch('/api/posts?sort_by=likes&sort_order=desc');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch posts: ${response.statusText}`);
+      }
+      const data: Post[] = await response.json();
+      setPosts(data.slice(0, 3)); // Get top 3 posts
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
   // Fetch user data when auth user changes
   useEffect(() => {
     const fetchUserData = async () => {
@@ -35,24 +53,6 @@ export default function Home() {
   }, [authUser]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoadingPosts(true);
-        const response = await fetch('/api/posts?sort_by=likes&sort_order=desc');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch posts: ${response.statusText}`);
-        }
-        const data: Post[] = await response.json();
-        setPosts(data.slice(0, 3)); // Get top 3 posts
-        setError(null);
-      } catch (err: any) {
-        setError(err.message);
-        setPosts([]);
-      } finally {
-        setLoadingPosts(false);
-      }
-    };
-
     fetchPosts();
   }, []);
 
@@ -87,6 +87,10 @@ export default function Home() {
         liked_posts: updatedLikedPosts
       };
     });
+  };
+
+  const handlePostDelete = () => {
+    fetchPosts();
   };
 
   return (
@@ -156,6 +160,7 @@ export default function Home() {
                       post={post}
                       currentUser={currentUser}
                       onLikeUpdate={handleLikeUpdate}
+                      onRefresh={handlePostDelete}
                     />
                   ))}
                 </div>

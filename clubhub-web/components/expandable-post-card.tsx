@@ -122,27 +122,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsSaving(true);
 
     try {
-      const requiredFields = {
-        title: editedPost.title,
-        details: editedPost.details,
-        campus: editedPost.campus,
-        club: editedPost.club,
-        category: editedPost.category,
-        date_occuring: editedPost.date_occuring,
-        date_posted: editedPost.date_posted
-      };
-
-      const missingFields = Object.entries(requiredFields)
-        .filter(([key, value]) => !value || value.trim() === '')
-        .map(([key]) => key);
-
-      if (missingFields.length > 0) {
-        if (onSaveError) {
-          onSaveError(`Please fill in all required fields: ${missingFields.join(', ')}`);
-        }
-        return;
-      }
-
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
 
