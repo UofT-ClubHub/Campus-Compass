@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
 import { getCurrentUserId } from '../amenities';
 import { get } from 'http';
+import * as admin from 'firebase-admin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -126,6 +127,46 @@ export async function PUT(request: NextRequest) {
             });
         } else {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+        }
+
+        // Handle managed_clubs updates - update corresponding clubs
+        if (allowedUpdates.managed_clubs) {
+            const oldUserData = targetUserDoc.data() as User;
+            const oldManagedClubs = oldUserData.managed_clubs || [];
+            const newManagedClubs = allowedUpdates.managed_clubs || [];
+            
+            const addedClubs = newManagedClubs.filter(clubId => !oldManagedClubs.includes(clubId));
+            const removedClubs = oldManagedClubs.filter(clubId => !newManagedClubs.includes(clubId));
+            
+            const clubsCollection = firestore.collection('Clubs');
+            
+            // Add user to executives of newly managed clubs
+            for (const clubId of addedClubs) {
+                const clubDoc = await clubsCollection.doc(clubId).get();
+                if (clubDoc.exists) {
+                    const clubData = clubDoc.data();
+                    const executives = clubData?.executives || [];
+                    if (!executives.includes(targetUserId)) {
+                        await clubsCollection.doc(clubId).update({
+                            executives: admin.firestore.FieldValue.arrayUnion(targetUserId)
+                        });
+                    }
+                }
+            }
+            
+            // Remove user from executives of no longer managed clubs
+            for (const clubId of removedClubs) {
+                const clubDoc = await clubsCollection.doc(clubId).get();
+                if (clubDoc.exists) {
+                    const clubData = clubDoc.data();
+                    const executives = clubData?.executives || [];
+                    if (executives.includes(targetUserId)) {
+                        await clubsCollection.doc(clubId).update({
+                            executives: admin.firestore.FieldValue.arrayRemove(targetUserId)
+                        });
+                    }
+                }
+            }
         }
 
         await targetUserDocRef.update(allowedUpdates);

@@ -2,6 +2,7 @@ import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
 import { checkExecPermissions } from '../amenities';
+import * as admin from 'firebase-admin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,6 +117,7 @@ export async function PUT(request: NextRequest) {
 
         const data = await request.json();
         const clubsCollection = firestore.collection('Clubs');
+        const usersCollection = firestore.collection('users');
         const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();
         if (!doc.exists) {
@@ -128,12 +130,60 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
+        const oldData = doc.data() as Club;
+
+        // Handle executive updates
+        if (data.executives) {
+            const oldExecutives = oldData.executives || [];
+            const newExecutives = data.executives || [];
+
+            const oldExecEmails = oldExecutives.map((e: any) => e.email);
+            const newExecEmails = newExecutives.map((e: any) => e.email);
+
+            const addedEmails = newExecEmails.filter((email: string) => !oldExecEmails.includes(email));
+            const removedEmails = oldExecEmails.filter((email: string) => !newExecEmails.includes(email));
+
+            // Process added executives
+            for (const email of addedEmails) {
+                const userQuery = await usersCollection.where('email', '==', email).limit(1).get();
+                if (!userQuery.empty) {
+                    const userDoc = userQuery.docs[0];
+                    const userId = userDoc.id;
+
+                    // Add club to user's managedClubs
+                    await usersCollection.doc(userId).update({
+                        managedClubs: admin.firestore.FieldValue.arrayUnion(clubId)
+                    });
+
+                    // Update executive in data with id
+                    const execIndex = newExecutives.findIndex((e: any) => e.email === email);
+                    if (execIndex > -1) {
+                        data.executives[execIndex].id = userId;
+                    }
+                }
+            }
+
+            // Process removed executives
+            for (const email of removedEmails) {
+                const userQuery = await usersCollection.where('email', '==', email).limit(1).get();
+                if (!userQuery.empty) {
+                    const userDoc = userQuery.docs[0];
+                    const userId = userDoc.id;
+
+                    // Remove club from user's managedClubs
+                    await usersCollection.doc(userId).update({
+                        managedClubs: admin.firestore.FieldValue.arrayRemove(clubId)
+                    });
+                }
+            }
+        }
+
         await docRef.update(data);
         const updatedDoc = await docRef.get();
         return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json(
-            { error: "Failed to update club" },
+            { error: "Failed to update club", details: error.message },
             { status: 500 }
         );
     }

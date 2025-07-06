@@ -24,9 +24,9 @@ export function Profile({ opened, onClose, user, token, onUserUpdate}: UserSetti
     const [success, setSuccess] = useState(false)
 
     const campusOptions = [
-        { value: 'UTSG', label: 'University of Toronto St. George' },
-        { value: 'UTSC', label: 'University of Toronto Scarborough' },
-        { value: 'UTM', label: 'University of Toronto Mississauga' }
+        { value: 'UTSG', label: 'UTSG' },
+        { value: 'UTSC', label: 'UTSC' },
+        { value: 'UTM', label: 'UTM' }
     ];
     
     const handleCancel = () => {

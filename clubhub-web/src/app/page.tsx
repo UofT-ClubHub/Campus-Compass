@@ -34,6 +34,17 @@ export default function Home() {
     fetchPosts();
   }, []);
 
+  // Handle like updates
+  const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: newLikes }
+          : post
+      )
+    );
+  };
+
   return (
     <div>
       <section className="relative h-[60vh] min-h-[300px] overflow-hidden">
@@ -77,7 +88,7 @@ export default function Home() {
                 },
               }}
             />
-          </div>~
+          </div>
         </div>
       </section>
 
@@ -99,6 +110,8 @@ export default function Home() {
                     <PostCard
                       key={post.id}
                       post={post}
+                      currentUser={user}
+                      onLikeUpdate={handleLikeUpdate}
                     />
                   ))}
                 </div>

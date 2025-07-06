@@ -1,24 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin';
+import { firestore } from '../firebaseAdmin';
 import { User, Post } from '@/model/types';
+import { getCurrentUserId } from '../amenities';
 
 export async function POST(request: NextRequest) {
     try {
-        const authorization = request.headers.get('Authorization');
-        if (!authorization || !authorization.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-        }
-        const idToken = authorization.split('Bearer ')[1];
+        const { uid, error, status } = await getCurrentUserId(request);
 
-        let decodedToken;
-        try {
-            decodedToken = await auth.verifyIdToken(idToken);
-        } catch (error) {
-            console.log('Error verifying ID token:', error);
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        if (error || !uid) {
+            return NextResponse.json({ error: error || 'User not authenticated' }, { status: status || 401 });
         }
 
-        const uid = decodedToken.uid;
         const { postId } = await request.json();
 
         if (!postId) {

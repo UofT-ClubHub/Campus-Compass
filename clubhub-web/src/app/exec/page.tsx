@@ -23,6 +23,12 @@ export default function ExecPage() {
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
   
+  const campusOptions = [
+    { value: 'UTSG', label: 'UTSG' },
+    { value: 'UTSC', label: 'UTSC' },
+    { value: 'UTM', label: 'UTM' }
+  ];
+  
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -138,7 +144,7 @@ export default function ExecPage() {
   const handleAddExecutive = async (e: FormEvent, clubId: string) => {
     e.preventDefault();
     if (!newExecEmail) {
-      setSuccessMessage("Please enter an email.");
+      setError("Please enter an email.");
       return;
     }
 
@@ -153,7 +159,9 @@ export default function ExecPage() {
         setError("User not found with the provided email.");
         return;
       }
-      const execUser = users[0] as User; const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
+      const execUser = users[0] as User;
+
+      const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
       if (!updatedManagedClubs.includes(clubId)) {
         updatedManagedClubs.push(clubId);
       }
@@ -179,64 +187,26 @@ export default function ExecPage() {
         return;
       }
 
-      const clubToUpdate = managedClubs.find(club => club.id === clubId);
-      if (!clubToUpdate) {
-        setError("Club not found.");
-        return;
-      }
-      const updatedExecutives = Array.isArray(clubToUpdate.executives) ? [...clubToUpdate.executives] : [];
-      if (!updatedExecutives.includes(execUser.id)) {
-        updatedExecutives.push(execUser.id);
-      }
-
-      const updateClubResponse = await fetch(`/api/clubs?id=${clubId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json",
-                   Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ executives: updatedExecutives }),
-      })
-
-      if (!updateClubResponse.ok) {
-        const errorData = await updateClubResponse.json()
-        // Revert user update if club update fails
-        const revertUserPayload = {
-          id: execUser.id,
-          is_executive: execUser.is_executive, // original state
-          managed_clubs: execUser.managed_clubs, // original state
+      // Refresh the managed clubs data to get updated executive information
+      const updatedUser = await updateUserResponse.json();
+      
+      // Refresh the clubs data to show the new executive
+      const clubsDataPromises = managedClubs.map(async (club) => {
+        const clubResponse = await fetch(`/api/clubs?id=${club.id}`);
+        if (!clubResponse.ok) {
+          return club;
         }
-        await fetch(`/api/users`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          body: JSON.stringify(revertUserPayload),
-        })
-        setError(`Failed to update club executives: ${errorData.successMessage}`);
-        return;
-      }
+        return clubResponse.json();
+      });
+      const updatedClubs = await Promise.all(clubsDataPromises);
+      setManagedClubs(updatedClubs.filter((club) => club !== null) as Club[]);
 
-      // Update local state
-      setManagedClubs(prevClubs =>
-        prevClubs.map(club =>
-          club.id === clubId ? { ...club, executives: updatedExecutives } : club
-        )
-      )
-      // Add new executive to the details map
-      setExecutiveDetailsMap(prevMap => {
-        const newMap = new Map(prevMap)
-        const currentExecs = newMap.get(clubId) || []
-        if (!currentExecs.find(ex => ex.id === execUser.id)) {
-          newMap.set(clubId, [...currentExecs, execUser])
-        }
-        return newMap;
-      })
-      setNewExecEmail("")
-      setShowAddExecForm(null)
-      setSuccessMessage("Executive added successfully!")
+      setNewExecEmail("");
+      setShowAddExecForm(null);
+      setSuccessMessage("Executive added successfully!");
     } catch (err: any) {
-      console.log("Error adding executive:", err)
-      setSuccessMessage(`Error: ${err.successMessage}`)
+      console.log("Error adding executive:", err);
+      setError(`Error: ${err.message}`);
     }
   }
 
@@ -494,12 +464,18 @@ export default function ExecPage() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-600 mb-1">Campus:</label>
-                          <input
-                            type="text"
+                          <select
                             value={editingClub.campus || ""}
                             onChange={(e) => setEditingClub((prev) => ({ ...prev, campus: e.target.value }))}
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800"
-                          />
+                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800 bg-transparent"
+                          >
+                            <option value="">Select Campus</option>
+                            {campusOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-600 mb-1">Instagram:</label>
