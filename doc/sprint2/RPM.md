@@ -13,7 +13,7 @@
 ### Specific Goals
 - Implement Instagram Scraper for Clubs/Posts
   - **Specific:** Develop and implement an Instagram scraper using Apify to scrape data
-  - **Measurable:** Successfully scrape and store 20 posts across 5 different clubs
+  - **Measurable:** Successfully scrape and store at least 20 posts across 5 different clubs
   - **Achievable:** Apify provides prebuilt scraping tools
   - **Relevant:** This is the data that we are providing to our users
   - **Time-bound:** Complete within Sprint 2
@@ -38,9 +38,9 @@
 - **Hong Yu**: User Profile
 
 ### Metrics for Measurement
-- Users will only be able to access certain features of the website
-- Scraper scrapes all the relevant club/post information
-- Correct retrieval of data
+- Confirm that unauthorized users do not have access to protected pages/features
+- Scraper scrapes all the relevant club/post information with 90% accuracy
+- Correct retrieval/storage of data of posts/clubs/users 
 
 ## Release Scope
 
@@ -64,7 +64,7 @@
   - Will be included in a later release
 
 ### Bug Fixes
-- None right now
+- An account cannot have multiple sessions 
 
 ### Non-Functional Requirements
 - Performance
