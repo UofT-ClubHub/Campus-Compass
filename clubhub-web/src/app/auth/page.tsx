@@ -69,6 +69,7 @@ export default function AuthPage() {
                 }
             } else if (mode === 'login') {
                 await auth.signInWithEmailAndPassword(email, password);
+                console.log('Token:', await auth.currentUser?.getIdToken());
                 router.push('/');
             } else if (mode === 'reset') {
                 await auth.sendPasswordResetEmail(email);

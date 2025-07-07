@@ -1,6 +1,9 @@
 import { User } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
+import { getCurrentUserId } from '../amenities';
+import { get } from 'http';
+import * as admin from 'firebase-admin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -42,22 +45,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        // Verify the user is authenticated using Firebase ID token
-        const authorization = request.headers.get('Authorization');
-        if (!authorization || !authorization.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        // next 4 lines are modified, needs testing
+        const { uid, error, status } = await getCurrentUserId(request);
+        if (error) {
+            return NextResponse.json({ error }, { status });
         }
-        const idToken = authorization.split('Bearer ')[1];
-
-        let decodedToken;
-        try {
-            decodedToken = await auth.verifyIdToken(idToken);
-        } catch (error) {
-            console.error('Error verifying ID token:', error);
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-        }
-
-        const uid = decodedToken.uid;
         const userData: User = await request.json();
 
         if (uid !== userData.id) {
@@ -84,28 +76,17 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
     try {
-        const authorization = request.headers.get('Authorization');
-        if (!authorization || !authorization.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        const { uid, error, status} = await getCurrentUserId(request);
+        if (!uid || error) {
+            return NextResponse.json({ error }, { status });
         }
-        const idToken = authorization.split('Bearer ')[1];
-
-        let decodedToken;
-        try {
-            decodedToken = await auth.verifyIdToken(idToken);
-        } catch (error) {
-            console.error('Error verifying ID token:', error);
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-        }
-
-        const actingUserUid = decodedToken.uid;
+        const actingUserUid = uid;
         const body = await request.json();
         const { id: targetUserId, ...updates } = body;
 
         if (!targetUserId) {
             return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 });
         }
-
         const actingUserDoc = await firestore.collection('Users').doc(actingUserUid).get();
         if (!actingUserDoc.exists) {
             return NextResponse.json({ error: 'Acting user not found' }, { status: 404 });
@@ -148,6 +129,46 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });
         }
 
+        // Handle managed_clubs updates - update corresponding clubs
+        if (allowedUpdates.managed_clubs) {
+            const oldUserData = targetUserDoc.data() as User;
+            const oldManagedClubs = oldUserData.managed_clubs || [];
+            const newManagedClubs = allowedUpdates.managed_clubs || [];
+            
+            const addedClubs = newManagedClubs.filter(clubId => !oldManagedClubs.includes(clubId));
+            const removedClubs = oldManagedClubs.filter(clubId => !newManagedClubs.includes(clubId));
+            
+            const clubsCollection = firestore.collection('Clubs');
+            
+            // Add user to executives of newly managed clubs
+            for (const clubId of addedClubs) {
+                const clubDoc = await clubsCollection.doc(clubId).get();
+                if (clubDoc.exists) {
+                    const clubData = clubDoc.data();
+                    const executives = clubData?.executives || [];
+                    if (!executives.includes(targetUserId)) {
+                        await clubsCollection.doc(clubId).update({
+                            executives: admin.firestore.FieldValue.arrayUnion(targetUserId)
+                        });
+                    }
+                }
+            }
+            
+            // Remove user from executives of no longer managed clubs
+            for (const clubId of removedClubs) {
+                const clubDoc = await clubsCollection.doc(clubId).get();
+                if (clubDoc.exists) {
+                    const clubData = clubDoc.data();
+                    const executives = clubData?.executives || [];
+                    if (executives.includes(targetUserId)) {
+                        await clubsCollection.doc(clubId).update({
+                            executives: admin.firestore.FieldValue.arrayRemove(targetUserId)
+                        });
+                    }
+                }
+            }
+        }
+
         await targetUserDocRef.update(allowedUpdates);
         const updatedUserDoc = await targetUserDocRef.get();
         const updatedUserData = { ...updatedUserDoc.data(), id: updatedUserDoc.id } as User;
@@ -162,21 +183,11 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const authorization = request.headers.get('Authorization');
-        if (!authorization || !authorization.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-        }
-        const idToken = authorization.split('Bearer ')[1];
-
-        let decodedToken;
-        try {
-            decodedToken = await auth.verifyIdToken(idToken);
-        } catch (error) {
-            console.error('Error verifying ID token:', error);
-            return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+        const { uid, error, status } = await getCurrentUserId(request);
+        if (!uid || error) {
+            return NextResponse.json({ error }, { status });
         }
 
-        const uid = decodedToken.uid;
         const usersCollection = firestore.collection('Users');
         const userDocRef = usersCollection.doc(uid);
 

@@ -1,6 +1,7 @@
-import { Post } from '@/model/types';
+import { Post, Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, firestore } from '../firebaseAdmin';
+import { checkPostPermissions, checkExecPermissions } from '../amenities';
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,6 +12,8 @@ export async function GET(request: NextRequest) {
         const campusFilter = searchParams.get('campus');
         const clubFilter = searchParams.get('club');
         const categoryFilter = searchParams.get('category');
+        const limit = parseInt(searchParams.get("limit") || "10");
+        const offset = parseInt(searchParams.get("offset") || "0");
 
         // Get back arrays for hashtags
         const hashtagsFilterRaw = searchParams.get('hashtags');
@@ -35,18 +38,25 @@ export async function GET(request: NextRequest) {
 
         let posts: Post[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
 
+        let clubIds: string[] = [];
+        if (clubFilter) {
+            const clubsCollection = firestore.collection('Clubs');
+            const clubsSnapshot = await clubsCollection.get();
+            const clubs: Club[] = clubsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Club));
+            const matchingClubs = clubs.filter(club => club.name && club.name.toLowerCase().includes(clubFilter.toLowerCase()));
+            clubIds = matchingClubs.map(club => club.id);
+        }
+
         // Apply all filters if they exist
         posts = posts.filter(post =>
             (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
             (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
             (!campusFilter || (post.campus && post.campus.toLowerCase() === campusFilter.toLowerCase())) &&
-            (!clubFilter || (post.club && post.club.toLowerCase().includes(clubFilter.toLowerCase()))) &&
+            (!clubFilter || (post.club && clubIds.includes(post.club))) &&
             (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
-            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.some((tag: string) =>
+            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
-
             )))
-
         );
 
         // Sort by specified field and order if provided
@@ -61,7 +71,9 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        return NextResponse.json(posts, { status: 200 });
+        const paginated = posts.slice(offset, offset + limit);
+    
+    return NextResponse.json(paginated, { status: 200 });
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -78,6 +90,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
+        // check if user is executive of club
+        const { authorized, error, status } = await checkExecPermissions(request, data.club);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        }
+
         // Create new club document
         const docRef = await postsCollection.add(data);
         return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
@@ -92,7 +110,8 @@ export async function PUT(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
-            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        }
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        
+        }
 
         const data = await request.json();
         const postsCollection = firestore.collection('Posts');
@@ -100,6 +119,12 @@ export async function PUT(request: NextRequest) {
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'Post not found' }, { status: 404 });
+        }
+
+        // Authorization check if user can edit post
+        const { authorized, error, status } = await checkPostPermissions(request, postId);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
         await docRef.update(data);
@@ -125,6 +150,12 @@ export async function DELETE(request: NextRequest) {
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'post not found' }, { status: 404 });
+        }
+
+        // Authorization check if user can delete post
+        const { authorized, error, status } = await checkPostPermissions(request, postId);
+        if (!authorized) {  
+            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
         await docRef.delete();

@@ -4,6 +4,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
+import { ExpandablePostCard } from "../../../components/expandable-post-card";
 
 export default function ExecPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -20,10 +21,13 @@ export default function ExecPage() {
   const [showEditClubForm, setShowEditClubForm] = useState<string | null>(null);
   const [editingClub, setEditingClub] = useState<Partial<Club>>({});
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
-  const [newPost, setNewPost] = useState<Partial<Post>>({ title: "", details: "" });
-  const [hashtagsInput, setHashtagsInput] = useState("");
-  const [linksInput, setLinksInput] = useState("");
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
+  
+  const campusOptions = [
+    { value: 'UTSG', label: 'UTSG' },
+    { value: 'UTSC', label: 'UTSC' },
+    { value: 'UTM', label: 'UTM' }
+  ];
   
   useEffect(() => {
     if (successMessage) {
@@ -125,10 +129,22 @@ export default function ExecPage() {
       fetchExecutiveDetails();
     }
   }, [managedClubs]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditingClub((prev) => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddExecutive = async (e: FormEvent, clubId: string) => {
     e.preventDefault();
     if (!newExecEmail) {
-      setSuccessMessage("Please enter an email.");
+      setError("Please enter an email.");
       return;
     }
 
@@ -143,7 +159,9 @@ export default function ExecPage() {
         setError("User not found with the provided email.");
         return;
       }
-      const execUser = users[0] as User; const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
+      const execUser = users[0] as User;
+
+      const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
       if (!updatedManagedClubs.includes(clubId)) {
         updatedManagedClubs.push(clubId);
       }
@@ -169,63 +187,26 @@ export default function ExecPage() {
         return;
       }
 
-      const clubToUpdate = managedClubs.find(club => club.id === clubId);
-      if (!clubToUpdate) {
-        setError("Club not found.");
-        return;
-      }
-      const updatedExecutives = Array.isArray(clubToUpdate.executives) ? [...clubToUpdate.executives] : [];
-      if (!updatedExecutives.includes(execUser.id)) {
-        updatedExecutives.push(execUser.id);
-      }
-
-      const updateClubResponse = await fetch(`/api/clubs?id=${clubId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ executives: updatedExecutives }),
-      })
-
-      if (!updateClubResponse.ok) {
-        const errorData = await updateClubResponse.json()
-        // Revert user update if club update fails
-        const revertUserPayload = {
-          id: execUser.id,
-          is_executive: execUser.is_executive, // original state
-          managed_clubs: execUser.managed_clubs, // original state
+      // Refresh the managed clubs data to get updated executive information
+      const updatedUser = await updateUserResponse.json();
+      
+      // Refresh the clubs data to show the new executive
+      const clubsDataPromises = managedClubs.map(async (club) => {
+        const clubResponse = await fetch(`/api/clubs?id=${club.id}`);
+        if (!clubResponse.ok) {
+          return club;
         }
-        await fetch(`/api/users`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          body: JSON.stringify(revertUserPayload),
-        })
-        setError(`Failed to update club executives: ${errorData.successMessage}`);
-        return;
-      }
+        return clubResponse.json();
+      });
+      const updatedClubs = await Promise.all(clubsDataPromises);
+      setManagedClubs(updatedClubs.filter((club) => club !== null) as Club[]);
 
-      // Update local state
-      setManagedClubs(prevClubs =>
-        prevClubs.map(club =>
-          club.id === clubId ? { ...club, executives: updatedExecutives } : club
-        )
-      )
-      // Add new executive to the details map
-      setExecutiveDetailsMap(prevMap => {
-        const newMap = new Map(prevMap)
-        const currentExecs = newMap.get(clubId) || []
-        if (!currentExecs.find(ex => ex.id === execUser.id)) {
-          newMap.set(clubId, [...currentExecs, execUser])
-        }
-        return newMap;
-      })
-      setNewExecEmail("")
-      setShowAddExecForm(null)
-      setSuccessMessage("Executive added successfully!")
+      setNewExecEmail("");
+      setShowAddExecForm(null);
+      setSuccessMessage("Executive added successfully!");
     } catch (err: any) {
-      console.error("Error adding executive:", err)
-      setSuccessMessage(`Error: ${err.successMessage}`)
+      console.log("Error adding executive:", err);
+      setError(`Error: ${err.message}`);
     }
   }
 
@@ -237,9 +218,11 @@ export default function ExecPage() {
     }
 
     try {
+      const idToken = await authUser?.getIdToken();
       const response = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+                   Authorization: `Bearer ${idToken}` },
         body: JSON.stringify(editingClub),
       })
 
@@ -258,61 +241,8 @@ export default function ExecPage() {
       setEditingClub({})
       setSuccessMessage("Club information updated successfully!")
     } catch (err: any) {
-      console.error("Error editing club info:", err)
+      console.log("Error editing club info:", err)
       setSuccessMessage(`Error: ${err.successMessage}`)
-    }
-  }
-  const handleCreatePost = async (e: FormEvent, clubId: string) => {
-    e.preventDefault()
-    const club = managedClubs.find(c => c.id === clubId)
-    if (!club) {
-      setError("Club not found.")
-      return
-    }
-
-    if (!newPost.title || !newPost.details || !newPost.category) {
-      setError("Title, details, and category are required for a post.")
-      return
-    }
-
-    // Prepare the post data with all required fields
-    const postData = {
-      title: newPost.title,
-      details: newPost.details,
-      category: newPost.category,
-      club: club.name,
-      campus: club.campus,
-      date_posted: new Date().toISOString(),
-      likes: 0,
-      date_occuring: newPost.date_occuring ? new Date(newPost.date_occuring).toISOString() : new Date().toISOString(),
-      hashtags: newPost.hashtags || [],
-      image: newPost.image || "",
-      links: newPost.links || [],
-    }
-
-    console.log("Sending post data:", postData) // Debug log
-
-    try {
-      const response = await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || errorData.message || "Failed to create post.")
-      }
-      
-      // Reset form and close
-      setNewPost({ title: "", details: "", category: "" })
-      setHashtagsInput("")
-      setLinksInput("")
-      setShowCreatePostForm(null)
-      setSuccessMessage("Post created successfully!")
-
-    } catch (err: any) {
-      setError(`Error creating post: ${err.message}`)
     }
   }
 
@@ -389,7 +319,7 @@ export default function ExecPage() {
                       <span>
                         <strong>{club.followers}</strong> followers
                       </span>
-                      {club.instagram && <span>@{club.instagram}</span>}
+                      {club.instagram && <span>{club.instagram}</span>}
                       {club.executives && club.executives.length > 0 && (
                         <span>
                           <strong>{club.executives.length}</strong> executives
@@ -534,12 +464,18 @@ export default function ExecPage() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-600 mb-1">Campus:</label>
-                          <input
-                            type="text"
+                          <select
                             value={editingClub.campus || ""}
                             onChange={(e) => setEditingClub((prev) => ({ ...prev, campus: e.target.value }))}
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800"
-                          />
+                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800 bg-transparent"
+                          >
+                            <option value="">Select Campus</option>
+                            {campusOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-600 mb-1">Instagram:</label>
@@ -560,6 +496,14 @@ export default function ExecPage() {
                           rows={2}
                         />
                       </div>
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-slate-600 mb-1">Image:</label>
+                        <input
+                          type="file"
+                          onChange={(e) => handleFileChange(e)}
+                          className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800"
+                        />
+                      </div>
                       <button
                         type="submit"
                         className="px-4 py-2 bg-amber-500 text-white rounded text-sm font-medium hover:bg-amber-600 transition-colors"
@@ -570,118 +514,7 @@ export default function ExecPage() {
                   </div>
                 )}
 
-                {/* Create post form */}
-                {showCreatePostForm === club.id && (
-                  <div className="border-t border-slate-200 p-4 bg-slate-50">
-                    <form onSubmit={(e) => handleCreatePost(e, club.id)}>
-                      <h4 className="font-medium mb-3 text-slate-700">Create New Post for {club.name}</h4>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Post Title:</label>
-                          <input
-                            type="text"
-                            value={newPost.title || ""}
-                            onChange={(e) => setNewPost((prev) => ({ ...prev, title: e.target.value }))}
-                            required
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Category:</label>
-                          <input
-                            type="text"
-                            value={newPost.category || ""}
-                            onChange={(e) => setNewPost((prev) => ({ ...prev, category: e.target.value }))}
-                            required
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-slate-600 mb-1">Post Details:</label>
-                        <textarea
-                          value={newPost.details || ""}
-                          onChange={(e) => setNewPost((prev) => ({ ...prev, details: e.target.value }))}
-                          required
-                          className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          rows={3}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Hashtags (comma-separated):</label>
-                          <input
-                            type="text"
-                            value={hashtagsInput}
-                            onChange={(e) => {
-                              setHashtagsInput(e.target.value);
-                              setNewPost((prev) => ({
-                                ...prev,
-                                hashtags: e.target.value
-                                  .split(",")
-                                  .map((tag) => tag.trim())
-                                  .filter((tag) => tag.length > 0),
-                              }));
-                            }}
-                            placeholder="tag1, tag2, tag3"
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Date:</label>
-                          <input
-                            type="datetime-local"
-                            value={newPost.date_occuring || ""}
-                            onChange={(e) => setNewPost((prev) => ({ ...prev, date_occuring: e.target.value }))}
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Image URL:</label>
-                          <input
-                            type="url"
-                            value={newPost.image || ""}
-                            onChange={(e) => setNewPost((prev) => ({ ...prev, image: e.target.value }))}
-                            placeholder="https://example.com/image.jpg"
-                            className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-600 mb-1">Links (comma-separated):</label>
-                          <input
-                          type="text"
-                          value={linksInput}
-                          onChange={(e) => {
-                            setLinksInput(e.target.value);
-                            setNewPost((prev) => ({
-                            ...prev,
-                            links: e.target.value
-                              .split(",")
-                              .map((link) => link.trim())
-                              .filter((link) => link.length > 0),
-                            }));
-                          }}
-                          placeholder="https://link1.com, https://link2.com"
-                          className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent text-slate-800"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-teal-500 text-white rounded text-sm font-medium hover:bg-teal-600 transition-colors"
-                      >
-                        Create Post
-                      </button>
-                    </form>
-                  </div>
-                )}
+                {/* Create post form - REMOVED */}
               </div>
             ))}
           </div>
@@ -693,6 +526,43 @@ export default function ExecPage() {
             <p className="text-slate-500 text-sm">You don't manage any clubs yet or the data is still loading.</p>
           </div>
         )}
+
+        {showCreatePostForm && (() => {
+          const clubForPost = managedClubs.find(c => c.id === showCreatePostForm);
+          if (!clubForPost) return null;
+
+          const initialPostForCreation: Post = {
+            id: '',
+            title: '',
+            details: '',
+            club: clubForPost.id,
+            campus: '', // Default to empty string so user must select
+            category: '',
+            date_posted: new Date().toISOString(),
+            date_occuring: '',
+            image: '',
+            likes: 0,
+            hashtags: [],
+            links: [],
+          };
+
+          return (
+            <ExpandablePostCard
+              isCreating={true}
+              post={initialPostForCreation}
+              currentUser={userData}
+              onClose={() => setShowCreatePostForm(null)}
+              onSave={(savedPost: Post) => {
+                setSuccessMessage("Post created successfully!");
+                setShowCreatePostForm(null);
+              }}
+              onSaveError={(error: string) => {
+                setError(error);
+                setShowCreatePostForm(null);
+              }}
+            />
+          );
+        })()}
       </div>
     </div>
   )

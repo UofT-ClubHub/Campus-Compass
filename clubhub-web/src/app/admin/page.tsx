@@ -28,6 +28,12 @@ export default function AdminPage() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const campusOptions = [
+        { value: 'UTSG', label: 'UTSG' },
+        { value: 'UTSC', label: 'UTSC' },
+        { value: 'UTM', label: 'UTM' }
+    ];
+
     useEffect(() => {
         if (error) {
             const timer = setTimeout(() => {
@@ -147,12 +153,15 @@ export default function AdminPage() {
             });
             if (!response.ok) throw new Error('Failed to fetch clubs');
             const data = await response.json();
-            setSearchedClubs(data);
+            
+            // Filter out clubs that the user already manages
+            const filteredClubs = data.filter((club: Club) => !editManagedClubs.includes(club.id));
+            setSearchedClubs(filteredClubs);
         } catch (err: any) {
             setError(err.message);
             setSearchedClubs([]);
         }
-    }, [authUser]);
+    }, [authUser, editManagedClubs]);
 
     // Debounced club search using useEffect
     useEffect(() => {
@@ -222,7 +231,7 @@ export default function AdminPage() {
         try {
             const token = await authUser.getIdToken();
             
-            // First, update the user data
+            // Update the user data - backend will handle club updates automatically
             const payload: any = {
                 id: selectedUser.id,
                 is_admin: editIsAdmin,
@@ -245,74 +254,6 @@ export default function AdminPage() {
             }
             const updatedUser = await response.json();
 
-            // Now update club executives lists
-            const originalManagedClubs = selectedUser.managed_clubs || [];
-            const newManagedClubs = editIsExecutive ? editManagedClubs : [];
-            
-            // Find clubs that were added
-            const clubsToAdd = newManagedClubs.filter(clubId => !originalManagedClubs.includes(clubId));
-            
-            // Find clubs that were removed
-            const clubsToRemove = originalManagedClubs.filter(clubId => !newManagedClubs.includes(clubId));
-
-            // Update clubs where user was added as executive
-            for (const clubId of clubsToAdd) {
-                try {
-                    // Fetch current club data
-                    const clubResponse = await fetch(`/api/clubs?id=${clubId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` },
-                    });
-                    
-                    if (clubResponse.ok) {
-                        const clubData = await clubResponse.json();
-                        const updatedExecutives = [...(clubData.executives || []), selectedUser.id];
-                        
-                        // Update club executives
-                        await fetch(`/api/clubs?id=${clubId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                executives: updatedExecutives
-                            }),
-                        });
-                    }
-                } catch (clubErr) {
-                    console.error(`Failed to add user to club ${clubId} executives:`, clubErr);
-                }
-            }
-
-            // Update clubs where user was removed as executive
-            for (const clubId of clubsToRemove) {
-                try {
-                    // Fetch current club data
-                    const clubResponse = await fetch(`/api/clubs?id=${clubId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` },
-                    });
-                    
-                    if (clubResponse.ok) {
-                        const clubData = await clubResponse.json();
-                        const updatedExecutives = (clubData.executives || []).filter((exec: string) => exec !== selectedUser.id);
-                        
-                        // Update club executives
-                        await fetch(`/api/clubs?id=${clubId}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                executives: updatedExecutives
-                            }),
-                        });
-                    }
-                } catch (clubErr) {
-                    console.error(`Failed to remove user from club ${clubId} executives:`, clubErr);
-                }
-            }
-
             setSelectedUser(updatedUser);
             setSuccessMessage('User updated successfully!');
             setIsEditing(false);
@@ -328,12 +269,6 @@ export default function AdminPage() {
     const handleAddClubToManaged = (clubIdToAdd: string) => {
         if (!selectedUser) {
             setError("User details are missing for this action.");
-            return;
-        }
-        if (editManagedClubs.includes(clubIdToAdd)) {
-            // Club is already managed, just clear search
-            setClubSearchTerm('');
-            setSearchedClubs([]);
             return;
         }
         setError(null);
@@ -416,13 +351,18 @@ export default function AdminPage() {
                             onChange={(e) => setEmailFilter(e.target.value)}
                             className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
                         />
-                        <input
-                            type="text"
-                            placeholder="Filter by campus..."
+                        <select
                             value={campusFilter}
                             onChange={(e) => setCampusFilter(e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
-                        />
+                            className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-transparent"
+                        >
+                            <option value="">All Campuses</option>
+                            {campusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     {allUsers.length > 0 && (
                         <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-96 overflow-y-auto">

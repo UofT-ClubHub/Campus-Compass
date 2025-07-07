@@ -2,38 +2,96 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Autocomplete } from "@mantine/core"
-import { EventCard } from "../../components/event-card"
-import { Post } from "@/model/types";
+import { PostCard } from "../../components/post-card"
+import { Post, User } from "@/model/types";
 import { useEffect, useState } from "react";
 
-
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user: authUser, loading } = useAuth();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      const response = await fetch('/api/posts?sort_by=likes&sort_order=desc');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch posts: ${response.statusText}`);
+      }
+      const data: Post[] = await response.json();
+      setPosts(data.slice(0, 3)); // Get top 3 posts
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  // Fetch user data when auth user changes
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoadingPosts(true);
-        const response = await fetch('/api/posts?sort_by=likes&sort_order=desc');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch posts: ${response.statusText}`);
+    const fetchUserData = async () => {
+      if (authUser) {
+        try {
+          const response = await fetch(`/api/users?id=${authUser.uid}`);
+          if (response.ok) {
+            const userData: User = await response.json();
+            setCurrentUser(userData);
+          }
+        } catch (error) {
+          console.log('Error fetching user data:', error);
         }
-        const data: Post[] = await response.json();
-        setPosts(data.slice(0, 3)); // Get top 3 posts
-        setError(null);
-      } catch (err: any) {
-        setError(err.message);
-        setPosts([]);
-      } finally {
-        setLoadingPosts(false);
+      } else {
+        setCurrentUser(null);
       }
     };
 
+    fetchUserData();
+  }, [authUser]);
+
+  useEffect(() => {
     fetchPosts();
   }, []);
+
+  // Handle like updates
+  const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+    // Update posts
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: newLikes }
+          : post
+      )
+    );
+    
+    // Update currentUser liked_posts
+    setCurrentUser(prevUser => {
+      if (!prevUser) return prevUser;
+      
+      const currentLikedPosts = prevUser.liked_posts || [];
+      let updatedLikedPosts;
+      
+      if (isLiked) {
+        updatedLikedPosts = currentLikedPosts.includes(postId) 
+          ? currentLikedPosts 
+          : [...currentLikedPosts, postId];
+      } else {
+        updatedLikedPosts = currentLikedPosts.filter(id => id !== postId);
+      }
+      
+      return {
+        ...prevUser,
+        liked_posts: updatedLikedPosts
+      };
+    });
+  };
+
+  const handlePostDelete = () => {
+    fetchPosts();
+  };
 
   return (
     <div>
@@ -48,10 +106,17 @@ export default function Home() {
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white px-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-8 text-center drop-shadow-lg">Campus Compass</h1>
           
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md p-2">
             <Autocomplete
-              placeholder="Search for clubs, events, or resources"
-              data={[]}
+              placeholder="Search for resources"
+              data={[
+                "Clubs",
+                "Events",
+                "Resources",
+                "Community Service",
+                "Workshops",
+                "Networking"
+              ]}
               styles={{
                 input: {
                   backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -71,7 +136,7 @@ export default function Home() {
                 },
               }}
             />
-          </div>~
+          </div>
         </div>
       </section>
 
@@ -89,11 +154,13 @@ export default function Home() {
               
               {!loadingPosts && !error && posts.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                  {posts.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      isRSVP={false} // Placeholder, implement RSVP logic later
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      currentUser={currentUser}
+                      onLikeUpdate={handleLikeUpdate}
+                      onRefresh={handlePostDelete}
                     />
                   ))}
                 </div>
