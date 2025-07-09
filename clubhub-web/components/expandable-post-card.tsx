@@ -88,16 +88,12 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
       const idToken = await user.getIdToken();
       
-      const response = await fetch('/api/posts', {
-        method: 'POST',
+      const response = await fetch(`/api/posts?id=${post.id}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          action: 'delete',
-          originalPost: post
-        })
+        }
       });
 
       if (response.ok) {
@@ -109,9 +105,9 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
         onClose();
       } else {
-        const errorData = await response.json();
+        const errorData = await response.text();
         console.log('Failed to delete post:', response.status, errorData);
-        alert(errorData.error || errorData.message || 'Failed to delete post. You may not have permission to delete this post.');
+        alert('Failed to delete post. You may not have permission to delete this post.');
       }
     } catch (error) {
       console.log('Error deleting post:', error);
