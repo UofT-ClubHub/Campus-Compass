@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
-import firebase from "@/model/firebase";
+import { auth } from "@/model/firebase";
 
 interface ExpandableClubCardProps {
   club: Club;
@@ -83,7 +83,7 @@ export function ExpandableClubCard({
 
     setIsFollowLoading(true);
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       console.log('Firebase user:', user?.uid);
       
       if (!user) {

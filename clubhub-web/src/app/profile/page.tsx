@@ -1,6 +1,7 @@
 "use client";
 
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { use, useEffect, useState } from 'react';
 import { Card, Stack, Group, Text, ActionIcon, Grid } from '@mantine/core';
 import { Mail, MapPin, Users, Heart, Star, Settings } from 'lucide-react';
@@ -8,12 +9,22 @@ import { Profile } from '../../../components/profile';
 import type { User, Club } from "@/model/types";
 
 export default function ProfilePage() {
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const [userData, setUserData] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [settings, setSettings] = useState(false);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [followedClubs, setFollowedClubs] = useState<Club[]>([]);
+    
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
     
     useEffect(() => { 
         if (authLoading || !authUser) return;

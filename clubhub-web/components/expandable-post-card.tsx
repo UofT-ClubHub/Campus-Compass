@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2 } from "lucide-react";
 import type { Post, Club } from "@/model/types";
-import firebase from "@/model/firebase";
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from "@/model/firebase";
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -29,6 +28,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
 
   // Update likes when post prop changes
   useEffect(() => {
@@ -80,7 +80,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsDeleting(true);
     
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (!user) {
         alert('Please log in to delete posts');
         return;
@@ -88,12 +88,16 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
       const idToken = await user.getIdToken();
       
-      const response = await fetch(`/api/posts?id=${post.id}`, {
-        method: 'DELETE',
+      const response = await fetch('/api/posts', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
-        }
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          originalPost: post
+        })
       });
 
       if (response.ok) {
@@ -105,9 +109,9 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
         onClose();
       } else {
-        const errorData = await response.text();
+        const errorData = await response.json();
         console.log('Failed to delete post:', response.status, errorData);
-        alert('Failed to delete post. You may not have permission to delete this post.');
+        alert(errorData.error || errorData.message || 'Failed to delete post. You may not have permission to delete this post.');
       }
     } catch (error) {
       console.log('Error deleting post:', error);
@@ -122,31 +126,29 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsSaving(true);
 
     try {
+      let imageUrl = editedPost.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'posts');
+      }
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
-
-      const authUser = firebase.auth().currentUser;
-      
+      const authUser = auth.currentUser;
       if (authUser) {
         const token = await authUser.getIdToken();
-
         const response = await fetch(url, {
           method: method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(editedPost),
+          body: JSON.stringify({ ...editedPost, image: imageUrl }),
         });
-
         if (response.ok) {
           const savedPost = await response.json();
           setIsEditing(false);
-          
+          setPendingImageFile(null);
           if (onEdit) onEdit(savedPost);
           if (onSave) onSave(savedPost);
-
-          // Force a re-render by updating the post prop reference
           Object.assign(post, savedPost);
         } else {
           const errorData = await response.json();
@@ -237,7 +239,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsLiking(true);
     
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       console.log('Firebase user:', user?.uid);
       
       if (!user) {
@@ -281,6 +283,43 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     } finally {
       setIsLiking(false);
     }
+  };
+
+  const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPendingImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImageToBackend = async (file: File, folder: string = 'posts'): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('postId', post.id);
+    formData.append('originalImageUrl', post.image || "");
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    console.log('Uploaded image:', data.downloadURL);
+    return data.downloadURL;
   };
 
   return (
@@ -457,21 +496,13 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
                 <input
                   type="file"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        handleInputChange('image', reader.result as string);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
+                  accept="image/*"
+                  onChange={handleImageUploadInput}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
