@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { User, Club } from '@/model/types';
+import type { User, Club } from '@/model/types';
 
 export default function AdminPage() {
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const router = useRouter();
     const [currentUserData, setCurrentUserData] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +35,15 @@ export default function AdminPage() {
         { value: 'UTSC', label: 'UTSC' },
         { value: 'UTM', label: 'UTM' }
     ];
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (error) {

@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Post, User } from "@/model/types";
 import { PostCard } from "../../../components/post-card";
-import { useAuth } from "@/hooks/useAuth";
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { Search, Calendar, Filter, Users, ExternalLink } from "lucide-react";
 
 export default function PostFilterPage() {
-  const { user: authUser } = useAuth();
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [nameFilter, setNameFilter] = useState("");
@@ -21,6 +23,14 @@ export default function PostFilterPage() {
   const limit = 3;
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const filterPosts = async (isNewSearch = false) => {
     if (loadingRef.current) return;

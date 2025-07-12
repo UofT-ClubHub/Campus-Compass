@@ -1,13 +1,15 @@
 "use client"
 
 import { useState, useEffect, type FormEvent } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
 import { ExpandablePostCard } from "../../../components/expandable-post-card";
 
 export default function ExecPage() {
-  const { user: authUser, loading: authLoading } = useAuth();
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
   const [userData, setUserData] = useState<User | null>(null);
   const [managedClubs, setManagedClubs] = useState<Club[]>([]);
@@ -22,13 +24,23 @@ export default function ExecPage() {
   const [editingClub, setEditingClub] = useState<Partial<Club>>({});
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   
   const campusOptions = [
     { value: 'UTSG', label: 'UTSG' },
     { value: 'UTSC', label: 'UTSC' },
     { value: 'UTM', label: 'UTM' }
   ];
-  
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -130,15 +142,41 @@ export default function ExecPage() {
     }
   }, [managedClubs]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditingClub((prev) => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setPendingImageFile(e.target.files[0]);
     }
+  };
+
+  const uploadImageToBackend = async (file: File, folder: string = 'clubs', clubId: string): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('clubId', clubId);
+    formData.append('originalImageUrl', clubId);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    console.log('Uploaded image:', data.downloadURL);
+    return data.downloadURL;
   };
 
   const handleAddExecutive = async (e: FormEvent, clubId: string) => {
@@ -218,12 +256,17 @@ export default function ExecPage() {
     }
 
     try {
+      let imageUrl = editingClub.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'clubs', clubId);
+      }
+
       const idToken = await authUser?.getIdToken();
       const response = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json",
                    Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify(editingClub),
+        body: JSON.stringify({ ...editingClub, image: imageUrl }),
       })
 
       if (!response.ok) {
@@ -239,6 +282,7 @@ export default function ExecPage() {
       )
       setShowEditClubForm(null)
       setEditingClub({})
+      setPendingImageFile(null)
       setSuccessMessage("Club information updated successfully!")
     } catch (err: any) {
       console.log("Error editing club info:", err)
@@ -500,7 +544,8 @@ export default function ExecPage() {
                         <label className="block text-sm font-medium text-slate-600 mb-1">Image:</label>
                         <input
                           type="file"
-                          onChange={(e) => handleFileChange(e)}
+                          accept="image/*"
+                          onChange={handleImageUploadInput}
                           className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800"
                         />
                       </div>

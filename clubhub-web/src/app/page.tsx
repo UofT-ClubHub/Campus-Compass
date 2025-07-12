@@ -1,13 +1,15 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Autocomplete } from "@mantine/core"
 import { PostCard } from "../../components/post-card"
 import { Post, User } from "@/model/types";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Home() {
-  const { user: authUser, loading } = useAuth();
+export default function HomePage() {
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -54,6 +56,15 @@ export default function Home() {
 
   useEffect(() => {
     fetchPosts();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Handle like updates

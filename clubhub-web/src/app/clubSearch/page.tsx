@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import type { Club, User } from "@/model/types"
 import { ClubCard } from "../../../components/club-card"
-import { useAuth } from "@/hooks/useAuth"
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { Search, Filter, Users, MapPin, ExternalLink } from "lucide-react";
 
 export default function clubSearchPage() {
-  const { user: authUser } = useAuth();
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [clubs, setClubs] = useState<Club[]>([])
   const [loading, setLoading] = useState(false)
@@ -19,6 +21,14 @@ export default function clubSearchPage() {
   const limit = 4;
   const loadingRef = useRef(false);
   
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch current user data
   useEffect(() => {

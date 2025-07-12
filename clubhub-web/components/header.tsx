@@ -1,19 +1,29 @@
 "use client"
 
 import Link from "next/link"
-import { useAuth } from '@/hooks/useAuth';
-import firebase from '@/model/firebase';
+import { auth } from '@/model/firebase';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function Header() {
-    const { user, loading } = useAuth();
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
     const handleLogout = async () => {
         try {
-            await firebase.auth().signOut();
+            await signOut(auth);
             router.push('/auth'); // Redirect to auth page after logout
             setIsMobileMenuOpen(false); // Close mobile menu after logout
         } catch (error) {
