@@ -27,6 +27,9 @@ export function Modal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
         <Dialog.Content className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${className}`}>
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
+          <Dialog.Description className="sr-only">
+            {title} details and information
+          </Dialog.Description>
           <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {showCloseButton && (
               <Dialog.Close asChild>

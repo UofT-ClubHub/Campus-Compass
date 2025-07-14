@@ -5,7 +5,7 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
-import { ExpandablePostCard } from "../../../components/expandable-post-card";
+import { ExpandablePostCard } from "@/components/expandable-post-card";
 
 export default function ExecPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -73,11 +73,13 @@ export default function ExecPage() {
         const response = await fetch(`/api/users?id=${authUser.uid}`);
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.successMessage);
+          throw new Error(errorData.error);
         }
         const user: User = await response.json();
-        setUserData(user); if (!user.is_executive && !user.is_admin) {
-          setError("Access Denied: You are not an executive or admin!");
+        setUserData(user); 
+        
+        if (!user.is_executive && !user.is_admin) {
+          setError("Access Denied: You are not an exec.");
           setIsLoading(false);
           return;
         }
@@ -172,7 +174,7 @@ export default function ExecPage() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to upload image');
+      throw new Error(errorData.error);
     }
 
     const data = await response.json();
@@ -272,7 +274,7 @@ export default function ExecPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.successMessage || "Failed to update club info.")
+        throw new Error(errorData)
       }
 
       const updatedClub = await response.json()
@@ -316,7 +318,7 @@ export default function ExecPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete club.");
+        throw new Error(errorData.error);
       }
 
       // Remove the club from local state
@@ -342,6 +344,17 @@ export default function ExecPage() {
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
           <p className="text-slate-600 font-medium">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+          <h2 className="text-xl font-semibold text-red-600 mb-3">Access Denied</h2>
+          <p className="text-red-500">Access Denied: You are not an exec.</p>
         </div>
       </div>
     )

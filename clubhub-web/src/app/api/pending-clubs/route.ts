@@ -1,26 +1,11 @@
 import { PendingClub, Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin';
-import { getCurrentUserId } from '../amenities';
+import { firestore } from '../firebaseAdmin';
+import { withAuth } from '@/lib/auth-middleware';
 import * as admin from 'firebase-admin';
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
-    const { uid, error, status } = await getCurrentUserId(request);
-    if (!uid || error || status !== 200) {
-      return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
-    }
-
-    const userDoc = await firestore.collection('Users').doc(uid).get();
-    if (!userDoc.exists) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const userData = userDoc.data();
-    if (!userData?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = request.nextUrl;
     const campusFilter = searchParams.get("campus");
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -47,18 +32,13 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
-    // Get current user ID using amenities function
-    const { uid, error, status } = await getCurrentUserId(request);
-    if (!uid || error || status !== 200) {
-      return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
-    }
-
+    const authResult = (request as any).auth; // Added by middleware
     const data = await request.json();
-    const { club_name, club_campus, club_description } = data;
+    const { club_name, club_campus, club_description, club_image = "", club_instagram = "" } = data;
 
     // Validate required fields
     if (!club_name || !club_campus || !club_description) {
@@ -72,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has a pending club
     const existingPendingClub = await pendingClubsCollection
-      .where("user", "==", uid)
+      .where("user", "==", authResult.uid)
       .limit(1)
       .get();
 
@@ -85,10 +65,12 @@ export async function POST(request: NextRequest) {
 
     // Create new pending club document
     const pendingClubData = {
-      user: uid,
+      user: authResult.uid,
       club_name: club_name.trim(),
       club_campus: club_campus.trim(),
       club_description: club_description.trim(),
+      club_image: club_image.trim(),
+      club_instagram: club_instagram.trim(),
       created_at: admin.firestore.FieldValue.serverTimestamp(),
     };
 
@@ -105,27 +87,10 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request: NextRequest) => {
   try {
-    // Get current user ID using amenities function
-    const { uid, error, status } = await getCurrentUserId(request);
-    if (!uid || error || status !== 200) {
-      return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
-    }
-
-    // Get user to check if they're admin
-    const userDoc = await firestore.collection('Users').doc(uid).get();
-    if (!userDoc.exists) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const userData = userDoc.data();
-    if (!userData?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = request.nextUrl;
     const pendingClubId = searchParams.get('id');
     const action = searchParams.get('action'); // 'approve' or 'reject'
@@ -156,8 +121,8 @@ export async function DELETE(request: NextRequest) {
         name: pendingClubData.club_name,
         description: pendingClubData.club_description,
         campus: pendingClubData.club_campus,
-        image: '',
-        instagram: '',
+        image: pendingClubData.club_image || '',
+        instagram: pendingClubData.club_instagram || '',
         followers: 0,
         executives: [],
         links: [],
@@ -191,4 +156,4 @@ export async function DELETE(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+});

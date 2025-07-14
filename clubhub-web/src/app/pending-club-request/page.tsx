@@ -9,9 +9,39 @@ export default function PendingClubRequestPage() {
   const [clubName, setClubName] = useState('');
   const [clubCampus, setClubCampus] = useState('');
   const [clubDescription, setClubDescription] = useState('');
+  const [clubInstagram, setClubInstagram] = useState('');
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Helper to upload image to backend and get download URL
+  const uploadImageToBackend = async (file: File, folder: string = 'pending-clubs'): Promise<string> => {
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.downloadURL;
+  };
 
   const campusOptions = [
     { value: 'UTSG', label: 'UTSG' },
@@ -31,7 +61,13 @@ export default function PendingClubRequestPage() {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = '';
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'pending-clubs');
+      }
+
       const token = await user.getIdToken();
+
       const response = await fetch('/api/pending-clubs', {
         method: 'POST',
         headers: {
@@ -42,6 +78,8 @@ export default function PendingClubRequestPage() {
           club_name: clubName.trim(),
           club_campus: clubCampus,
           club_description: clubDescription.trim(),
+          club_image: imageUrl,
+          club_instagram: clubInstagram.trim(),
         }),
       });
 
@@ -55,6 +93,8 @@ export default function PendingClubRequestPage() {
       setClubName('');
       setClubCampus('');
       setClubDescription('');
+      setPendingImageFile(null);
+      setClubInstagram('');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -132,6 +172,38 @@ export default function PendingClubRequestPage() {
             <p className="text-sm text-slate-500 mt-1">
               {clubDescription.length}/500 characters
             </p>
+          </div>
+
+          <div>
+            <label htmlFor="clubImage" className="block text-sm font-medium text-slate-700 mb-2">
+              Club Image (optional)
+            </label>
+            <input
+              type="file"
+              id="clubImage"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setPendingImageFile(e.target.files[0]);
+                }
+              }}
+              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="clubInstagram" className="block text-sm font-medium text-slate-700 mb-2">
+              Club Instagram
+            </label>
+            <input
+              type="text"
+              id="clubInstagram"
+              value={clubInstagram}
+              onChange={(e) => setClubInstagram(e.target.value)}
+              maxLength={100}
+              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+              placeholder="Enter the club's Instagram handle or URL (optional)"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">

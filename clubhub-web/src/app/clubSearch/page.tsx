@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import type { Club, User } from "@/model/types"
-import { ClubCard } from "../../../components/club-card"
+import { ClubCard } from "@/components/club-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Search, Filter, Users, MapPin, ExternalLink } from "lucide-react";
@@ -34,10 +34,17 @@ export default function clubSearchPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (authUser) {
-        const response = await fetch(`/api/users?id=${authUser.uid}`);
-        if (response.ok) {
-          const userData = await response.json();
-          setCurrentUser(userData);
+        try {
+          const token = await authUser.getIdToken();
+          const response = await fetch(`/api/users?id=${authUser.uid}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
       }
     };
@@ -180,18 +187,7 @@ useEffect(() => {
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
             <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">Club Results</h2>
 
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="bg-gray-50 rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
-                    <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                    <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                ))}
-              </div>            
-              ) : clubs.length === 0 ? (
+            {clubs.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg
@@ -218,15 +214,7 @@ useEffect(() => {
                 ))}
               </div>
             )}
-            {loadingMore && (
-              <div className="flex justify-center items-center py-8">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

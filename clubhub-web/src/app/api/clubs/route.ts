@@ -1,7 +1,7 @@
 import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin';
-import { checkExecPermissions } from '../amenities';
+import { firestore } from '../firebaseAdmin';
+import { withAuth } from '@/lib/auth-middleware';
 import * as admin from 'firebase-admin';
 
 export async function GET(request: NextRequest) {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const data = await request.json();
     const clubsCollection = firestore.collection("Clubs");
@@ -83,12 +83,6 @@ export async function POST(request: NextRequest) {
         { message: "Missing required fields" },
         { status: 400 }
       );
-    }
-
-    // Authorization check for creating club
-    const { authorized, error, status } = await checkExecPermissions(request, data.id);
-    if (!authorized) {
-        return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
     }
 
     // Create new club document
@@ -105,10 +99,11 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+});
 
-export async function PUT(request: NextRequest) {
+export const PUT = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const clubId = searchParams.get('id');
         if (!clubId) {
@@ -124,10 +119,13 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
         }
 
-        // Authorization check for editing club
-        const { authorized, error, status } = await checkExecPermissions(request, clubId);
-        if (!authorized) {
-            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        // Additional authorization check: admins can edit any club, executives can only edit their managed clubs
+        if (!authResult.isAdmin) {
+            const clubData = doc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
         const oldData = doc.data() as Club;
@@ -187,10 +185,11 @@ export async function PUT(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const clubId = searchParams.get('id');
         if (!clubId) {
@@ -207,10 +206,13 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
         }
 
-        // Authorization check for deleting club
-        const { authorized, error, status } = await checkExecPermissions(request, clubId);
-        if (!authorized) {
-            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        // Additional authorization check: admins can delete any club, executives can only delete their managed clubs
+        if (!authResult.isAdmin) {
+            const clubData = doc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
         const clubData = doc.data() as Club;
@@ -292,4 +294,4 @@ export async function DELETE(request: NextRequest) {
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2, X } from "lucide-react";
 import type { Post, Club } from "@/model/types";
 import { auth } from "@/model/firebase";
-import { Modal } from "./ui/modal";
+import { Modal } from "./modal";
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -55,7 +55,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             setClubName("Unknown Club");
           }
         } catch (error) {
-          console.log("Error fetching club name:", error);
           setClubName("Unknown Club");
         }
       }
@@ -106,12 +105,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
         onClose();
       } else {
-        const errorData = await response.text();
-        console.log('Failed to delete post:', response.status, errorData);
-        alert('Failed to delete post. You may not have permission to delete this post.');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error deleting post:', error);
       alert('Error occurred while deleting post');
     } finally {
       setIsDeleting(false);
@@ -149,9 +146,8 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           Object.assign(post, savedPost);
         } else {
           const errorData = await response.json();
-          console.log('Failed to save post', errorData);
           if (onSaveError) {
-            onSaveError(errorData.message || errorData.error || 'Failed to save post');
+            onSaveError(errorData);
           }
         }
       } else {
@@ -160,7 +156,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
       }
     } catch (error) {
-      console.log('Error saving post:', error);
       if (onSaveError) {
         onSaveError(error instanceof Error ? error.message : 'An unknown error occurred.');
       }
@@ -227,25 +222,19 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (isLiking) {
-      console.log('Already loading, skipping...');
-      return;
-    }
+    if (isLiking) return;
     
     setIsLiking(true);
     
     try {
       const user = auth.currentUser;
-      console.log('Firebase user:', user?.uid);
       
       if (!user) {
-        console.log('User not authenticated');
         alert('Please log in to like posts');
         return;
       }
 
       const idToken = await user.getIdToken();
-      console.log('Making API call to like post:', post.id);
       
       const response = await fetch('/api/likes', {
         method: 'POST',
@@ -257,24 +246,19 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           postId: post.id
         })
       });
-
-      console.log('API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Like response data:', data);
         setLikes(data.likes);
         setIsLiked(data.liked);
         if (onLikeUpdate) {
           onLikeUpdate(post.id, data.likes, data.liked);
         }
       } else {
-        const errorData = await response.text();
-        console.log('Failed to like/unlike post:', response.status, errorData);
-        alert('Failed to like/unlike post');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error handling like:', error);
       alert('Error occurred while liking/unliking post');
     } finally {
       setIsLiking(false);
@@ -310,11 +294,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to upload image');
+      throw new Error(errorData.error);
     }
 
     const data = await response.json();
-    console.log('Uploaded image:', data.downloadURL);
     return data.downloadURL;
   };
 
@@ -375,10 +358,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           {/* Likes overlay */}
           {!isCreating && (
           <button
-            onClick={(e) => {
-              console.log('Like button clicked - current state:', { isLiked, likes, postId: post.id });
-              handleLike(e);
-            }}
+            onClick={handleLike}
             disabled={!currentUser || isLiking}
             className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
