@@ -3,7 +3,7 @@
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Autocomplete } from "@mantine/core"
-import { PostCard } from "../../components/post-card"
+import { PostCard } from "@/components/post-card"
 import { Post, User } from "@/model/types";
 import { useState, useEffect } from "react";
 
@@ -38,7 +38,10 @@ export default function HomePage() {
     const fetchUserData = async () => {
       if (authUser) {
         try {
-          const response = await fetch(`/api/users?id=${authUser.uid}`);
+          const token = await authUser.getIdToken();
+          const response = await fetch(`/api/users?id=${authUser.uid}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
           if (response.ok) {
             const userData: User = await response.json();
             setCurrentUser(userData);

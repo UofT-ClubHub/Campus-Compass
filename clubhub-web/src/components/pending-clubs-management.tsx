@@ -38,7 +38,7 @@ export default function PendingClubsManagement() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch pending clubs');
+        throw new Error(errorData.error);
       }
       
       const data = await response.json();
@@ -109,7 +109,7 @@ export default function PendingClubsManagement() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${action} club`);
+        throw new Error(errorData.error);
       }
       
       const message = action === 'approve' ? 'Club approved and created successfully!' : 'Club request rejected successfully.';

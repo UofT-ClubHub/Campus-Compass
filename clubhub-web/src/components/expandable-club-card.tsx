@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import { auth } from "@/model/firebase";
-import { Modal } from "./ui/modal";
+import { Modal } from "./modal";
 
 interface ExpandableClubCardProps {
   club: Club;
@@ -13,16 +13,13 @@ interface ExpandableClubCardProps {
   onManagePosts?: (clubId: string) => void;
   onClose: () => void;
   onFollowerCountUpdate?: (newCount: number) => void;
-  onPostUpdate?: () => void;
 }
 
 export function ExpandableClubCard({ 
   club, 
   currentUser, 
-  onManagePosts,
   onClose,
   onFollowerCountUpdate,
-  onPostUpdate
 }: ExpandableClubCardProps) {
   const router = useRouter();
   const [executives, setExecutives] = useState<User[]>([]);
@@ -46,13 +43,24 @@ export function ExpandableClubCard({
     const fetchExecutives = async () => {
       if (club.executives && club.executives.length > 0) {
         try {
-          const executivePromises = club.executives.map(execId =>
-            fetch(`/api/users?id=${execId}`).then(res => res.ok ? res.json() : null)
-          );
+          const user = auth.currentUser;
+          if (!user) return;
+          
+          const token = await user.getIdToken();
+          const executivePromises = club.executives.map(async (execId) => {
+            try {
+              const res = await fetch(`/api/users?id=${execId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              return res.ok ? res.json() : null;
+            } catch {
+              return null;
+            }
+          });
           const executiveData = await Promise.all(executivePromises);
           setExecutives(executiveData.filter((e): e is User => e !== null));
         } catch (error) {
-          console.log("Failed to fetch executives:", error);
+          // Failed to fetch executives - continue silently
         }
       }
     };
@@ -74,26 +82,18 @@ export function ExpandableClubCard({
   };
 
   const handleFollowClub = async () => {
-    console.log('Follow button clicked', { currentUser, isFollowLoading });
-    
-    if (isFollowLoading) {
-      console.log('Already loading, skipping...');
-      return;
-    }
+    if (isFollowLoading) return;
 
     setIsFollowLoading(true);
     try {
       const user = auth.currentUser;
-      console.log('Firebase user:', user?.uid);
       
       if (!user) {
-        console.log('User not authenticated');
         alert('Please log in to follow clubs');
         return;
       }
 
       const idToken = await user.getIdToken();
-      console.log('Making API call to follow club:', club.id);
       
       const response = await fetch('/api/follow', {
         method: 'POST',
@@ -103,22 +103,17 @@ export function ExpandableClubCard({
         },
         body: JSON.stringify({ clubId: club.id })
       });
-
-      console.log('API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Follow response data:', data);
         setIsFollowing(data.following);
         setFollowerCount(data.followersCount);
         onFollowerCountUpdate?.(data.followersCount);
       } else {
-        const errorData = await response.text();
-        console.log('Failed to follow/unfollow club:', response.status, errorData);
-        alert('Failed to follow/unfollow club');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error following/unfollowing club:', error);
       alert('Error occurred while following/unfollowing club');
     } finally {
       setIsFollowLoading(false);
@@ -136,7 +131,7 @@ export function ExpandableClubCard({
       {/* Header Image */}
       <div className="relative h-64 bg-gray-200">
         <img
-          src={club.image || "/placeholder.svg?height=160&width=320"}
+          src={club.image || "/placeholder.jpg"}
           alt={club.name}
           className="w-full h-full object-cover"
         />

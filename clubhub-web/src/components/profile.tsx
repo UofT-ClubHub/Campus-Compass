@@ -70,7 +70,7 @@ export function Profile({ opened, onClose, user, token, onUserUpdate}: UserSetti
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.successMessage || "Failed to update profile");
+                throw new Error(errorData.error);
             }
 
             const updatedUser: User = await response.json();

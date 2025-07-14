@@ -5,7 +5,7 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import type { User, Club } from '@/model/types';
-import PendingClubsManagement from '../../../components/pending-clubs-management';
+import PendingClubsManagement from '@/components/pending-clubs-management';
 
 export default function AdminPage() {
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -313,7 +313,9 @@ export default function AdminPage() {
                 </div>
             </div>
         )
-    } if (!currentUserData?.is_admin && !isLoading && !authLoading) {
+    } 
+    
+    if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-slate-50">
                 <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">

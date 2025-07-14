@@ -45,4 +45,6 @@ export interface PendingClub {
     club_campus: string;
     club_description: string;
     created_at: string;
+    club_image: string;
+    club_instagram: string;
 }
