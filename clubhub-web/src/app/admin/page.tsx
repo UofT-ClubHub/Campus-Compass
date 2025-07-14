@@ -5,6 +5,7 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import type { User, Club } from '@/model/types';
+import PendingClubsManagement from '../../../components/pending-clubs-management';
 
 export default function AdminPage() {
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -344,6 +345,10 @@ export default function AdminPage() {
                     <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
                         {successMessage}
                     </div>)}
+
+                <section className="mb-8">
+                    <PendingClubsManagement />
+                </section>
 
                 <section className="mb-8">
                     <h2 className="text-xl font-semibold text-slate-800 mb-4">Search Users</h2>

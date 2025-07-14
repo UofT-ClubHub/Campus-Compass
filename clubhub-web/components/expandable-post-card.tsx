@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2 } from "lucide-react";
+import { Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2, X } from "lucide-react";
 import type { Post, Club } from "@/model/types";
 import { auth } from "@/model/firebase";
+import { Modal } from "./ui/modal";
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -219,8 +220,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     window.open(link, '_blank', 'noopener,noreferrer');
   };
 
-  const handleCloseOverlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = () => {
     onClose();
   };
 
@@ -319,30 +319,14 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCloseOverlay}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="relative">
-          <img
-            src={post.image || "/placeholder.jpg"}
-            alt={post.title}
-            className="w-full h-64 object-cover"
-          />
-          
-          {/* Close button */}
-          <button
-            onClick={handleCloseOverlay}
-            className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={false}>
+      {/* Header */}
+      <div className="relative">
+        <img
+          src={post.image || "/placeholder.jpg"}
+          alt={post.title}
+          className="w-full h-64 object-cover"
+        />
 
           {/* Edit/Save/Cancel/Delete buttons for club admins */}
           {(isClubAdmin || isCreating) && (
@@ -361,7 +345,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                     onClick={handleCancel}
                     className="flex items-center gap-2 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
                   >
-                    <X className="h-4 w-4" />
                     Cancel
                   </button>
                 </>
@@ -677,7 +660,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             </div>
           )}
         </div>       
-      </div>
-    </div>
+    </Modal>
   );
 }

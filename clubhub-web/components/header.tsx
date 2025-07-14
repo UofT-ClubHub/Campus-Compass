@@ -3,14 +3,21 @@
 import Link from "next/link"
 import { auth } from '@/model/firebase';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import type { User as UserType } from '@/model/types';
 
 export function Header() {
     const [user, setUser] = useState<User | null>(null);
+    const [userData, setUserData] = useState<UserType | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const isActive = (path: string) => {
+        return pathname === path;
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -20,6 +27,32 @@ export function Header() {
 
         return () => unsubscribe();
     }, []);
+
+    // Fetch user data to check roles
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user) {
+                try {
+                    const token = await user.getIdToken();
+                    const response = await fetch(`/api/users?id=${user.uid}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUserData(data);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+            } else {
+                setUserData(null);
+            }
+        };
+
+        if (!loading && user) {
+            fetchUserData();
+        }
+    }, [user, loading]);
 
     const handleLogout = async () => {
         try {
@@ -44,10 +77,47 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between mx-auto px-4 sm:px-5">
         {/* Logo and Desktop Navigation */}
         <nav className="flex items-center gap-3 sm:gap-5">
-          <Link href="/" className="text-lg font-semibold text-[#1E3765] hover:text-[#6FC7EA] transition-colors">Campus Compass</Link> 
+          <Link 
+            href="/" 
+            className={`text-lg font-semibold transition-colors ${
+              isActive('/') 
+                ? 'text-[#1E3765]' 
+                : 'text-[#1E3765] hover:text-[#6FC7EA]'
+            }`}
+          >
+            Campus Compass
+          </Link> 
           <div className="hidden md:flex items-center gap-3 sm:gap-5">
-            <Link href="/clubSearch" className="text-gray-700 hover:text-[#6FC7EA] transition-colors">Clubs</Link>
-            <Link href="/postFilter" className="text-gray-700 hover:text-[#6FC7EA] transition-colors">Posts</Link>
+            <Link 
+              href="/clubSearch" 
+              className={`transition-colors ${
+                isActive('/clubSearch') 
+                  ? 'text-[#1E3765] font-medium' 
+                  : 'text-gray-700 hover:text-[#6FC7EA]'
+              }`}
+            >
+              Clubs
+            </Link>
+            <Link 
+              href="/postFilter" 
+              className={`transition-colors ${
+                isActive('/postFilter') 
+                  ? 'text-[#1E3765] font-medium' 
+                  : 'text-gray-700 hover:text-[#6FC7EA]'
+              }`}
+            >
+              Posts
+            </Link>
+            <Link 
+              href="/pending-club-request" 
+              className={`transition-colors ${
+                isActive('/pending-club-request') 
+                  ? 'text-[#1E3765] font-medium' 
+                  : 'text-gray-700 hover:text-[#6FC7EA]'
+              }`}
+            >
+              Request Club
+            </Link>
           </div>
         </nav>
 
@@ -73,22 +143,38 @@ export function Header() {
               </div>
               <Link 
                 href="/profile" 
-                className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out"
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out ${
+                  isActive('/profile') 
+                    ? 'bg-[#1E3765] text-white' 
+                    : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                }`}
               >
                 Profile
               </Link>
-              <Link 
-                href="/admin" 
-                className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out"
-              >
-                Admin
-              </Link>
-              <Link 
-                href="/exec" 
-                className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out"
-              >
-                Exec
-              </Link>
+              {userData?.is_admin && (
+                <Link 
+                  href="/admin" 
+                  className={`px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out ${
+                    isActive('/admin') 
+                      ? 'bg-[#1E3765] text-white' 
+                      : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                  }`}
+                >
+                  Admin
+                </Link>
+              )}
+              {(userData?.is_executive || userData?.is_admin) && (
+                <Link 
+                  href="/exec" 
+                  className={`px-3 py-1.5 rounded-md font-medium transition-colors duration-150 ease-in-out ${
+                    isActive('/exec') 
+                      ? 'bg-[#1E3765] text-white' 
+                      : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                  }`}
+                >
+                  Exec
+                </Link>
+              )}
               <button 
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out"
@@ -136,16 +222,35 @@ export function Header() {
               <Link 
                 href="/clubSearch" 
                 onClick={closeMobileMenu}
-                className="text-gray-700 hover:text-[#6FC7EA] transition-colors py-2 px-3 rounded-md hover:bg-gray-50"
+                className={`transition-colors py-2 px-3 rounded-md ${
+                  isActive('/clubSearch') 
+                    ? 'text-[#1E3765] bg-blue-50 font-medium' 
+                    : 'text-gray-700 hover:text-[#6FC7EA] hover:bg-gray-50'
+                }`}
               >
                 Clubs
               </Link>
               <Link 
                 href="/postFilter" 
                 onClick={closeMobileMenu}
-                className="text-gray-700 hover:text-[#6FC7EA] transition-colors py-2 px-3 rounded-md hover:bg-gray-50"
+                className={`transition-colors py-2 px-3 rounded-md ${
+                  isActive('/postFilter') 
+                    ? 'text-[#1E3765] bg-blue-50 font-medium' 
+                    : 'text-gray-700 hover:text-[#6FC7EA] hover:bg-gray-50'
+                }`}
               >
                 Posts
+              </Link>
+              <Link 
+                href="/pending-club-request" 
+                onClick={closeMobileMenu}
+                className={`transition-colors py-2 px-3 rounded-md ${
+                  isActive('/pending-club-request') 
+                    ? 'text-[#1E3765] bg-blue-50 font-medium' 
+                    : 'text-gray-700 hover:text-[#6FC7EA] hover:bg-gray-50'
+                }`}
+              >
+                Request Club
               </Link>
             </div>
 
@@ -161,24 +266,40 @@ export function Header() {
                   <Link 
                     href="/profile" 
                     onClick={closeMobileMenu}
-                    className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center"
+                    className={`px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center ${
+                      isActive('/profile') 
+                        ? 'bg-[#1E3765] text-white' 
+                        : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                    }`}
                   >
                     Profile
                   </Link>
-                  <Link 
-                    href="/admin" 
-                    onClick={closeMobileMenu}
-                    className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center"
-                  >
-                    Admin
-                  </Link>
-                  <Link 
-                    href="/exec" 
-                    onClick={closeMobileMenu}
-                    className="bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700 px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center"
-                  >
-                    Exec
-                  </Link>
+                  {userData?.is_admin && (
+                    <Link 
+                      href="/admin" 
+                      onClick={closeMobileMenu}
+                      className={`px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center ${
+                        isActive('/admin') 
+                          ? 'bg-[#1E3765] text-white' 
+                          : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                      }`}
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  {(userData?.is_executive || userData?.is_admin) && (
+                    <Link 
+                      href="/exec" 
+                      onClick={closeMobileMenu}
+                      className={`px-3 py-2 rounded-md font-medium transition-colors duration-150 ease-in-out text-center ${
+                        isActive('/exec') 
+                          ? 'bg-[#1E3765] text-white' 
+                          : 'bg-gray-100 hover:bg-[#6FC7EA] hover:text-white text-gray-700'
+                      }`}
+                    >
+                      Exec
+                    </Link>
+                  )}
                   <button 
                     onClick={handleLogout}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out w-full"

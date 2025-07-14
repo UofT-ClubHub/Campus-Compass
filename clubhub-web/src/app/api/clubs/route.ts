@@ -198,20 +198,97 @@ export async function DELETE(request: NextRequest) {
         }
 
         const clubsCollection = firestore.collection('Clubs');
+        const usersCollection = firestore.collection('Users');
+        const postsCollection = firestore.collection('Posts');
+        
         const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();
         if (!doc.exists) {
             return NextResponse.json({ message: 'Club not found' }, { status: 404 });
         }
 
-        // Authorization check for editing club
+        // Authorization check for deleting club
         const { authorized, error, status } = await checkExecPermissions(request, clubId);
         if (!authorized) {
             return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
         }
 
-        await docRef.delete();
-        return NextResponse.json({ message: 'Club deleted successfully' }, { status: 200 });
+        const clubData = doc.data() as Club;
+
+        // Clean up related data in batch
+        const batch = firestore.batch();
+
+        // 1. Remove club from all users' followed_clubs arrays
+        const followersQuery = await usersCollection
+            .where('followed_clubs', 'array-contains', clubId)
+            .get();
+        
+        followersQuery.docs.forEach(userDoc => {
+            batch.update(userDoc.ref, {
+                followed_clubs: admin.firestore.FieldValue.arrayRemove(clubId)
+            });
+        });
+
+        // 2. Remove club from executives' managed_clubs arrays and update is_executive status if needed
+        if (clubData.executives && clubData.executives.length > 0) {
+            for (const execId of clubData.executives) {
+                const execDocRef = usersCollection.doc(execId);
+                const execDoc = await execDocRef.get();
+                
+                if (execDoc.exists) {
+                    const execData = execDoc.data();
+                    const managedClubs = execData?.managed_clubs || [];
+                    const updatedManagedClubs = managedClubs.filter((id: string) => id !== clubId);
+                    
+                    // If this was their only club, remove executive status
+                    const updateData: any = {
+                        managed_clubs: updatedManagedClubs
+                    };
+                    
+                    if (updatedManagedClubs.length === 0) {
+                        updateData.is_executive = false;
+                    }
+                    
+                    batch.update(execDocRef, updateData);
+                }
+            }
+        }
+
+        // 3. Delete all posts associated with this club
+        const clubPostsQuery = await postsCollection
+            .where('club', '==', clubId)
+            .get();
+        
+        clubPostsQuery.docs.forEach(postDoc => {
+            batch.delete(postDoc.ref);
+        });
+
+        // 4. Also need to remove the club from users' liked_posts if any posts are deleted
+        // First collect all post IDs that will be deleted
+        const deletedPostIds = clubPostsQuery.docs.map(doc => doc.id);
+        
+        if (deletedPostIds.length > 0) {
+            // Find users who liked these posts and remove them
+            for (const postId of deletedPostIds) {
+                const usersWithLikedPosts = await usersCollection
+                    .where('liked_posts', 'array-contains', postId)
+                    .get();
+                
+                usersWithLikedPosts.docs.forEach(userDoc => {
+                    batch.update(userDoc.ref, {
+                        liked_posts: admin.firestore.FieldValue.arrayRemove(postId)
+                    });
+                });
+            }
+        }
+
+        // 5. Finally, delete the club itself
+        batch.delete(docRef);
+
+        // Execute all operations in batch
+        await batch.commit();
+
+        return NextResponse.json({ message: 'Club and related data deleted successfully' }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
