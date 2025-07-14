@@ -25,6 +25,7 @@ export default function ExecPage() {
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [deletingClubId, setDeletingClubId] = useState<string | null>(null);
   
   const campusOptions = [
     { value: 'UTSG', label: 'UTSG' },
@@ -75,8 +76,8 @@ export default function ExecPage() {
           throw new Error(errorData.successMessage);
         }
         const user: User = await response.json();
-        setUserData(user); if (!user.is_executive) {
-          setError("Access Denied: You are not an executive!");
+        setUserData(user); if (!user.is_executive && !user.is_admin) {
+          setError("Access Denied: You are not an executive or admin!");
           setIsLoading(false);
           return;
         }
@@ -175,7 +176,7 @@ export default function ExecPage() {
     }
 
     const data = await response.json();
-    console.log('Uploaded image:', data.downloadURL);
+    // Image uploaded successfully
     return data.downloadURL;
   };
 
@@ -287,6 +288,51 @@ export default function ExecPage() {
     } catch (err: any) {
       console.log("Error editing club info:", err)
       setSuccessMessage(`Error: ${err.successMessage}`)
+    }
+  }
+
+  const handleDeleteClub = async (clubId: string, clubName: string) => {
+    const confirmMessage = `Are you sure you want to delete "${clubName}"? Type "DELETE" to confirm:`;
+    
+    const confirmation = prompt(confirmMessage);
+    
+    if (confirmation !== "DELETE") {
+      return;
+    }
+
+    setDeletingClubId(clubId);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const idToken = await authUser?.getIdToken();
+      const response = await fetch(`/api/clubs?id=${clubId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete club.");
+      }
+
+      // Remove the club from local state
+      setManagedClubs(prevClubs => prevClubs.filter(club => club.id !== clubId));
+      
+      // Clear any open forms for this club
+      if (showAddExecForm === clubId) setShowAddExecForm(null);
+      if (showEditClubForm === clubId) setShowEditClubForm(null);
+      if (showCreatePostForm === clubId) setShowCreatePostForm(null);
+      
+      setSuccessMessage(`"${clubName}" has been deleted successfully.`);
+    } catch (err: any) {
+      console.log("Error deleting club:", err);
+      setError(`Error: ${err.message}`);
+    } finally {
+      setDeletingClubId(null);
     }
   }
 
@@ -403,6 +449,13 @@ export default function ExecPage() {
                       className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClub(club.id, club.name)}
+                      disabled={deletingClubId === club.id}
+                      className="px-3 py-1.5 border border-red-300 text-red-700 rounded text-sm font-medium hover:bg-red-50 disabled:bg-red-100 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>

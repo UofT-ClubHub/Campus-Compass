@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, MapPin, Users, ExternalLink } from "lucide-react";
+import { MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import { auth } from "@/model/firebase";
+import { Modal } from "./ui/modal";
 
 interface ExpandableClubCardProps {
   club: Club;
@@ -63,8 +64,7 @@ export function ExpandableClubCard({
     router.push('/exec');
   };
 
-  const handleCloseOverlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = () => {
     onClose();
   };
 
@@ -132,30 +132,15 @@ export function ExpandableClubCard({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCloseOverlay}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header Image */}
-        <div className="relative h-64 bg-gray-200">
-          <img
-            src={club.image || "/placeholder.svg?height=160&width=320"}
-            alt={club.name}
-            className="w-full h-full object-cover"
-          />
-          {/* Close button */}
-          <button
-            onClick={handleCloseOverlay}
-            className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Modal open={true} onOpenChange={handleClose} title={club.name}>
+      {/* Header Image */}
+      <div className="relative h-64 bg-gray-200">
+        <img
+          src={club.image || "/placeholder.svg?height=160&width=320"}
+          alt={club.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
         {/* Content */}
         <div className="p-6 overflow-y-auto">
@@ -273,7 +258,6 @@ export function ExpandableClubCard({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
