@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { MapPin, Users } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import { ExpandableClubCard } from "./expandable-club-card";
+import React from 'react';
 
 interface ClubCardProps {
   club: Club;

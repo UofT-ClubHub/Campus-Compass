@@ -28,12 +28,12 @@ export interface Post {
     title: string;
     details: string;
     campus: string;
-    club: string;
+    club: string | null; // Club can be null if not associated with a club
     category: string;
     hashtags: string[];
     date_occuring: string;
     date_posted: string;
     likes: number;
-    image: string;
+    image: string | null;
     links: string[];
 }

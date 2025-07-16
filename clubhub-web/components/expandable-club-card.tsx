@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { X, MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import firebase from "@/model/firebase";
+import React, { act } from "react";
+// import { act } from "react-dom/test-utils";
 
 interface ExpandableClubCardProps {
   club: Club;
@@ -32,12 +34,16 @@ export function ExpandableClubCard({
 
   // Update follower count when club prop changes
   useEffect(() => {
-    setFollowerCount(club.followers);
+    act(() => {
+      setFollowerCount(club.followers);
+    });
   }, [club.followers]);
 
   useEffect(() => {
     if (currentUser?.followed_clubs) {
-      setIsFollowing(currentUser.followed_clubs.includes(club.id));
+      act(() => {
+        setIsFollowing(currentUser.followed_clubs.includes(club.id));
+      });
     }
   }, [currentUser, club.id]);
 
@@ -49,7 +55,9 @@ export function ExpandableClubCard({
             fetch(`/api/users?id=${execId}`).then(res => res.ok ? res.json() : null)
           );
           const executiveData = await Promise.all(executivePromises);
-          setExecutives(executiveData.filter((e): e is User => e !== null));
+          act(() => {
+            setExecutives(executiveData.filter((e): e is User => e !== null));
+          });
         } catch (error) {
           console.log("Failed to fetch executives:", error);
         }
@@ -135,6 +143,7 @@ export function ExpandableClubCard({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop with blur */}
       <div 
+        data-testid="backdrop"
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={handleCloseOverlay}
       />

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Users, Heart } from "lucide-react";
 import type { Post, Club } from "@/model/types";
