@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { Post, User } from "@/model/types";
 import { PostCard } from "@/components/post-card";
-import { auth } from '@/model/firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { auth } from "@/model/firebase";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 
 export default function PostFilterPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -22,6 +22,13 @@ export default function PostFilterPage() {
   const limit = 3;
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
+  const [sort_by, setSortBy] = useState("");
+  const [sort_order, setSortOrder] = useState("");
+  const [showSortOrder, setShowSortOrder] = useState(false);
+
+  useEffect(() => {
+    setShowSortOrder(sort_by !== "");
+  }, [sort_by]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -44,52 +51,55 @@ export default function PostFilterPage() {
       setLoadingMore(true);
     }
 
-    try{
-
+    try {
       const params = new URLSearchParams();
-      
-      nameFilter ? params.append('title', nameFilter) : null;
-      campusFilter ? params.append('campus', campusFilter) : null;
-      clubFilter ? params.append('club', clubFilter) : null;
-      categoryFilter ? params.append('category', categoryFilter) : null;
-      descriptionFilter ? params.append('details', descriptionFilter) : null;
-      params.append('sort_by', "likes");
-      params.append('sort_order', "desc");
-      params.append("offset", currentOffset.toString())
+
+      nameFilter ? params.append("title", nameFilter) : null;
+      campusFilter ? params.append("campus", campusFilter) : null;
+      clubFilter ? params.append("club", clubFilter) : null;
+      categoryFilter ? params.append("category", categoryFilter) : null;
+      descriptionFilter ? params.append("details", descriptionFilter) : null;
+      params.append("sort_by", sort_by);
+      params.append("sort_order", sort_order);
+      params.append("offset", currentOffset.toString());
       params.append("limit", limit.toString());
-      
+
       if (hashtagsFilter) {
-        const hashtags = hashtagsFilter.split(',').map(tag => tag.trim());
-        // Ensure hashtags are lowercase 
-        params.append('hashtags', JSON.stringify(hashtags.map(tag => tag.toLowerCase())));
+        const hashtags = hashtagsFilter.split(",").map((tag) => tag.trim());
+        // Ensure hashtags are lowercase
+        params.append(
+          "hashtags",
+          JSON.stringify(hashtags.map((tag) => tag.toLowerCase()))
+        );
       }
-      
-      
+
       const response = await fetch(`/api/posts?${params.toString()}`, {
         method: "GET",
-      })
+      });
       if (!response.ok) {
-        throw new Error("Failed to fetch clubs") // Throws error to be caught
+        throw new Error("Failed to fetch clubs"); // Throws error to be caught
       }
-      
+
       const data = await response.json();
 
       setOffset(currentOffset + data.length);
       setHasMore(data.length === limit);
-      
-      if (isNewSearch){
-        setPosts(data as Post[])
-      } else{
-        setPosts(prevPosts => {
-          const newPosts = data.filter((newPost: Post) => !prevPosts.some(existingPost => existingPost.id === newPost.id));
+
+      if (isNewSearch) {
+        setPosts(data as Post[]);
+      } else {
+        setPosts((prevPosts) => {
+          const newPosts = data.filter(
+            (newPost: Post) =>
+              !prevPosts.some((existingPost) => existingPost.id === newPost.id)
+          );
           return [...prevPosts, ...newPosts];
-        })
+        });
       }
 
-      
       console.log("Filtered posts:", data);
     } catch (error) {
-      console.log("Error fetching clubs:", error)
+      console.log("Error fetching clubs:", error);
     } finally {
       if (isNewSearch) {
         setLoading(false);
@@ -98,7 +108,7 @@ export default function PostFilterPage() {
       }
       loadingRef.current = false;
     }
-  }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -119,69 +129,82 @@ export default function PostFilterPage() {
       setOffset(0); // Reset offset for new search
       filterPosts(true);
     }, 500); // waits 500ms after user stops typing
-  
+
     return () => clearTimeout(delay); // cancel previous timeout if input changes
-  }, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, categoryFilter]);
+  }, [
+    nameFilter,
+    campusFilter,
+    descriptionFilter,
+    clubFilter,
+    hashtagsFilter,
+    categoryFilter,
+    sort_by,
+    sort_order,
+  ]);
 
   // Infinite Scrolling Logic
   useEffect(() => {
     const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
+      if (
+        window.innerHeight + document.documentElement.scrollTop <
+          document.documentElement.offsetHeight - 100 ||
+        !hasMore
+      ) {
         return;
       }
       filterPosts();
     };
-  
+
     // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     console.log("Scroll event listener added");
-  
+
     // Cleanup
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [hasMore, offset, loadingMore]);
-  
+
   // Handle like updates to keep posts in sync
-  const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+  const handleLikeUpdate = (
+    postId: string,
+    newLikes: number,
+    isLiked: boolean
+  ) => {
     // Update posts
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
-          ? { ...post, likes: newLikes }
-          : post
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, likes: newLikes } : post
       )
     );
-    
+
     // Update currentUser liked_posts
-    setCurrentUser(prevUser => {
+    setCurrentUser((prevUser) => {
       if (!prevUser) return prevUser;
-      
+
       const currentLikedPosts = prevUser.liked_posts || [];
       let updatedLikedPosts;
-      
+
       if (isLiked) {
         // Add postId if not already present
-        updatedLikedPosts = currentLikedPosts.includes(postId) 
-          ? currentLikedPosts 
+        updatedLikedPosts = currentLikedPosts.includes(postId)
+          ? currentLikedPosts
           : [...currentLikedPosts, postId];
       } else {
         // Remove postId
-        updatedLikedPosts = currentLikedPosts.filter(id => id !== postId);
+        updatedLikedPosts = currentLikedPosts.filter((id) => id !== postId);
       }
-      
+
       return {
         ...prevUser,
-        liked_posts: updatedLikedPosts
+        liked_posts: updatedLikedPosts,
       };
     });
   };
 
   // Handle post deletion
   const handleDeletePost = (postId: string) => {
-    setPosts(prevPosts => 
-      prevPosts.filter(post => post.id !== postId)
-    );
+    setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
   };
 
   // Refresh posts from API
@@ -196,7 +219,9 @@ export default function PostFilterPage() {
       {/* Header and Search Section */}
       <div className="w-full bg-gray-50 pt-6 pb-8">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">Post Search</h1>
+          <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">
+            Post Search
+          </h1>
 
           {/* Compact Search Filters */}
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-4 mb-4">
@@ -252,7 +277,7 @@ export default function PostFilterPage() {
                 className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
               />
 
-              {/* Category Filter */}              
+              {/* Category Filter */}
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
@@ -261,9 +286,38 @@ export default function PostFilterPage() {
                 <option value="">Select Type of Post</option>
                 <option value="Event">Event</option>
                 <option value="Hiring Opportunity">Hiring Opportunity</option>
-                <option value="General Announcement">General Announcement</option>
+                <option value="General Announcement">
+                  General Announcement
+                </option>
                 <option value="Survey">Survey</option>
               </select>
+            </div>
+
+            {/* Third Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+              {/* Sort By */}
+              <select
+                value={sort_by}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+              >
+                <option value="">Sort By</option>
+                <option value="date_posted">Date Posted</option>
+                <option value="likes">Likes</option>
+                <option value="date_occuring">Date Occuring</option>
+              </select>
+
+              {/* Sort Order */}
+              {showSortOrder && (
+                <select
+                  value={sort_order}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+                >
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+              )}
             </div>
           </div>
         </div>
@@ -273,7 +327,9 @@ export default function PostFilterPage() {
       <div className="w-full bg-gray-50 pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
-            <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">Post Results</h2>
+            <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
+              Post Results
+            </h2>
 
             {posts.length === 0 ? (
               <div className="text-center py-12">
@@ -292,21 +348,31 @@ export default function PostFilterPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">No posts found</h3>
-                <p className="text-gray-500 text-sm">Try adjusting your filters to find more posts</p>
-              </div>            
-              ) : (
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  No posts found
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Try adjusting your filters to find more posts
+                </p>
+              </div>
+            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {posts.map((post: Post) => (
-                  <PostCard key={post.id} post={post} currentUser={currentUser} onLikeUpdate={handleLikeUpdate} onDelete={handleDeletePost} onRefresh={refreshPosts} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    currentUser={currentUser}
+                    onLikeUpdate={handleLikeUpdate}
+                    onDelete={handleDeletePost}
+                    onRefresh={refreshPosts}
+                  />
                 ))}
               </div>
             )}
-
           </div>
         </div>
       </div>
       <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
-  )
+  );
 }
