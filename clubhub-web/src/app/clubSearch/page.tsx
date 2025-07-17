@@ -5,14 +5,12 @@ import type { Club, User } from "@/model/types"
 import { ClubCard } from "@/components/club-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { Search, Filter, Users, MapPin, ExternalLink } from "lucide-react";
 
 
 export default function clubSearchPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [clubs, setClubs] = useState<Club[]>([])
-  const [loading, setLoading] = useState(false)
   const [nameFilter, setNameFilter] = useState("")
   const [campusFilter, setCampusFilter] = useState("")
   const [descriptionFilter, setDescriptionFilter] = useState("")
@@ -60,7 +58,6 @@ export default function clubSearchPage() {
 
     if (isNewSearch) {
       setClubs([]);
-      setLoading(true);
     } else {
       setLoadingMore(true);
     }
@@ -100,9 +97,7 @@ export default function clubSearchPage() {
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
-      if (isNewSearch) {
-        setLoading(false);
-      } else {
+      if (!isNewSearch) {
         setLoadingMore(false);
       }
       loadingRef.current = false;
@@ -210,10 +205,9 @@ useEffect(() => {
               </div>            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {clubs.map((club: Club) => (
-                    <ClubCard 
+                    <ClubCard
                       key={club.id} 
                       club={club} 
-                      currentUser={currentUser} 
                     />
                 ))}
               </div>

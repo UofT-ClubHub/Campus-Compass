@@ -16,7 +16,6 @@ export default function PostFilterPage() {
   const [clubFilter, setClubFilter] = useState("");
   const [hashtagsFilter, setHashtagsFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 3;
@@ -39,7 +38,6 @@ export default function PostFilterPage() {
 
     if (isNewSearch) {
       setPosts([]);
-      setLoading(true);
     } else {
       setLoadingMore(true);
     }
@@ -91,9 +89,7 @@ export default function PostFilterPage() {
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
-      if (isNewSearch) {
-        setLoading(false);
-      } else {
+      if (!isNewSearch) {
         setLoadingMore(false);
       }
       loadingRef.current = false;
