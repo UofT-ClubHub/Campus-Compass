@@ -7,6 +7,7 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Search, Filter, Users, MapPin, ExternalLink } from "lucide-react";
 
+
 export default function clubSearchPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -209,8 +210,11 @@ useEffect(() => {
               </div>            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {clubs.map((club: Club) => (
-                  // console.log("Rendering club:", club),
-                  <ClubCard key={club.id} club={club} currentUser={currentUser} />
+                    <ClubCard 
+                      key={club.id} 
+                      club={club} 
+                      currentUser={currentUser} 
+                    />
                 ))}
               </div>
             )}
