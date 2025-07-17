@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { auth } from '@/model/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import React from 'react';
 
 export default function PendingClubRequestPage() {
   const [user] = useAuthState(auth);

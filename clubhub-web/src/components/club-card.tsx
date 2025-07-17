@@ -6,6 +6,7 @@ import type { Club, User } from "@/model/types";
 import { auth } from "@/model/firebase";
 import { ExpandableClubCard } from "./expandable-club-card";
 import { useRouter } from 'next/navigation';
+import React from 'react';  
 
 interface ClubCardProps {
   club: Club;

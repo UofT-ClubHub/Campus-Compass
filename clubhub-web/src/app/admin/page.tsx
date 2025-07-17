@@ -6,6 +6,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import type { User, Club } from '@/model/types';
 import PendingClubsManagement from '@/components/pending-clubs-management';
+import React from 'react';
 
 export default function AdminPage() {
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
