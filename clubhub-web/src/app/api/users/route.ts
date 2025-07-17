@@ -1,8 +1,7 @@
 import { User } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin';
-import { getCurrentUserId } from '../amenities';
-import { get } from 'http';
+import { firestore } from '../firebaseAdmin';
+import { withAuth } from '@/lib/auth-middleware';
 import * as admin from 'firebase-admin';
 
 export async function GET(request: NextRequest) {
@@ -40,24 +39,20 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+};
 
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
     try {
-        // next 4 lines are modified, needs testing
-        const { uid, error, status } = await getCurrentUserId(request);
-        if (error) {
-            return NextResponse.json({ error }, { status });
-        }
+        const authResult = (request as any).auth; // Added by middleware
         const userData: User = await request.json();
 
-        if (uid !== userData.id) {
+        if (authResult.uid !== userData.id) {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });
         }
 
         const usersCollection = firestore.collection('Users');
-        const userDocRef = usersCollection.doc(uid);
+        const userDocRef = usersCollection.doc(authResult.uid!);
 
         const userDoc = await userDocRef.get();
         if (userDoc.exists) {
@@ -72,26 +67,18 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});
 
-export async function PUT(request: NextRequest) {
+// Use middleware wrapper for automatic permission checking
+export const PUT = withAuth(async (request: NextRequest) => {
     try {
-        const { uid, error, status} = await getCurrentUserId(request);
-        if (!uid || error) {
-            return NextResponse.json({ error }, { status });
-        }
-        const actingUserUid = uid;
+        const authResult = (request as any).auth;
         const body = await request.json();
         const { id: targetUserId, ...updates } = body;
 
         if (!targetUserId) {
             return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 });
         }
-        const actingUserDoc = await firestore.collection('Users').doc(actingUserUid).get();
-        if (!actingUserDoc.exists) {
-            return NextResponse.json({ error: 'Acting user not found' }, { status: 404 });
-        }
-        const actingUserData = actingUserDoc.data() as User;
 
         const targetUserDocRef = firestore.collection('Users').doc(targetUserId);
         const targetUserDoc = await targetUserDocRef.get();
@@ -103,7 +90,7 @@ export async function PUT(request: NextRequest) {
         const updatableBySelf: (keyof User)[] = ['name', 'campus', 'bio'];
         const updatableByAdmin: (keyof User)[] = ['is_admin', 'is_executive', 'managed_clubs'];
 
-        if (actingUserUid === targetUserId) {
+        if (authResult.uid === targetUserId) {
             // User editing themselves
             updatableBySelf.forEach(field => {
                 if (updates.hasOwnProperty(field)) {
@@ -111,14 +98,14 @@ export async function PUT(request: NextRequest) {
                 }
             });
             // If user is admin, they can edit their own admin fields
-            if (actingUserData.is_admin) {
+            if (authResult.isAdmin) {
                 updatableByAdmin.forEach(field => {
                     if (updates.hasOwnProperty(field)) {
                         (allowedUpdates as any)[field] = updates[field];
                     }
                 });
             }
-        } else if (actingUserData.is_admin) {
+        } else if (authResult.isAdmin) {
             // Admin is editing another user
             updatableByAdmin.forEach(field => {
                 if (updates.hasOwnProperty(field)) {
@@ -179,17 +166,23 @@ export async function PUT(request: NextRequest) {
         console.error('Error in PUT /api/users:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+// Require admin access for deleting users
+export const DELETE = withAuth(async (request: NextRequest) => {
     try {
-        const { uid, error, status } = await getCurrentUserId(request);
-        if (!uid || error) {
-            return NextResponse.json({ error }, { status });
+        const authResult = (request as any).auth;
+        
+        // Only admins can delete users
+        if (!authResult.isAdmin) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
         }
 
+        const { searchParams } = request.nextUrl;
+        const targetUserId = searchParams.get('id') || authResult.uid;
+
         const usersCollection = firestore.collection('Users');
-        const userDocRef = usersCollection.doc(uid);
+        const userDocRef = usersCollection.doc(targetUserId);
 
         const userDoc = await userDocRef.get();
         if (!userDoc.exists) {
@@ -204,4 +197,4 @@ export async function DELETE(request: NextRequest) {
         console.error('Error in DELETE /api/users:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});

@@ -1,7 +1,7 @@
 import { Post, Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, firestore } from '../firebaseAdmin';
-import { checkPostPermissions, checkExecPermissions } from '../amenities';
+import { firestore } from '../firebaseAdmin';
+import { withAuth } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
     try {
@@ -80,8 +80,9 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const data = await request.json();
         const postsCollection = firestore.collection('Posts');
 
@@ -90,23 +91,31 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
-        // check if user is executive of club
-        const { authorized, error, status } = await checkExecPermissions(request, data.club);
-        if (!authorized) {  
-            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        // Additional authorization check: admins can post for any club, executives can only post for their managed clubs
+        if (!authResult.isAdmin) {
+            const clubDoc = await firestore.collection('Clubs').doc(data.club).get();
+            if (!clubDoc.exists) {
+                return NextResponse.json({ error: 'Club not found' }, { status: 404 });
+            }
+            const clubData = clubDoc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
-        // Create new club document
+        // Create new post document
         const docRef = await postsCollection.add(data);
         return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
     }
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});
 
-export async function PUT(request: NextRequest) {
+export const PUT = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
@@ -121,29 +130,42 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ message: 'Post not found' }, { status: 404 });
         }
 
-        // Authorization check if user can edit post
-        const { authorized, error, status } = await checkPostPermissions(request, postId);
-        if (!authorized) {  
-            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        // Additional authorization check: admins can edit any post, executives can only edit posts from their clubs
+        if (!authResult.isAdmin) {
+            const postData = doc.data() as Post;
+            if (!postData?.club) {
+                return NextResponse.json({ error: 'Post data invalid' }, { status: 404 });
+            }
+            
+            const clubDoc = await firestore.collection('Clubs').doc(postData.club).get();
+            if (!clubDoc.exists) {
+                return NextResponse.json({ error: 'Club not found' }, { status: 404 });
+            }
+            
+            const clubData = clubDoc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
         await docRef.update(data);
-        const updatedDoc = await docRef.get(); //This just fetches the updated data, just comment out if it's not wanted
-        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 }); //if you comment above line, comment this line as well
-        //uncomment line underneath if the above 2 lines are commented out
-        // return NextResponse.json({ id: postId, ...data }, { status: 200 });
+        const updatedDoc = await docRef.get();
+        return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 });
     }
-    catch {
-        return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
+    catch (error: any) {
+        return NextResponse.json({ error: error.message || 'Failed to update post' }, { status: 500 });
     }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const postId = searchParams.get('id');
         if (!postId) {
-            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        }
+            return NextResponse.json({ message: 'Missing post id' }, { status: 400 });        
+        }
 
         const postsCollection = firestore.collection('Posts');
         const docRef = postsCollection.doc(postId);
@@ -152,10 +174,23 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ message: 'post not found' }, { status: 404 });
         }
 
-        // Authorization check if user can delete post
-        const { authorized, error, status } = await checkPostPermissions(request, postId);
-        if (!authorized) {  
-            return NextResponse.json({ error: error || 'Unauthorized' }, { status: status || 401 });
+        // Additional authorization check: admins can delete any post, executives can only delete posts from their clubs
+        if (!authResult.isAdmin) {
+            const postData = doc.data() as Post;
+            if (!postData?.club) {
+                return NextResponse.json({ error: 'Post data invalid' }, { status: 404 });
+            }
+            
+            const clubDoc = await firestore.collection('Clubs').doc(postData.club).get();
+            if (!clubDoc.exists) {
+                return NextResponse.json({ error: 'Club not found' }, { status: 404 });
+            }
+            
+            const clubData = clubDoc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
         await docRef.delete();
@@ -164,4 +199,4 @@ export async function DELETE(request: NextRequest) {
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import firebase from '@/model/firebase';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 
 type AuthMode = 'login' | 'register' | 'reset';
 
@@ -16,8 +16,17 @@ export default function AuthPage() {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const auth = firebase.auth();
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (!authLoading && authUser) {
@@ -38,7 +47,7 @@ export default function AuthPage() {
                     setLoading(false);
                     return;
                 }
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const newUser = userCredential.user;
                 if (newUser) {
                     // Wait for the user to be authenticated
@@ -68,11 +77,11 @@ export default function AuthPage() {
                     setTimeout(() => router.push('/'), 3000);
                 }
             } else if (mode === 'login') {
-                await auth.signInWithEmailAndPassword(email, password);
+                await signInWithEmailAndPassword(auth, email, password);
                 console.log('Token:', await auth.currentUser?.getIdToken());
                 router.push('/');
             } else if (mode === 'reset') {
-                await auth.sendPasswordResetEmail(email);
+                await sendPasswordResetEmail(auth, email);
                 setMessage('Password reset email sent! Check your inbox.');
             }
         } catch (err: any) {

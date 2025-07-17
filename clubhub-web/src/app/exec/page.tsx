@@ -1,13 +1,15 @@
 "use client"
 
 import { useState, useEffect, type FormEvent } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
-import { ExpandablePostCard } from "../../../components/expandable-post-card";
+import { ExpandablePostCard } from "@/components/expandable-post-card";
 
 export default function ExecPage() {
-  const { user: authUser, loading: authLoading } = useAuth();
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
   const [userData, setUserData] = useState<User | null>(null);
   const [managedClubs, setManagedClubs] = useState<Club[]>([]);
@@ -22,13 +24,24 @@ export default function ExecPage() {
   const [editingClub, setEditingClub] = useState<Partial<Club>>({});
   const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [deletingClubId, setDeletingClubId] = useState<string | null>(null);
   
   const campusOptions = [
     { value: 'UTSG', label: 'UTSG' },
     { value: 'UTSC', label: 'UTSC' },
     { value: 'UTM', label: 'UTM' }
   ];
-  
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -60,11 +73,13 @@ export default function ExecPage() {
         const response = await fetch(`/api/users?id=${authUser.uid}`);
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.successMessage);
+          throw new Error(errorData.error);
         }
         const user: User = await response.json();
-        setUserData(user); if (!user.is_executive) {
-          setError("Access Denied: You are not an executive!");
+        setUserData(user); 
+        
+        if (!user.is_executive && !user.is_admin) {
+          setError("Access Denied: You are not an exec.");
           setIsLoading(false);
           return;
         }
@@ -130,15 +145,41 @@ export default function ExecPage() {
     }
   }, [managedClubs]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditingClub((prev) => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setPendingImageFile(e.target.files[0]);
     }
+  };
+
+  const uploadImageToBackend = async (file: File, folder: string = 'clubs', clubId: string): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('clubId', clubId);
+    formData.append('originalImageUrl', clubId);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error);
+    }
+
+    const data = await response.json();
+    // Image uploaded successfully
+    return data.downloadURL;
   };
 
   const handleAddExecutive = async (e: FormEvent, clubId: string) => {
@@ -218,17 +259,22 @@ export default function ExecPage() {
     }
 
     try {
+      let imageUrl = editingClub.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'clubs', clubId);
+      }
+
       const idToken = await authUser?.getIdToken();
       const response = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json",
                    Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify(editingClub),
+        body: JSON.stringify({ ...editingClub, image: imageUrl }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.successMessage || "Failed to update club info.")
+        throw new Error(errorData)
       }
 
       const updatedClub = await response.json()
@@ -239,10 +285,56 @@ export default function ExecPage() {
       )
       setShowEditClubForm(null)
       setEditingClub({})
+      setPendingImageFile(null)
       setSuccessMessage("Club information updated successfully!")
     } catch (err: any) {
       console.log("Error editing club info:", err)
       setSuccessMessage(`Error: ${err.successMessage}`)
+    }
+  }
+
+  const handleDeleteClub = async (clubId: string, clubName: string) => {
+    const confirmMessage = `Are you sure you want to delete "${clubName}"? Type "DELETE" to confirm:`;
+    
+    const confirmation = prompt(confirmMessage);
+    
+    if (confirmation !== "DELETE") {
+      return;
+    }
+
+    setDeletingClubId(clubId);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const idToken = await authUser?.getIdToken();
+      const response = await fetch(`/api/clubs?id=${clubId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error);
+      }
+
+      // Remove the club from local state
+      setManagedClubs(prevClubs => prevClubs.filter(club => club.id !== clubId));
+      
+      // Clear any open forms for this club
+      if (showAddExecForm === clubId) setShowAddExecForm(null);
+      if (showEditClubForm === clubId) setShowEditClubForm(null);
+      if (showCreatePostForm === clubId) setShowCreatePostForm(null);
+      
+      setSuccessMessage(`"${clubName}" has been deleted successfully.`);
+    } catch (err: any) {
+      console.log("Error deleting club:", err);
+      setError(`Error: ${err.message}`);
+    } finally {
+      setDeletingClubId(null);
     }
   }
 
@@ -252,6 +344,17 @@ export default function ExecPage() {
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
           <p className="text-slate-600 font-medium">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
+          <h2 className="text-xl font-semibold text-red-600 mb-3">Access Denied</h2>
+          <p className="text-red-500">Access Denied: You are not an exec.</p>
         </div>
       </div>
     )
@@ -359,6 +462,13 @@ export default function ExecPage() {
                       className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClub(club.id, club.name)}
+                      disabled={deletingClubId === club.id}
+                      className="px-3 py-1.5 border border-red-300 text-red-700 rounded text-sm font-medium hover:bg-red-50 disabled:bg-red-100 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -500,7 +610,8 @@ export default function ExecPage() {
                         <label className="block text-sm font-medium text-slate-600 mb-1">Image:</label>
                         <input
                           type="file"
-                          onChange={(e) => handleFileChange(e)}
+                          accept="image/*"
+                          onChange={handleImageUploadInput}
                           className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-transparent text-slate-800"
                         />
                       </div>

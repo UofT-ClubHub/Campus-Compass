@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { User, Club } from '@/model/types';
+import type { User, Club } from '@/model/types';
+import PendingClubsManagement from '@/components/pending-clubs-management';
 
 export default function AdminPage() {
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const router = useRouter();
     const [currentUserData, setCurrentUserData] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +36,15 @@ export default function AdminPage() {
         { value: 'UTSC', label: 'UTSC' },
         { value: 'UTM', label: 'UTM' }
     ];
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (error) {
@@ -301,7 +313,9 @@ export default function AdminPage() {
                 </div>
             </div>
         )
-    } if (!currentUserData?.is_admin && !isLoading && !authLoading) {
+    } 
+    
+    if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-slate-50">
                 <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
@@ -333,6 +347,10 @@ export default function AdminPage() {
                     <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
                         {successMessage}
                     </div>)}
+
+                <section className="mb-8">
+                    <PendingClubsManagement />
+                </section>
 
                 <section className="mb-8">
                     <h2 className="text-xl font-semibold text-slate-800 mb-4">Search Users</h2>

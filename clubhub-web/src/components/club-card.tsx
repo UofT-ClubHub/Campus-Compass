@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Users } from "lucide-react";
 import type { Club, User } from "@/model/types";
+import { auth } from "@/model/firebase";
 import { ExpandableClubCard } from "./expandable-club-card";
 import React from 'react';
 
@@ -26,9 +27,20 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
     const fetchExecutives = async () => {
       if (club.executives && club.executives.length > 0) {
         try {
-          const executivePromises = club.executives.map(execId =>
-            fetch(`/api/users?id=${execId}`).then(res => res.ok ? res.json() : null)
-          );
+          const user = auth.currentUser;
+          if (!user) return;
+          
+          const token = await user.getIdToken();
+          const executivePromises = club.executives.map(async (execId) => {
+            try {
+              const res = await fetch(`/api/users?id=${execId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              return res.ok ? res.json() : null;
+            } catch {
+              return null;
+            }
+          });
           const executiveData = await Promise.all(executivePromises);
           setExecutives(executiveData.filter((e): e is User => e !== null));
         } catch (error) {
@@ -52,11 +64,6 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
     setFollowerCount(newCount);
   };
 
-  const handlePostUpdate = () => {
-    // This will trigger a re-render of the club card
-    // The club data should be updated from the parent component
-  };
-
   return (
     <>
       <div
@@ -65,7 +72,7 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
       >
         <div className="relative h-40 bg-gray-200">
           <img
-            src={club.image || "/placeholder.svg?height=160&width=320"}
+            src={club.image || "placeholder.jpg"}
             alt={club.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -105,7 +112,6 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
           onClose={handleCloseOverlay}
           onManagePosts={onManagePosts}
           onFollowerCountUpdate={handleFollowerCountUpdate}
-          onPostUpdate={handlePostUpdate}
         />
       )}
     </>

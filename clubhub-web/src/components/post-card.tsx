@@ -69,7 +69,7 @@ export function PostCard({
         {/* Image Section */}
         <div className="relative h-48 bg-gray-200">
           <img
-            src={post.image || "/placeholder.jpg"}
+            src={post.image || "placeholder.jpg"}
             alt={post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2 } from "lucide-react";
+import { Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2, X } from "lucide-react";
 import type { Post, Club } from "@/model/types";
-import firebase from "@/model/firebase";
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from "@/model/firebase";
+import { Modal } from "./modal";
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -29,6 +29,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
 
   // Update likes when post prop changes
   useEffect(() => {
@@ -54,7 +55,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             setClubName("Unknown Club");
           }
         } catch (error) {
-          console.log("Error fetching club name:", error);
           setClubName("Unknown Club");
         }
       }
@@ -80,7 +80,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsDeleting(true);
     
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (!user) {
         alert('Please log in to delete posts');
         return;
@@ -105,12 +105,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
         onClose();
       } else {
-        const errorData = await response.text();
-        console.log('Failed to delete post:', response.status, errorData);
-        alert('Failed to delete post. You may not have permission to delete this post.');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error deleting post:', error);
       alert('Error occurred while deleting post');
     } finally {
       setIsDeleting(false);
@@ -122,37 +120,34 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsSaving(true);
 
     try {
+      let imageUrl = editedPost.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'posts');
+      }
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
-
-      const authUser = firebase.auth().currentUser;
-      
+      const authUser = auth.currentUser;
       if (authUser) {
         const token = await authUser.getIdToken();
-
         const response = await fetch(url, {
           method: method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(editedPost),
+          body: JSON.stringify({ ...editedPost, image: imageUrl }),
         });
-
         if (response.ok) {
           const savedPost = await response.json();
           setIsEditing(false);
-          
+          setPendingImageFile(null);
           if (onEdit) onEdit(savedPost);
           if (onSave) onSave(savedPost);
-
-          // Force a re-render by updating the post prop reference
           Object.assign(post, savedPost);
         } else {
           const errorData = await response.json();
-          console.log('Failed to save post', errorData);
           if (onSaveError) {
-            onSaveError(errorData.message || errorData.error || 'Failed to save post');
+            onSaveError(errorData);
           }
         }
       } else {
@@ -161,7 +156,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
       }
     } catch (error) {
-      console.log('Error saving post:', error);
       if (onSaveError) {
         onSaveError(error instanceof Error ? error.message : 'An unknown error occurred.');
       }
@@ -221,33 +215,26 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     window.open(link, '_blank', 'noopener,noreferrer');
   };
 
-  const handleCloseOverlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = () => {
     onClose();
   };
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (isLiking) {
-      console.log('Already loading, skipping...');
-      return;
-    }
+    if (isLiking) return;
     
     setIsLiking(true);
     
     try {
-      const user = firebase.auth().currentUser;
-      console.log('Firebase user:', user?.uid);
+      const user = auth.currentUser;
       
       if (!user) {
-        console.log('User not authenticated');
         alert('Please log in to like posts');
         return;
       }
 
       const idToken = await user.getIdToken();
-      console.log('Making API call to like post:', post.id);
       
       const response = await fetch('/api/likes', {
         method: 'POST',
@@ -259,55 +246,70 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           postId: post.id
         })
       });
-
-      console.log('API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Like response data:', data);
         setLikes(data.likes);
         setIsLiked(data.liked);
         if (onLikeUpdate) {
           onLikeUpdate(post.id, data.likes, data.liked);
         }
       } else {
-        const errorData = await response.text();
-        console.log('Failed to like/unlike post:', response.status, errorData);
-        alert('Failed to like/unlike post');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error handling like:', error);
       alert('Error occurred while liking/unliking post');
     } finally {
       setIsLiking(false);
     }
   };
 
+  const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPendingImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImageToBackend = async (file: File, folder: string = 'posts'): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('postId', post.id);
+    formData.append('originalImageUrl', post.image || "");
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error);
+    }
+
+    const data = await response.json();
+    return data.downloadURL;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCloseOverlay}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="relative">
-          <img
-            src={post.image || "/placeholder.jpg"}
-            alt={post.title}
-            className="w-full h-64 object-cover"
-          />
-          
-          {/* Close button */}
-          <button
-            onClick={handleCloseOverlay}
-            className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={false}>
+      {/* Header */}
+      <div className="relative">
+        <img
+          src={post.image || "/placeholder.jpg"}
+          alt={post.title}
+          className="w-full h-64 object-cover"
+        />
 
           {/* Edit/Save/Cancel/Delete buttons for club admins */}
           {(isClubAdmin || isCreating) && (
@@ -326,7 +328,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                     onClick={handleCancel}
                     className="flex items-center gap-2 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
                   >
-                    <X className="h-4 w-4" />
                     Cancel
                   </button>
                 </>
@@ -357,10 +358,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           {/* Likes overlay */}
           {!isCreating && (
           <button
-            onClick={(e) => {
-              console.log('Like button clicked - current state:', { isLiked, likes, postId: post.id });
-              handleLike(e);
-            }}
+            onClick={handleLike}
             disabled={!currentUser || isLiking}
             className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -457,21 +455,13 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
                 <input
                   type="file"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        handleInputChange('image', reader.result as string);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
+                  accept="image/*"
+                  onChange={handleImageUploadInput}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -650,7 +640,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             </div>
           )}
         </div>       
-      </div>
-    </div>
+    </Modal>
   );
 }

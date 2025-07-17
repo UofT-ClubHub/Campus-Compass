@@ -1,19 +1,30 @@
 "use client";
 
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { use, useEffect, useState } from 'react';
 import { Card, Stack, Group, Text, ActionIcon, Grid } from '@mantine/core';
 import { Mail, MapPin, Users, Heart, Star, Settings } from 'lucide-react';
-import { Profile } from '../../../components/profile';
+import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
 
 export default function ProfilePage() {
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const [userData, setUserData] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [settings, setSettings] = useState(false);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [followedClubs, setFollowedClubs] = useState<Club[]>([]);
+    
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
     
     useEffect(() => { 
         if (authLoading || !authUser) return;
@@ -21,14 +32,16 @@ export default function ProfilePage() {
         const fetchUserData = async () => {
             setIsLoading(true);
             try{
-                const response = await fetch(`/api/users?id=${authUser.uid}`);
+                const token = await authUser.getIdToken();
+                const response = await fetch(`/api/users?id=${authUser.uid}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.successMessage);
+                    throw new Error(errorData.error);
                 }
                 const user: User = await response.json();
                 setUserData(user);
-                const token = await authUser.getIdToken();
                 setToken(token);
             } catch (err: any) {
                 console.error("Error fetching user data:", err);
@@ -68,10 +81,6 @@ export default function ProfilePage() {
 
         fetchFollowedClubs();
     }, [userData, token]);
-
-    useEffect(() => { //REMOVE THIS LATER
-        console.log("Followed Clubs:", followedClubs);
-    }, [followedClubs]);
 
     const handleSettingsClick = () => {
         setSettings(!settings);

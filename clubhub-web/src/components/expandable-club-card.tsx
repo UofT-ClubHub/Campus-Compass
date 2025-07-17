@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, MapPin, Users, ExternalLink } from "lucide-react";
+import { MapPin, Users, ExternalLink } from "lucide-react";
 import type { Club, User } from "@/model/types";
-import firebase from "@/model/firebase";
-import React, { act } from "react";
-// import { act } from "react-dom/test-utils";
+import { auth } from "@/model/firebase";
+import { Modal } from "./modal";
 
 interface ExpandableClubCardProps {
   club: Club;
@@ -14,16 +13,13 @@ interface ExpandableClubCardProps {
   onManagePosts?: (clubId: string) => void;
   onClose: () => void;
   onFollowerCountUpdate?: (newCount: number) => void;
-  onPostUpdate?: () => void;
 }
 
 export function ExpandableClubCard({ 
   club, 
   currentUser, 
-  onManagePosts,
   onClose,
   onFollowerCountUpdate,
-  onPostUpdate
 }: ExpandableClubCardProps) {
   const router = useRouter();
   const [executives, setExecutives] = useState<User[]>([]);
@@ -34,16 +30,12 @@ export function ExpandableClubCard({
 
   // Update follower count when club prop changes
   useEffect(() => {
-    act(() => {
-      setFollowerCount(club.followers);
-    });
+    setFollowerCount(club.followers);
   }, [club.followers]);
 
   useEffect(() => {
     if (currentUser?.followed_clubs) {
-      act(() => {
-        setIsFollowing(currentUser.followed_clubs.includes(club.id));
-      });
+      setIsFollowing(currentUser.followed_clubs.includes(club.id));
     }
   }, [currentUser, club.id]);
 
@@ -51,15 +43,24 @@ export function ExpandableClubCard({
     const fetchExecutives = async () => {
       if (club.executives && club.executives.length > 0) {
         try {
-          const executivePromises = club.executives.map(execId =>
-            fetch(`/api/users?id=${execId}`).then(res => res.ok ? res.json() : null)
-          );
-          const executiveData = await Promise.all(executivePromises);
-          act(() => {
-            setExecutives(executiveData.filter((e): e is User => e !== null));
+          const user = auth.currentUser;
+          if (!user) return;
+          
+          const token = await user.getIdToken();
+          const executivePromises = club.executives.map(async (execId) => {
+            try {
+              const res = await fetch(`/api/users?id=${execId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              return res.ok ? res.json() : null;
+            } catch {
+              return null;
+            }
           });
+          const executiveData = await Promise.all(executivePromises);
+          setExecutives(executiveData.filter((e): e is User => e !== null));
         } catch (error) {
-          console.log("Failed to fetch executives:", error);
+          // Failed to fetch executives - continue silently
         }
       }
     };
@@ -71,8 +72,7 @@ export function ExpandableClubCard({
     router.push('/exec');
   };
 
-  const handleCloseOverlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = () => {
     onClose();
   };
 
@@ -82,26 +82,18 @@ export function ExpandableClubCard({
   };
 
   const handleFollowClub = async () => {
-    console.log('Follow button clicked', { currentUser, isFollowLoading });
-    
-    if (isFollowLoading) {
-      console.log('Already loading, skipping...');
-      return;
-    }
+    if (isFollowLoading) return;
 
     setIsFollowLoading(true);
     try {
-      const user = firebase.auth().currentUser;
-      console.log('Firebase user:', user?.uid);
+      const user = auth.currentUser;
       
       if (!user) {
-        console.log('User not authenticated');
         alert('Please log in to follow clubs');
         return;
       }
 
       const idToken = await user.getIdToken();
-      console.log('Making API call to follow club:', club.id);
       
       const response = await fetch('/api/follow', {
         method: 'POST',
@@ -111,22 +103,17 @@ export function ExpandableClubCard({
         },
         body: JSON.stringify({ clubId: club.id })
       });
-
-      console.log('API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Follow response data:', data);
         setIsFollowing(data.following);
         setFollowerCount(data.followersCount);
         onFollowerCountUpdate?.(data.followersCount);
       } else {
-        const errorData = await response.text();
-        console.log('Failed to follow/unfollow club:', response.status, errorData);
-        alert('Failed to follow/unfollow club');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error following/unfollowing club:', error);
       alert('Error occurred while following/unfollowing club');
     } finally {
       setIsFollowLoading(false);
@@ -140,31 +127,15 @@ export function ExpandableClubCard({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
-      <div 
-        data-testid="backdrop"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCloseOverlay}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header Image */}
-        <div className="relative h-64 bg-gray-200">
-          <img
-            src={club.image || "/placeholder.svg?height=160&width=320"}
-            alt={club.name}
-            className="w-full h-full object-cover"
-          />
-          {/* Close button */}
-          <button
-            onClick={handleCloseOverlay}
-            className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Modal open={true} onOpenChange={handleClose} title={club.name}>
+      {/* Header Image */}
+      <div className="relative h-64 bg-gray-200">
+        <img
+          src={club.image || "/placeholder.jpg"}
+          alt={club.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
         {/* Content */}
         <div className="p-6 overflow-y-auto">
@@ -282,7 +253,6 @@ export function ExpandableClubCard({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
