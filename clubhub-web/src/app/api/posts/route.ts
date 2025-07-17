@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
         const sortOrder = searchParams.get('sort_order');
         const postsCollection = firestore.collection('Posts');
 
+        console.log("look", sortBy, sortOrder);
+
         // Fetch by document ID if provided
         if (documentId) {
             const doc = await postsCollection.doc(documentId).get();

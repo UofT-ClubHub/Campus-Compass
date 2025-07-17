@@ -130,7 +130,7 @@ export default function PostFilterPage() {
       setHasMore(true); // Reset hasMore to true for new search
       setOffset(0); // Reset offset for new search
       filterPosts(true);
-      console.log("second useEffect triggered");
+      console.log("herre", sort_by, sort_order);
     }, 500); // waits 500ms after user stops typing
 
     return () => clearTimeout(delay); // cancel previous timeout if input changes
