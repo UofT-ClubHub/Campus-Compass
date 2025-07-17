@@ -302,7 +302,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   };
 
   return (
-    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={false}>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={true}>
       {/* Header */}
       <div className="relative">
         <img

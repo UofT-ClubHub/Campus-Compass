@@ -5,6 +5,7 @@ import { MapPin, Users } from "lucide-react";
 import type { Club, User } from "@/model/types";
 import { auth } from "@/model/firebase";
 import { ExpandableClubCard } from "./expandable-club-card";
+import { useRouter } from 'next/navigation';
 
 interface ClubCardProps {
   club: Club;
@@ -17,10 +18,15 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
   const [isExpanded, setIsExpanded] = useState(false);
   const [executives, setExecutives] = useState<User[]>([]);
   const [followerCount, setFollowerCount] = useState(club.followers);
+  const router = useRouter();
 
   useEffect(() => {
     setFollowerCount(club.followers);
   }, [club.followers]);
+
+  onclick = () => {
+    router.push(`/clubPage/${club.id}`);
+  };
 
   useEffect(() => {
     const fetchExecutives = async () => {
@@ -104,15 +110,6 @@ export function ClubCard({ club, currentUser, onManagePosts, className = "" }: C
         </div>
       </div>
 
-      {isExpanded && (
-        <ExpandableClubCard
-          club={club}
-          currentUser={currentUser}
-          onClose={handleCloseOverlay}
-          onManagePosts={onManagePosts}
-          onFollowerCountUpdate={handleFollowerCountUpdate}
-        />
-      )}
     </>
   );
 }
