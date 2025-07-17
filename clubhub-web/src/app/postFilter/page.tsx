@@ -5,6 +5,7 @@ import { Post, User } from "@/model/types";
 import { PostCard } from "@/components/post-card";
 import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import React from "react";
 
 export default function PostFilterPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -28,6 +29,7 @@ export default function PostFilterPage() {
 
   useEffect(() => {
     setShowSortOrder(sort_by !== "");
+    console.log("useEffect triggered");
   }, [sort_by]);
 
   useEffect(() => {
@@ -128,6 +130,7 @@ export default function PostFilterPage() {
       setHasMore(true); // Reset hasMore to true for new search
       setOffset(0); // Reset offset for new search
       filterPosts(true);
+      console.log("second useEffect triggered");
     }, 500); // waits 500ms after user stops typing
 
     return () => clearTimeout(delay); // cancel previous timeout if input changes
@@ -157,7 +160,7 @@ export default function PostFilterPage() {
 
     // Add scroll event listener
     window.addEventListener("scroll", handleScroll);
-    console.log("Scroll event listener added");
+    // console.log("Scroll event listener added");
 
     // Cleanup
     return () => {
@@ -296,7 +299,8 @@ export default function PostFilterPage() {
             {/* Third Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
               {/* Sort By */}
-              <select
+              <select 
+                data-testid="sort-by"
                 value={sort_by}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
@@ -310,6 +314,7 @@ export default function PostFilterPage() {
               {/* Sort Order */}
               {showSortOrder && (
                 <select
+                  data-testid="sort-order"
                   value={sort_order}
                   onChange={(e) => setSortOrder(e.target.value)}
                   className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"

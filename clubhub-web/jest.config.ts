@@ -20,7 +20,7 @@ const config: Config = {
 
   // Optional: transform handling
   transform: {
-    '^.+\\.(ts|tsx)$': 'babel-jest',
+    '^.+\\.(ts|tsx)$': ['babel-jest', { configFile: './babel-jest.config.js' }],
   },
 };
 
