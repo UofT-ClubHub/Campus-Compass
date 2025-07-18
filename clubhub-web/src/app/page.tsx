@@ -18,9 +18,9 @@ export default function HomePage() {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingClubs, setLoadingClubs] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const clubScrollRef = useRef<HTMLDivElement>(null)
+  const postScrollRef = useRef<HTMLDivElement>(null)
+  const followedScrollRef = useRef<HTMLDivElement>(null)
   const isUserScrollingRef = useRef(false)
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
@@ -43,8 +43,6 @@ export default function HomePage() {
         const filteredPosts = data.filter(post => followedClubIds.includes(post.club));
         setFollowedEvents(filteredPosts);
       }
-
-
       setPosts(data);
       setError(null);
     } catch (err: any) {
@@ -63,7 +61,8 @@ export default function HomePage() {
         throw new Error(`Failed to fetch clubs: ${response.statusText}`);
       }
       const data: Club[] = await response.json();
-      setClubs(data);
+      //setClubs(data);
+      setClubs(data.splice(0, 2)); // Limit to 6 clubs for display
       setError(null);
     } catch (err: any) {
       setError(err.message);
@@ -102,11 +101,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-  if (!loading) {
-    fetchPosts(); 
-  }
-}, [loading, currentUser]);
-
+    if (!loading) {
+      fetchPosts(); 
+    }
+  }, [loading, currentUser]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -155,7 +153,71 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const container = scrollContainerRef.current
+    const container = clubScrollRef.current
+    if (!container) return
+
+    const third = container.scrollWidth / 3
+
+    // Scroll to the middle set on mount
+    const setInitialScroll = () => {
+      container.scrollLeft = third
+    }
+
+    const handleInfiniteScroll = () => {
+      const scrollLeft = container.scrollLeft
+
+      if (scrollLeft <= third / 2) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft += third
+        container.style.scrollBehavior = "smooth"
+      } else if (scrollLeft >= third * 1.5) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft -= third
+        container.style.scrollBehavior = "smooth"
+      }
+    }
+
+    container.addEventListener("scroll", handleInfiniteScroll)
+
+    return () => {
+      container.removeEventListener("scroll", handleInfiniteScroll)
+    }
+  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs]);
+
+  useEffect(() => {
+    const container = postScrollRef.current
+    if (!container) return
+
+    const third = container.scrollWidth / 3
+
+    // Scroll to the middle set on mount
+    const setInitialScroll = () => {
+      container.scrollLeft = third
+    }
+
+    const handleInfiniteScroll = () => {
+      const scrollLeft = container.scrollLeft
+
+      if (scrollLeft <= third / 2) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft += third
+        container.style.scrollBehavior = "smooth"
+      } else if (scrollLeft >= third * 1.5) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft -= third
+        container.style.scrollBehavior = "smooth"
+      }
+    }
+
+    container.addEventListener("scroll", handleInfiniteScroll)
+
+    return () => {
+      container.removeEventListener("scroll", handleInfiniteScroll)
+    }
+  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs]);
+
+  useEffect(() => {
+    const container = followedScrollRef.current
     if (!container) return
 
     const third = container.scrollWidth / 3
@@ -274,7 +336,7 @@ export default function HomePage() {
                 <div className="relative overflow-hidden">
                   { /* Manual Scroll Container */}
                   <div
-                    ref={scrollContainerRef}
+                    ref={clubScrollRef}
                     className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
@@ -282,7 +344,7 @@ export default function HomePage() {
 
                     {/* Auto Scroll */}
                     <div
-                      className={`flex gap-6 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
+                      className={`flex gap-6 ${isAutoScrolling && duplicatedClubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
                       style={{width: "fit-content",}}
                       onMouseEnter={(e) => {
                         if (e.target === e.currentTarget) {
@@ -327,7 +389,7 @@ export default function HomePage() {
                 <div className="relative overflow-hidden">
                   { /* Manual Scroll Container */}
                   <div
-                    ref={scrollContainerRef}
+                    ref={postScrollRef}
                     className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
@@ -343,7 +405,8 @@ export default function HomePage() {
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        const target = e.relatedTarget;
+                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
                           if (!isUserScrollingRef.current) {
                             setIsAutoScrolling(true);
                           }
@@ -385,7 +448,7 @@ export default function HomePage() {
                 <div className="relative overflow-hidden">
                   { /* Manual Scroll Container */}
                   <div
-                    ref={scrollContainerRef}
+                    ref={followedScrollRef}
                     className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
@@ -401,7 +464,8 @@ export default function HomePage() {
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        const target = e.relatedTarget;
+                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
                           if (!isUserScrollingRef.current) {
                             setIsAutoScrolling(true);
                           }
