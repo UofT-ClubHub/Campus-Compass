@@ -49,13 +49,13 @@ describe('PendingClubsManagement Component', () => {
   const mockUserDetails = {
     'user-1': {
       id: 'user-1',
-      name: 'John Doe',
-      email: 'john@example.com',
+      name: 'Test User 1',
+      email: 'testuser1@example.com',
     },
     'user-2': {
       id: 'user-2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
+      name: 'Test User 2',
+      email: 'testuser2@example.com',
     },
   };
 
@@ -64,7 +64,6 @@ describe('PendingClubsManagement Component', () => {
     jest.clearAllTimers();
   });
 
-  // Test 1: Loading state and successful data fetching
   it('shows loading state and then displays pending clubs with user details', async () => {
     const { useAuthState } = require('react-firebase-hooks/auth');
     useAuthState.mockReturnValue([mockUser, false, null]);
@@ -87,18 +86,17 @@ describe('PendingClubsManagement Component', () => {
       render(<PendingClubsManagement />);
     });
 
-    // Check loading state - the component shows a spinner without text
+    // Check loading state
     expect(screen.getByText('Pending Club Requests')).toBeInTheDocument();
 
-    // Wait for data to load
     await waitFor(() => {
       expect(screen.getByText('Test Club 1')).toBeInTheDocument();
       expect(screen.getByText('Test Club 2')).toBeInTheDocument();
-      expect(screen.getByText('John Doe (john@example.com)')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith (jane@example.com)')).toBeInTheDocument();
+      expect(screen.getByText('Test User 1 (testuser1@example.com)')).toBeInTheDocument();
+      expect(screen.getByText('Test User 2 (testuser2@example.com)')).toBeInTheDocument();
     });
 
-    // Verify API calls - the component adds ? even when no params
+    // Verify API calls
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/pending-clubs?',
       expect.objectContaining({
@@ -107,7 +105,6 @@ describe('PendingClubsManagement Component', () => {
     );
   });
 
-  // Test 2: Error handling
   it('handles fetch errors', async () => {
     const { useAuthState } = require('react-firebase-hooks/auth');
     useAuthState.mockReturnValue([mockUser, false, null]);
@@ -126,7 +123,6 @@ describe('PendingClubsManagement Component', () => {
     });
   });
 
-  // Test 3: Empty state
   it('shows empty state when no pending clubs', async () => {
     const { useAuthState } = require('react-firebase-hooks/auth');
     useAuthState.mockReturnValue([mockUser, false, null]);
@@ -145,7 +141,6 @@ describe('PendingClubsManagement Component', () => {
     });
   });
 
-  // Test 4: User fetch failure
   it('handles user fetch failure', async () => {
     const { useAuthState } = require('react-firebase-hooks/auth');
     useAuthState.mockReturnValue([mockUser, false, null]);
@@ -173,6 +168,109 @@ describe('PendingClubsManagement Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Club 1')).toBeInTheDocument();
       expect(screen.getAllByText('Loading user details...')).toHaveLength(2);
+    });
+  });
+
+  it('displays approve and reject buttons for pending clubs', async () => {
+    const { useAuthState } = require('react-firebase-hooks/auth');
+    useAuthState.mockReturnValue([mockUser, false, null]);
+
+    // Mock successful data loading
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => [mockPendingClubs[0]] }) // initial clubs
+      .mockResolvedValueOnce({ ok: true, json: async () => mockUserDetails['user-1'] }); // initial user
+
+    await act(async () => {
+      render(<PendingClubsManagement />);
+    });
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Club 1')).toBeInTheDocument();
+    });
+
+    // Verify approve and reject buttons are present
+    expect(screen.getByTestId('approve-button')).toBeInTheDocument();
+    expect(screen.getByTestId('reject-button')).toBeInTheDocument();
+    
+    expect(screen.getByText('Approve')).toBeInTheDocument();
+    expect(screen.getByText('Reject')).toBeInTheDocument();
+  });
+
+  it('renders campus filter options', async () => {
+    const { useAuthState } = require('react-firebase-hooks/auth');
+    useAuthState.mockReturnValue([mockUser, false, null]);
+
+    // Mock successful data loading
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // no clubs
+
+    await act(async () => {
+      render(<PendingClubsManagement />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Pending Club Requests')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('All Campuses')).toBeInTheDocument();
+    expect(screen.getByText('UTSG')).toBeInTheDocument();
+    expect(screen.getByText('UTSC')).toBeInTheDocument();
+    expect(screen.getByText('UTM')).toBeInTheDocument();
+  });
+
+  it('auto-hides error messages after 5 seconds', async () => {
+    const { useAuthState } = require('react-firebase-hooks/auth');
+    useAuthState.mockReturnValue([mockUser, false, null]);
+
+    // Mock fetch error
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'Test error' }),
+    });
+
+    await act(async () => {
+      render(<PendingClubsManagement />);
+    });
+
+    // Wait for error to appear
+    await waitFor(() => {
+      expect(screen.getByText('Test error')).toBeInTheDocument();
+    });
+
+    jest.advanceTimersByTime(5000);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test error')).not.toBeInTheDocument();
+    });
+  });
+
+  it('handles approve action', async () => {
+    const { useAuthState } = require('react-firebase-hooks/auth');
+    useAuthState.mockReturnValue([mockUser, false, null]);
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => [mockPendingClubs[0]] }) // initial clubs
+      .mockResolvedValueOnce({ ok: true, json: async () => mockUserDetails['user-1'] }) // initial user
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ response: 'Club approved and created successfully!' }) }) // approve action
+      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // refresh clubs
+      .mockResolvedValueOnce({ ok: true, json: async () => mockUserDetails['user-1'] }); // refresh user
+
+    await act(async () => {
+      render(<PendingClubsManagement />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Club 1')).toBeInTheDocument();
+    });
+
+    const approveButton = screen.getByTestId('approve-button');
+    await act(async () => {
+      fireEvent.click(approveButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Club approved and created successfully!')).toBeInTheDocument();
     });
   });
 });

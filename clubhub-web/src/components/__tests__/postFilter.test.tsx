@@ -24,19 +24,6 @@ describe("PostFilter - sort_by and sort_order", () => {
     jest.restoreAllMocks();
   });
 
-//   it("logs useEffect call when sort_by changes", async () => {
-//     render(<PostFilterPage />);
-//     const sortBy = screen.getByTestId("sort-by");
-  
-//     await act(async () => {
-//       fireEvent.change(sortBy, { target: { value: "likes" } });
-//     });
-  
-//     expect(console.log).toHaveBeenCalledWith(
-//       "useEffect triggered"
-//     );
-//   });  // fix this
-
   it("renders the sort-by select initially", () => {
     render(<PostFilterPage />);
     const sortBy = screen.getByTestId("sort-by");
@@ -57,5 +44,6 @@ describe("PostFilter - sort_by and sort_order", () => {
 
     // Now sort-order should appear
     expect(screen.getByTestId("sort-order")).toBeInTheDocument();
+    expect(screen.getByTestId("sort-order")).toHaveValue("desc");
   });
 });
