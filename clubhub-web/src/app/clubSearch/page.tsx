@@ -5,15 +5,21 @@ import type { Club, User } from "@/model/types"
 import { ClubCard } from "@/components/club-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 export default function clubSearchPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [clubs, setClubs] = useState<Club[]>([])
-  const [nameFilter, setNameFilter] = useState("")
-  const [campusFilter, setCampusFilter] = useState("")
-  const [descriptionFilter, setDescriptionFilter] = useState("")
+
+  const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "")
+  const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
+  const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
+
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -49,6 +55,19 @@ export default function clubSearchPage() {
     };
     fetchUserData();
   }, [authUser]);
+
+  // Update URL from search parameters
+  useEffect(() => {
+  const params = new URLSearchParams();
+  
+  if (nameFilter) params.set('name', nameFilter);
+  if (campusFilter) params.set('campus', campusFilter);
+  if (descriptionFilter) params.set('description', descriptionFilter);
+  
+  // Update URL as filters are applied
+  const url = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
+}, [nameFilter, campusFilter, descriptionFilter]);
 
   const clubSearch = async (isNewSearch = false) => {
     if (loadingRef.current) return;
