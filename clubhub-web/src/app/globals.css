@@ -1,15 +1,143 @@
 @import "tailwindcss";
 
+/* — Clean Light (Default) — */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background:              #ffffff;
+  --foreground:              #0f172a;
+  --card:                    #f8fafc;
+  --card-foreground:         #0f172a;
+  --club-card-bg:            #f1f5f9;
+  --post-card-bg:            #fefefe;
+  --expandable-post-card-bg: #f9fafb;
+  --primary:                 #2563eb;
+  --primary-foreground:      #ffffff;
+  --secondary:               #64748b;
+  --secondary-foreground:    #ffffff;
+  --muted:                   #f1f5f9;
+  --muted-foreground:        #64748b;
+  --accent:                  #7c3aed;
+  --accent-foreground:       #ffffff;
+  --destructive:             #dc2626;
+  --destructive-foreground:  #ffffff;
+  --border:                  #e2e8f0;
+  --input:                   #f8fafc;
+  --ring:                    #2563eb;
+  --success:                 #16a34a;
+  --warning:                 #ea580c;
+  --info:                    #0ea5e9;
+}
+
+/* — Warm Light — */
+[data-theme="warm-light"] {
+  --background:              #fefcf9;
+  --foreground:              #292524;
+  --card:                    #faf8f5;
+  --card-foreground:         #292524;
+  --club-card-bg:            #f5f3f0;
+  --post-card-bg:            #fdfdfc;
+  --expandable-post-card-bg: #fbfaf8;
+  --primary:                 #ea580c;
+  --primary-foreground:      #ffffff;
+  --secondary:               #a16207;
+  --secondary-foreground:    #ffffff;
+  --muted:                   #f5f3f0;
+  --muted-foreground:        #78716c;
+  --accent:                  #dc2626;
+  --accent-foreground:       #ffffff;
+  --destructive:             #b91c1c;
+  --destructive-foreground:  #ffffff;
+  --border:                  #e7e5e4;
+  --input:                   #faf8f5;
+  --ring:                    #ea580c;
+  --success:                 #15803d;
+  --warning:                 #d97706;
+  --info:                    #0284c7;
+}
+
+/* — Deep Dark — */
+[data-theme="deep-dark"] {
+  --background:              #0c0a09;
+  --foreground:              #fafaf9;
+  --card:                    #1c1917;
+  --card-foreground:         #fafaf9;
+  --club-card-bg:            #292524;
+  --post-card-bg:            #1a1816;
+  --expandable-post-card-bg: #211f1d;
+  --primary:                 #3b82f6;
+  --primary-foreground:      #ffffff;
+  --secondary:               #6b7280;
+  --secondary-foreground:    #ffffff;
+  --muted:                   #292524;
+  --muted-foreground:        #a8a29e;
+  --accent:                  #8b5cf6;
+  --accent-foreground:       #ffffff;
+  --destructive:             #ef4444;
+  --destructive-foreground:  #ffffff;
+  --border:                  #44403c;
+  --input:                   #1c1917;
+  --ring:                    #3b82f6;
+  --success:                 #22c55e;
+  --warning:                 #f59e0b;
+  --info:                    #06b6d4;
+}
+
+/* — Vibrant Dark — */
+[data-theme="vibrant-dark"] {
+  --background:              #0f0f23;
+  --foreground:              #f0f9ff;
+  --card:                    #1e1b4b;
+  --card-foreground:         #f0f9ff;
+  --club-card-bg:            #312e81;
+  --post-card-bg:            #1a1a3a;
+  --expandable-post-card-bg: #252560;
+  --primary:                 #06b6d4;
+  --primary-foreground:      #ffffff;
+  --secondary:               #8b5cf6;
+  --secondary-foreground:    #ffffff;
+  --muted:                   #312e81;
+  --muted-foreground:        #94a3b8;
+  --accent:                  #f59e0b;
+  --accent-foreground:       #0f0f23;
+  --destructive:             #f87171;
+  --destructive-foreground:  #ffffff;
+  --border:                  #4c1d95;
+  --input:                   #1e1b4b;
+  --ring:                    #06b6d4;
+  --success:                 #34d399;
+  --warning:                 #fbbf24;
+  --info:                    #60a5fa;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-club-card-bg: var(--club-card-bg);
+  --color-post-card-bg: var(--post-card-bg);
+  --color-expandable-post-card-bg: var(--expandable-post-card-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
