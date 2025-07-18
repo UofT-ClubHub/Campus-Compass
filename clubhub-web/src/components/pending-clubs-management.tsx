@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { auth } from '@/model/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import type { PendingClub, User } from '@/model/types';
+import React from 'react';
 
 export default function PendingClubsManagement() {
   const [user] = useAuthState(auth);
@@ -242,6 +243,7 @@ export default function PendingClubsManagement() {
                   
                   <div className="flex gap-2 lg:ml-4">
                     <button
+                      data-testid="approve-button"
                       onClick={() => handleAction(pendingClub.id, 'approve')}
                       disabled={isProcessing}
                       className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-medium"
@@ -249,6 +251,7 @@ export default function PendingClubsManagement() {
                       {isProcessing ? 'Processing...' : 'Approve'}
                     </button>
                     <button
+                      data-testid="reject-button"
                       onClick={() => handleAction(pendingClub.id, 'reject')}
                       disabled={isProcessing}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-medium"
