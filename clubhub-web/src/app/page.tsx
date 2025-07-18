@@ -61,8 +61,7 @@ export default function HomePage() {
         throw new Error(`Failed to fetch clubs: ${response.statusText}`);
       }
       const data: Club[] = await response.json();
-      //setClubs(data);
-      setClubs(data.splice(0, 2)); // Limit to 6 clubs for display
+      setClubs(data);
       setError(null);
     } catch (err: any) {
       setError(err.message);
