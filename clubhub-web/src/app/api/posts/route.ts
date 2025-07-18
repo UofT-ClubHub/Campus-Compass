@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             posts.sort((a, b) => {
                 const aVal = a[sortBy as keyof Post];
                 const bVal = b[sortBy as keyof Post];
-                if (!aVal || !bVal) return 0;
+                if (aVal == null || bVal == null) return 0;
                 if (aVal === bVal) return 0;
                 return aVal > bVal ? order : -order;
             });
