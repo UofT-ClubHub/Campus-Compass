@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/header";
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,16 +28,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <MantineProvider
-          theme={{
-            colors: {},
-            primaryColor: 'blue',
-          }}
-        >
-          <Header />
-          {children}
-        </MantineProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
+        <ThemeProvider>
+          <MantineProvider
+            theme={{
+              colors: {},
+              primaryColor: 'blue',
+            }}
+          >
+            <Header />
+            {children}
+          </MantineProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

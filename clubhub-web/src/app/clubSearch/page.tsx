@@ -5,16 +5,21 @@ import type { Club, User } from "@/model/types"
 import { ClubCard } from "@/components/club-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { Search, Filter, Users, MapPin, ExternalLink } from "lucide-react";
+import { useRouter, useSearchParams } from 'next/navigation';
+
 
 export default function clubSearchPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [clubs, setClubs] = useState<Club[]>([])
-  const [loading, setLoading] = useState(false)
-  const [nameFilter, setNameFilter] = useState("")
-  const [campusFilter, setCampusFilter] = useState("")
-  const [descriptionFilter, setDescriptionFilter] = useState("")
+
+  const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "")
+  const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
+  const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
+
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -51,6 +56,19 @@ export default function clubSearchPage() {
     fetchUserData();
   }, [authUser]);
 
+  // Update URL from search parameters
+  useEffect(() => {
+  const params = new URLSearchParams();
+  
+  if (nameFilter) params.set('name', nameFilter);
+  if (campusFilter) params.set('campus', campusFilter);
+  if (descriptionFilter) params.set('description', descriptionFilter);
+  
+  // Update URL as filters are applied
+  const url = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
+}, [nameFilter, campusFilter, descriptionFilter]);
+
   const clubSearch = async (isNewSearch = false) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -59,7 +77,6 @@ export default function clubSearchPage() {
 
     if (isNewSearch) {
       setClubs([]);
-      setLoading(true);
     } else {
       setLoadingMore(true);
     }
@@ -99,9 +116,7 @@ export default function clubSearchPage() {
     } catch (error) {
       console.log("Error fetching clubs:", error)
     } finally {
-      if (isNewSearch) {
-        setLoading(false);
-      } else {
+      if (!isNewSearch) {
         setLoadingMore(false);
       }
       loadingRef.current = false;
@@ -209,8 +224,10 @@ useEffect(() => {
               </div>            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {clubs.map((club: Club) => (
-                  // console.log("Rendering club:", club),
-                  <ClubCard key={club.id} club={club} currentUser={currentUser} />
+                    <ClubCard
+                      key={club.id} 
+                      club={club} 
+                    />
                 ))}
               </div>
             )}

@@ -265,6 +265,50 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     }
   };
 
+  const handleExportToCalendar = (e: React.MouseEvent) => {
+  e.stopPropagation();
+
+  if (!editedPost.date_occuring) {
+    alert('No Event Date Specified');
+    return;
+  }
+
+  const start = new Date(editedPost.date_occuring);
+  const end = new Date(start.getTime() + 60 * 60 * 1000); // Default 1 hour event
+
+  const formatDate = (date: Date) => {
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  }
+
+  const icsContent = 
+    `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//YourApp//EN
+BEGIN:VEVENT
+UID:${post.id}@yourapp.com
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(start)}
+DTEND:${formatDate(end)}
+SUMMARY:${editedPost.title}
+DESCRIPTION:${editedPost.details || ''}
+LOCATION:${editedPost.campus || ''}
+END:VEVENT
+END:VCALENDAR`.trim();
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${editedPost.title.replace(/\s+/g, "_")}.ics`;
+    link.click();
+
+    URL.revokeObjectURL(url); // clean up
+};
+
+
   const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setPendingImageFile(e.target.files[0]);
@@ -302,7 +346,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   };
 
   return (
-    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={false}>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={true}>
       {/* Header */}
       <div className="relative">
         <img
@@ -353,6 +397,17 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                 </>
               )}
             </div>
+          )}
+
+          {/* Export to Calendar */}
+          {!isCreating && (
+          <button
+            onClick={handleExportToCalendar}
+            disabled={!currentUser || isLiking}
+            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Calendar />
+          </button>
           )}
 
           {/* Likes overlay */}

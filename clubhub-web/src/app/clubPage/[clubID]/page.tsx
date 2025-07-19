@@ -1,0 +1,406 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import db from "@/model/firebase"
+import { collection, query, where, getDocs, getFirestore } from "firebase/firestore"
+import { auth } from "@/model/firebase"
+import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
+import type { Post, User } from "@/model/types"
+import { PostCard } from "@/components/post-card"
+import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff } from "lucide-react"
+import { useRouter } from "next/navigation"
+
+interface PageProps {
+  params: Promise<{
+    clubID: string
+  }>
+}
+
+async function getClubPosts(clubID: string) {
+  try {
+    const firestore = getFirestore(db)
+    //Get name of the club
+    const clubRef = collection(firestore, "Clubs")
+    const clubQuery = query(clubRef, where("__name__", "==", clubID))
+    const clubSnapshot = await getDocs(clubQuery)
+
+    let clubData = null
+    if (!clubSnapshot.empty) {
+      clubData = clubSnapshot.docs[0].data()
+    }
+
+    // Get posts for this club
+    const postsRef = collection(firestore, "Posts")
+    const postsQuery = query(postsRef, where("club", "==", clubID))
+    const postsSnapshot = await getDocs(postsQuery)
+
+    const posts = postsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Post[]
+
+    return { clubData, posts }
+  } catch (error) {
+    console.error("Error fetching club posts:", error)
+    return { clubData: null, posts: [] }
+  }
+}
+
+export default function ClubPage({ params }: PageProps) {
+  const [clubID, setClubID] = useState<string>("")
+  const [clubData, setClubData] = useState<any>(null)
+  const [posts, setPosts] = useState<Post[]>([])
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [executives, setExecutives] = useState<User[]>([])
+  const [executivesLoading, setExecutivesLoading] = useState(false)
+  const router = useRouter()
+
+  // Initialize component
+  useEffect(() => {
+    const initializeComponent = async () => {
+      const resolvedParams = await params
+      const id = resolvedParams.clubID
+      setClubID(id)
+
+      const { clubData: fetchedClubData, posts: fetchedPosts } = await getClubPosts(id)
+      setClubData(fetchedClubData)
+      setPosts(fetchedPosts)
+      setFollowerCount(fetchedClubData?.followers || 0)
+      setLoading(false)
+    }
+
+    initializeComponent()
+  }, [params])
+
+  // Listen for auth changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  // Fetch current user data
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (authUser) {
+        try {
+          const token = await authUser.getIdToken()
+          const response = await fetch(`/api/users?id=${authUser.uid}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          if (response.ok) {
+            const userData = await response.json()
+            setCurrentUser(userData)
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error)
+        }
+      } else {
+        setCurrentUser(null)
+      }
+    }
+
+    fetchCurrentUser()
+  }, [authUser])
+
+  // Fetch executives data
+  useEffect(() => {
+    const fetchExecutives = async () => {
+      if (clubData?.executives && Array.isArray(clubData.executives) && clubData.executives.length > 0) {
+        setExecutivesLoading(true)
+        try {
+          const user = auth.currentUser
+          if (!user) {
+            setExecutivesLoading(false)
+            return
+          }
+
+          const token = await user.getIdToken()
+          const executivePromises = clubData.executives.map(async (execId: string) => {
+            try {
+              const res = await fetch(`/api/users?id=${execId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              return res.ok ? await res.json() : null
+            } catch {
+              return null
+            }
+          })
+
+          const executiveData = await Promise.all(executivePromises)
+          setExecutives(executiveData.filter((e): e is User => e !== null))
+        } catch (error) {
+          console.error("Failed to fetch executives:", error)
+        } finally {
+          setExecutivesLoading(false)
+        }
+      }
+    }
+
+    fetchExecutives()
+  }, [clubData])
+
+  // Check if user is following this club
+  useEffect(() => {
+    if (currentUser?.followed_clubs && clubID) {
+      setIsFollowing(currentUser.followed_clubs.includes(clubID))
+    }
+  }, [currentUser, clubID])
+
+  const handleFollowClub = async () => {
+    if (isFollowLoading) return
+    setIsFollowLoading(true)
+
+    try {
+      const user = auth.currentUser
+
+      if (!user) {
+        alert("Please log in to follow clubs")
+        return
+      }
+
+      const idToken = await user.getIdToken()
+
+      const response = await fetch("/api/follow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ clubId: clubID }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setIsFollowing(data.following)
+        setFollowerCount(data.followersCount)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error)
+      }
+    } catch (error) {
+      alert("Error occurred while following/unfollowing club")
+    } finally {
+      setIsFollowLoading(false)
+    }
+  }
+
+     const handleManageClub = () => {
+     router.push("/exec")
+   }
+
+   // Handle like updates to keep posts in sync
+   const handleLikeUpdate = (postId: string, newLikes: number, isLiked: boolean) => {
+     // Update posts
+     setPosts(prevPosts => 
+       prevPosts.map(post => 
+         post.id === postId 
+           ? { ...post, likes: newLikes }
+           : post
+       )
+     );
+     
+     // Update currentUser liked_posts
+     setCurrentUser(prevUser => {
+       if (!prevUser) return prevUser;
+       
+       const currentLikedPosts = prevUser.liked_posts || [];
+       let updatedLikedPosts;
+       
+       if (isLiked) {
+         // Add postId if not already present
+         updatedLikedPosts = currentLikedPosts.includes(postId) 
+           ? currentLikedPosts 
+           : [...currentLikedPosts, postId];
+       } else {
+         // Remove postId
+         updatedLikedPosts = currentLikedPosts.filter(id => id !== postId);
+       }
+       
+       return {
+         ...prevUser,
+         liked_posts: updatedLikedPosts
+       };
+     });
+   };
+
+   // Check if current user is a club executive
+   const isClubExecutive = currentUser?.managed_clubs?.includes(clubID) || false
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading club information...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!clubData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+          <h2 className="text-xl font-semibold text-gray-700 mb-3">Club Not Found</h2>
+          <p className="text-gray-500">The requested club could not be found.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+          {/* Header Section */}
+         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden">
+           <div
+             className="absolute inset-0 bg-cover bg-center filter blur-md"
+             style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
+           ></div>
+           <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
+           
+
+           <div className="relative z-10 max-w-4xl mx-auto text-center">
+            {/* Logo and Title Section */}
+            <div className="mb-10 flex flex-col items-center">
+              <img
+                src={clubData?.image || "/placeholder.svg"}
+                alt={`${clubData?.name} logo`}
+                className="w-28 h-28 rounded-full mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
+              />
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">{clubData?.name}</h1>
+              <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
+            </div>
+
+            {/* Stats bar */}
+            <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-white/30">
+               <div className="flex items-center gap-3 text-white">
+                 <Users className="w-5 h-5 text-white/80" />
+                 <span className="font-semibold text-lg">{followerCount}</span>
+                 <span className="text-white/80 text-sm font-medium">Followers</span>
+               </div>
+               <div className="flex items-center gap-3 text-white">
+                 <UserCheck className="w-5 h-5 text-green-300" />
+                 <span className="font-semibold text-lg">{executives.length}</span>
+                 <span className="text-white/80 text-sm font-medium">Executives</span>
+               </div>
+               <div className="flex items-center gap-3 text-white">
+                 <Instagram className="w-5 h-5 text-pink-300" />
+                 <span className="font-semibold text-lg">{clubData?.instagram}</span>
+               </div>
+               <div className="flex items-center gap-3 text-white">
+                 <MapPin className="w-5 h-5 text-orange-300" />
+                 <span className="font-semibold text-lg">{clubData?.campus}</span>
+               </div>
+             </div>
+
+              {/* Compact Executives Display */}
+              {!executivesLoading && executives.length > 0 && (
+                <div className="pt-6">
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {executives.map((executive) => (
+                      <div
+                        key={executive.id}
+                        className="bg-blue-500/20 backdrop-blur-sm rounded-lg px-3 py-2 text-center border border-blue-300/30"
+                      >
+                        <p className="text-white text-sm font-medium">
+                          {executive.name || "Executive"}{executive.email && ` • ${executive.email}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+               {/* Action Buttons */}
+               {authUser && (
+                 <div className="mt-6 flex justify-center gap-4">
+                   {isClubExecutive && (
+                     <button
+                       onClick={handleManageClub}
+                       className="px-6 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-200 border border-white/30"
+                     >
+                       Manage Club
+                     </button>
+                   )}
+                   <button
+                     onClick={handleFollowClub}
+                     disabled={isFollowLoading}
+                     className="px-6 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-200 border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     {isFollowLoading ? (
+                       <div className="flex items-center justify-center">
+                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                         Loading...
+                       </div>
+                     ) : isFollowing ? (
+                       <div className="flex items-center gap-2">
+                         <HeartOff className="w-4 h-4" />
+                         Unfollow
+                       </div>
+                     ) : (
+                       <div className="flex items-center gap-2">
+                         <Heart className="w-4 h-4" />
+                         Follow
+                       </div>
+                     )}
+                   </button>
+                 </div>
+               )}
+          </div>
+        </header>
+
+
+
+        
+
+        {/* Posts Section */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+
+            {posts.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="mb-6">
+                  <svg
+                    className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No posts found</h3>
+                <p className="text-gray-500">This club hasn't posted anything yet</p>
+              </div>
+            ) : (
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                 {posts.map((post) => (
+                   <PostCard 
+                     key={post.id} 
+                     post={post} 
+                     currentUser={currentUser}
+                     onLikeUpdate={handleLikeUpdate}
+                   />
+                 ))}
+               </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
