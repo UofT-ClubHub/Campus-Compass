@@ -3,7 +3,6 @@
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { use, useEffect, useState } from 'react';
-import { Card, Stack, Group, Text, ActionIcon, Grid } from '@mantine/core';
 import { Mail, MapPin, Users, Heart, Star, Settings } from 'lucide-react';
 import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
@@ -92,90 +91,91 @@ export default function ProfilePage() {
 
     if (authLoading || isLoading) {
         return (
-        <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="flex justify-center items-center min-h-screen bg-background">
             <div className="flex flex-col items-center">
-            <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-600 font-medium">Loading your profile...</p>
+            <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
+            <p className="text-muted-foreground font-medium">Loading your profile...</p>
             </div>
         </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="min-h-screen bg-background pt-20">
             <div className="container mx-auto px-6 py-8">
-                <Card shadow="sm" padding="xl" radius="md" withBorder className="mb-6">
-                    <Group align="flex-start" gap="xl">
-                        <Stack gap="sm" className="flex-1">
+                <div className="mb-6 bg-card border-2 border-border rounded-lg shadow-sm p-8">
+                    <div className="flex items-start gap-8">
+                        <div className="flex-1 space-y-4">
                             
-                            <Group align="center" gap="md">
-                                <Text size="xl" fw={700}>
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-3xl font-bold text-foreground">
                                     {userData ? userData.name : "No Name Provided"}
-                                </Text>
-                            </Group>
+                                </h1>
+                            </div>
                             
-                            <Group gap="md" c="dimmed">
-                                <Group gap="xs">
+                            <div className="flex gap-6 text-muted-foreground">
+                                <div className="flex items-center gap-2">
                                     <Mail size={16} />
-                                    <Text size="sm">{userData?.email?.trim() || "No Email Provided"}</Text>
-                                </Group>
-                                <Group gap="xs">
+                                    <span className="text-sm">{userData?.email?.trim() || "No Email Provided"}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
                                     <MapPin size={16} />
-                                    <Text size="sm">{userData?.campus?.trim() || "No Campus Provided"}</Text>
-                                </Group>
-                            </Group>
+                                    <span className="text-sm">{userData?.campus?.trim() || "No Campus Provided"}</span>
+                                </div>
+                            </div>
 
-                            <Text size="sm" c="dimmed" className="max-w-2xl">{userData?.bio?.trim() || "No Bio Provided"}</Text>
+                            <p className="text-sm text-muted-foreground max-w-2xl">{userData?.bio?.trim() || "No Bio Provided"}</p>
 
-                            <Group gap="md" mt="md">
-                                <Group gap="xs">
-                                    <Users size={16} />
-                                    <Text size="sm" fw={500}>{userData ? userData.followed_clubs.length : "0"} Clubs Following</Text>
-                                </Group>
+                            <div className="flex gap-6 mt-6">
+                                <div className="flex items-center gap-2">
+                                    <Users size={16} className="text-blue-500" />
+                                    <span className="text-sm font-medium text-foreground">{userData ? userData.followed_clubs.length : "0"} Clubs Following</span>
+                                </div>
 
-                                <Group gap="xs">
-                                    <Heart size={16} />
-                                    <Text size="sm" fw={500}>{userData ? userData.liked_posts.length : "0"} Posts Liked</Text>
-                                </Group>
+                                <div className="flex items-center gap-2">
+                                    <Heart size={16} className="text-red-500" />
+                                    <span className="text-sm font-medium text-foreground">{userData ? userData.liked_posts.length : "0"} Posts Liked</span>
+                                </div>
 
-                                <Group gap="xs">
-                                    <Star size={16} />
-                                    <Text size="sm" fw={500}>{userData ? userData.managed_clubs.length : "0"} Clubs Managed</Text>
-                                </Group>
-                            </Group>
+                                <div className="flex items-center gap-2">
+                                    <Star size={16} className="text-yellow-500" />
+                                    <span className="text-sm font-medium text-foreground">{userData ? userData.managed_clubs.length : "0"} Clubs Managed</span>
+                                </div>
+                            </div>
                         
-                        </Stack>
+                        </div>
 
-                        <ActionIcon variant="outline" size="lg" onClick={handleSettingsClick} style={{ cursor: 'pointer' }}>
-                            <Settings size={20} /> 
-                        </ActionIcon>
+                        <button 
+                            onClick={handleSettingsClick}
+                            className="p-3 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
+                        >
+                            <Settings size={20} className="text-foreground" /> 
+                        </button>
 
-                    </Group>
+                    </div>
 
-                </Card>
+                </div>
 
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
-                    <Text size="lg" fw={600} mb="md">
+                <div className="bg-card border-2 border-border rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-semibold mb-6 text-foreground">
                         Followed Clubs ({userData ? userData.followed_clubs.length : "0"})
-                    </Text>
+                    </h2>
                     
-                    <Grid>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {followedClubs.map((club) => (
-                            <Grid.Col key={club.id} span={{ base: 12, sm: 6, md: 4 }}>
-                                <Card shadow="xs" padding="md" radius="md" withBorder className="h-full">
-                                    <Stack gap="sm">
-                                        <Text fw={500}>{club.name}</Text>
-                                        <Text size="sm" c="dimmed" className="line-clamp-2">{club.description}</Text>
-                                        <Group justify="space-between" align="center">
-                                            <Text size="xs" c="dimmed">{club.followers} followers</Text>
-                                        </Group>
-                                    </Stack>
-                                </Card>
-                            </Grid.Col>
+                            <div key={club.id} className="h-full bg-card border-2 border-border rounded-lg shadow-sm p-4">
+                                <div className="space-y-3">
+                                    <h3 className="font-medium text-foreground">{club.name}</h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">{club.description}</p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-muted-foreground">{club.followers} followers</span>
+                                    </div>
+                                </div>
+                            </div>
                         ))}
-                    </Grid>
+                    </div>
 
-                </Card>
+                </div>
 
                 {userData && (
                     <Profile

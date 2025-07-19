@@ -152,24 +152,24 @@ export default function PendingClubsManagement() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-slate-200">
+      <div className="bg-card rounded-lg shadow-sm p-6 border border-border">
         <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-slate-200">
+    <div className="bg-card rounded-lg shadow-sm p-6 border border-border">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h2 className="text-xl font-semibold text-slate-800 mb-4 sm:mb-0">Pending Club Requests</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4 sm:mb-0">Pending Club Requests</h2>
         
         <div className="flex items-center gap-4">
           <select
             value={campusFilter}
             onChange={(e) => setCampusFilter(e.target.value)}
-            className="p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
+            className="p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-foreground bg-card"
           >
             <option value="">All Campuses</option>
             {campusOptions.map(option => (
@@ -181,7 +181,7 @@ export default function PendingClubsManagement() {
           
           <button
             onClick={() => fetchPendingClubs()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Refresh
           </button>
@@ -189,22 +189,22 @@ export default function PendingClubsManagement() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-4">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
+        <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-lg mb-4">
           {successMessage}
         </div>
       )}
 
       {pendingClubs.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-slate-500 text-lg">No pending club requests found.</p>
+          <p className="text-muted-foreground text-lg">No pending club requests found.</p>
           {campusFilter && (
-            <p className="text-slate-400 text-sm mt-2">Try changing the campus filter or refresh the page.</p>
+            <p className="text-muted-foreground/60 text-sm mt-2">Try changing the campus filter or refresh the page.</p>
           )}
         </div>
       ) : (
@@ -214,21 +214,21 @@ export default function PendingClubsManagement() {
             const isProcessing = processingIds.has(pendingClub.id);
             
             return (
-              <div key={pendingClub.id} className="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-colors">
+              <div key={pendingClub.id} className="border border-border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-slate-800">{pendingClub.club_name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="bg-slate-100 px-2 py-1 rounded">{pendingClub.club_campus}</span>
+                      <h3 className="text-lg font-semibold text-foreground">{pendingClub.club_name}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="bg-muted px-2 py-1 rounded">{pendingClub.club_campus}</span>
                         <span>•</span>
                         <span>{formatDate(pendingClub.created_at)}</span>
                       </div>
                     </div>
                     
-                    <p className="text-slate-600 mb-3">{pendingClub.club_description}</p>
+                    <p className="text-foreground mb-3">{pendingClub.club_description}</p>
                     
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-muted-foreground">
                       <span className="font-medium">Requested by:</span>{' '}
                       {requestingUser ? (
                         <>
@@ -244,14 +244,14 @@ export default function PendingClubsManagement() {
                     <button
                       onClick={() => handleAction(pendingClub.id, 'approve')}
                       disabled={isProcessing}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-medium"
+                      className="px-4 py-2 bg-success text-primary-foreground rounded-lg hover:bg-success/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors font-medium"
                     >
                       {isProcessing ? 'Processing...' : 'Approve'}
                     </button>
                     <button
                       onClick={() => handleAction(pendingClub.id, 'reject')}
                       disabled={isProcessing}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-medium"
+                      className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors font-medium"
                     >
                       {isProcessing ? 'Processing...' : 'Reject'}
                     </button>
