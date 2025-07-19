@@ -15,6 +15,15 @@ jest.mock('firebase/auth', () => ({
   }),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe("PostFilter - sort_by and sort_order", () => {
   beforeEach(() => {
     jest.spyOn(console, "log").mockImplementation(() => {});
