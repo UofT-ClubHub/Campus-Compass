@@ -320,7 +320,7 @@ export default function HomePage() {
       </section>
 
       {/* Clubs Section */}
-      <section className="py-12 bg-gray-50">
+      {clubs.length <= 4 && <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-6">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Clubs</h2>
@@ -331,7 +331,30 @@ export default function HomePage() {
               {error && <p className="text-center text-red-500">Error loading clubs: {error}</p>}
               {!loadingClubs && !error && clubs.length === 0 && <p className="text-center">No clubs found.</p>}
 
-              {!loadingClubs && !error && posts.length > 0 && (
+              {!loadingClubs && !error && clubs.length > 0 && (
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {clubs.map((club: Club, index: any) => (
+                      <div key={`${club.id}-${index}`} className="flex-shrink-0 w-80">
+                        <ClubCard key={club.id} club={club} currentUser={currentUser} className="h-full" />
+                      </div>
+                      ))}
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {clubs.length > 4 && <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Clubs</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with all the latest clubs available on campus.</p>
+              </div>
+
+              {loadingClubs && <p className="text-center">Loading clubs...</p>}
+              {error && <p className="text-center text-red-500">Error loading clubs: {error}</p>}
+              {!loadingClubs && !error && clubs.length === 0 && <p className="text-center">No clubs found.</p>}
+
+              {!loadingClubs && !error && clubs.length > 0 && (
                 <div className="relative overflow-hidden">
                   { /* Manual Scroll Container */}
                   <div
@@ -370,10 +393,39 @@ export default function HomePage() {
                 </div>
               )}
         </div>
-      </section>
+      </section>}
 
       {/* General Events Section */}
-      {!currentUser &&  <section className="py-12 bg-gray-50">
+      {posts.length <= 4 && !currentUser &&  <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with the latest events happening on campus.</p>
+              </div>
+
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {posts.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {posts.length > 4 && !currentUser &&  <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-6">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
@@ -432,7 +484,36 @@ export default function HomePage() {
       </section>}
 
       {/* User Events Section */}
-      {currentUser &&  <section className="py-12 bg-gray-50">
+      {followedEvents.length <= 4 && currentUser &&  <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with the latest events happening on campus.</p>
+              </div>
+
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {followedEvents.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {followedEvents.length > 4 && currentUser &&  <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-6">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Followed Events</h2>
