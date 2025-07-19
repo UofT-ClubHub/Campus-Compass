@@ -1,6 +1,5 @@
 import { firestore } from '@/app/api/firebaseAdmin';
 
-// Search clubs by name, campus, or description
 export const searchClubs = async ({
   query,
   campus,
@@ -11,21 +10,19 @@ export const searchClubs = async ({
   limit?: number;
 }) => {
   const clubsRef = firestore.collection('Clubs');
-  let queryRef: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = clubsRef;
+  let queryRef: FirebaseFirestore.Query = clubsRef;
   
-  // Apply campus filter if provided
   if (campus) {
     queryRef = queryRef.where('campus', '==', campus);
   }
   
-  const snapshot = await queryRef.limit(20).get();
+  const snapshot = await queryRef.limit(limit * 4).get(); // More dynamic limit
   
-  // Client-side filtering for text search
   const results = snapshot.docs
     .map(doc => ({ 
       id: doc.id, 
       ...doc.data(),
-      executives: undefined // Remove executives for privacy
+      executives: undefined
     }))
     .filter((club: any) => 
       club.name?.toLowerCase().includes(query.toLowerCase()) ||
@@ -36,7 +33,6 @@ export const searchClubs = async ({
   return results;
 };
 
-// Get club details
 export const getClubDetails = async ({ clubId }: { clubId: string }) => {
   const docRef = firestore.collection('Clubs').doc(clubId);
   const doc = await docRef.get();
@@ -50,7 +46,6 @@ export const getClubDetails = async ({ clubId }: { clubId: string }) => {
   return { id: doc.id, ...publicData };
 };
 
-// Search posts
 export const searchPosts = async ({
   query,
   campus,
@@ -63,7 +58,7 @@ export const searchPosts = async ({
   limit?: number;
 }) => {
   const postsRef = firestore.collection('Posts');
-  let queryRef: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = postsRef;
+  let queryRef: FirebaseFirestore.Query = postsRef;
   
   if (campus) {
     queryRef = queryRef.where('campus', '==', campus);
@@ -75,7 +70,7 @@ export const searchPosts = async ({
   
   queryRef = queryRef.orderBy('date_posted', 'desc');
   
-  const snapshot = await queryRef.limit(20).get();
+  const snapshot = await queryRef.limit(limit * 4).get(); // More dynamic
   
   const results = snapshot.docs
     .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -88,13 +83,14 @@ export const searchPosts = async ({
   return results;
 };
 
-// Get upcoming events
 export const getUpcomingEvents = async ({
   campus,
-  daysAhead = 7
+  daysAhead = 7,
+  limit = 5 // Added limit parameter
 }: {
   campus?: string;
   daysAhead?: number;
+  limit?: number; // Added this
 }) => {
   const today = new Date();
   const futureDate = new Date();
@@ -119,14 +115,13 @@ export const getUpcomingEvents = async ({
     .sort((a: any, b: any) => {
       return new Date(a.date_occuring).getTime() - new Date(b.date_occuring).getTime();
     })
-    .slice(0, 5);
+    .slice(0, limit); // Use parameter instead of hardcoded 5
   
   return results;
 };
 
-// Get categories
 export const getCategories = async () => {
-  const snapshot = await firestore.collection('Posts').limit(100).get();
+  const snapshot = await firestore.collection('Posts').get(); // Get all posts
   
   const categories = new Set<string>();
   snapshot.docs.forEach(doc => {
@@ -139,7 +134,121 @@ export const getCategories = async () => {
   return Array.from(categories);
 };
 
-// Get campuses
-export const getCampuses = async () => {
+// Search for events with text and date filtering (ENHANCED for location support)
+export const searchEvents = async ({
+  query,
+  campus,
+  includeExpired = false,
+  limit = 5
+}: {
+  query: string;
+  campus?: string;
+  includeExpired?: boolean;
+  limit?: number;
+}) => {
+  const postsRef = firestore.collection('Posts');
+  let queryRef: FirebaseFirestore.Query = postsRef.where('category', '==', 'Event');
+  
+  if (campus) {
+    queryRef = queryRef.where('campus', '==', campus);
+  }
+  
+  queryRef = queryRef.orderBy('date_posted', 'desc');
+  
+  const snapshot = await queryRef.limit(limit * 6).get(); // Get more for better filtering
+  
+  const today = new Date();
+  
+  const results = snapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter((event: any) => {
+      // Enhanced text search including common location fields
+      const searchFields = [
+        event.title,
+        event.details,
+        event.location, // if location is a separate field
+        event.venue,    // if venue is a separate field
+        event.address   // if address is a separate field
+      ];
+      
+      const matchesQuery = searchFields.some(field => 
+        field && field.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      if (!matchesQuery) return false;
+      
+      // Date filtering - only show future events unless includeExpired is true
+      if (!includeExpired && event.date_occuring) {
+        const eventDate = new Date(event.date_occuring);
+        return eventDate >= today;
+      }
+      
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      // Sort by event date if available
+      if (a.date_occuring && b.date_occuring) {
+        return new Date(a.date_occuring).getTime() - new Date(b.date_occuring).getTime();
+      }
+      return 0;
+    })
+    .slice(0, limit);
+    
+  return results;
+};
+
+// NEW FUNCTION: Get event location information specifically
+export const getEventLocation = async ({
+  eventQuery,
+  campus
+}: {
+  eventQuery: string;
+  campus?: string;
+}) => {
+  // Use the existing searchEvents function but with focus on location
+  const events = await searchEvents({
+    query: eventQuery,
+    campus,
+    includeExpired: false,
+    limit: 3
+  });
+  
+  // Return events with emphasis on location information
+  return events.map((event: any) => ({
+    id: event.id,
+    title: event.title,
+    date_occuring: event.date_occuring,
+    location: event.location || extractLocationFromDetails(event.details),
+    venue: event.venue,
+    address: event.address,
+    campus: event.campus,
+    details: event.details
+  }));
+};
+
+// Helper function to extract location from details if it's embedded in text
+const extractLocationFromDetails = (details: string): string | null => {
+  if (!details) return null;
+  
+  // Look for common location patterns in the details
+  const locationPatterns = [
+    /location:?\s*([^\n\r.]+)/i,
+    /venue:?\s*([^\n\r.]+)/i,
+    /at\s+([A-Z][^\n\r.]+(?:building|hall|room|center|centre))/i,
+    /room\s+(\w+\d+)/i,
+    /address:?\s*([^\n\r.]+)/i
+  ];
+  
+  for (const pattern of locationPatterns) {
+    const match = details.match(pattern);
+    if (match) {
+      return match[1].trim();
+    }
+  }
+  
+  return null;
+};
+
+export const getCampuses = () => { // Removed unnecessary async
   return ['UTSG', 'UTM', 'UTSC'];
 };
