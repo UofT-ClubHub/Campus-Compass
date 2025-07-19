@@ -236,16 +236,16 @@ export default function PostFilterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header and Search Section */}
-      <div className="w-full bg-gray-50 pt-6 pb-8">
+      <div className="w-full bg-background pt-6 pb-8">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-blue-600 text-center mb-6">
+          <h1 className="text-4xl font-bold text-primary text-center mb-6">
             Post Search
           </h1>
 
           {/* Compact Search Filters */}
-          <div className="bg-white rounded-lg shadow-md border border-gray-100 p-4 mb-4">
+          <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Post Name Filter */}
               <input
@@ -253,7 +253,7 @@ export default function PostFilterPage() {
                 placeholder="Post Name"
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
 
               {/* Description Filter */}
@@ -262,14 +262,14 @@ export default function PostFilterPage() {
                 placeholder="Description"
                 value={descriptionFilter}
                 onChange={(e) => setDescriptionFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
 
               {/* Campus Filter */}
               <select
                 value={campusFilter}
                 onChange={(e) => setCampusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
               >
                 <option value="">Select Campus</option>
                 <option value="UTSC">UTSC</option>
@@ -286,7 +286,7 @@ export default function PostFilterPage() {
                 placeholder="Club Name"
                 value={clubFilter}
                 onChange={(e) => setClubFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
 
               {/* Hashtags Filter */}
@@ -295,14 +295,14 @@ export default function PostFilterPage() {
                 placeholder="Hashtags (comma separated)"
                 value={hashtagsFilter}
                 onChange={(e) => setHashtagsFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 placeholder-gray-400"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
 
               {/* Category Filter */}
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
               >
                 <option value="">Select Type of Post</option>
                 <option value="Event">Event</option>
@@ -321,7 +321,7 @@ export default function PostFilterPage() {
                 data-testid="sort-by"
                 value={sort_by}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
               >
                 <option value="">Sort By</option>
                 <option value="date_posted">Date Posted</option>
@@ -335,7 +335,7 @@ export default function PostFilterPage() {
                   data-testid="sort-order"
                   value={sort_order}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200 outline-none text-sm text-gray-700 bg-white"
+                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
                 >
                   <option value="desc">Descending</option>
                   <option value="asc">Ascending</option>
@@ -347,10 +347,10 @@ export default function PostFilterPage() {
       </div>
 
       {/* Results Section */}
-      <div className="w-full bg-gray-50 pb-12">
+      <div className="w-full bg-background pb-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
-            <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
+          <div className="bg-card rounded-lg shadow-md border border-border p-6 form-glow">
+            <h2 className="text-2xl font-bold text-primary mb-6 text-center">
               Post Results
             </h2>
 
@@ -358,7 +358,7 @@ export default function PostFilterPage() {
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg
-                    className="w-12 h-12 text-gray-400 mx-auto mb-3"
+                    className="w-12 h-12 text-muted-foreground mx-auto mb-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -371,10 +371,10 @@ export default function PostFilterPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   No posts found
                 </h3>
-                <p className="text-gray-500 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Try adjusting your filters to find more posts
                 </p>
               </div>

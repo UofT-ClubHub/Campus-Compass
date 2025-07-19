@@ -236,10 +236,10 @@ export default function ClubPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+      <div className="flex justify-center items-center min-h-screen bg-background">
         <div className="flex flex-col items-center">
-          <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading club information...</p>
+          <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
+          <p className="text-muted-foreground font-medium">Loading club information...</p>
         </div>
       </div>
     )
@@ -247,17 +247,17 @@ export default function ClubPage({ params }: PageProps) {
 
   if (!clubData) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-          <h2 className="text-xl font-semibold text-gray-700 mb-3">Club Not Found</h2>
-          <p className="text-gray-500">The requested club could not be found.</p>
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="bg-card p-8 rounded-xl shadow-lg max-w-md w-full border border-border">
+          <h2 className="text-xl font-semibold text-card-foreground mb-3">Club Not Found</h2>
+          <p className="text-muted-foreground">The requested club could not be found.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
          <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden">
@@ -288,16 +288,16 @@ export default function ClubPage({ params }: PageProps) {
                  <span className="text-white/80 text-sm font-medium">Followers</span>
                </div>
                <div className="flex items-center gap-3 text-white">
-                 <UserCheck className="w-5 h-5 text-green-300" />
+                 <UserCheck className="w-5 h-5 text-success" />
                  <span className="font-semibold text-lg">{executives.length}</span>
                  <span className="text-white/80 text-sm font-medium">Executives</span>
                </div>
                <div className="flex items-center gap-3 text-white">
-                 <Instagram className="w-5 h-5 text-pink-300" />
+                 <Instagram className="w-5 h-5 text-accent" />
                  <span className="font-semibold text-lg">{clubData?.instagram}</span>
                </div>
                <div className="flex items-center gap-3 text-white">
-                 <MapPin className="w-5 h-5 text-orange-300" />
+                 <MapPin className="w-5 h-5 text-warning" />
                  <span className="font-semibold text-lg">{clubData?.campus}</span>
                </div>
              </div>
@@ -309,7 +309,7 @@ export default function ClubPage({ params }: PageProps) {
                     {executives.map((executive) => (
                       <div
                         key={executive.id}
-                        className="bg-blue-500/20 backdrop-blur-sm rounded-lg px-3 py-2 text-center border border-blue-300/30"
+                        className="bg-primary/20 backdrop-blur-sm rounded-lg px-3 py-2 text-center border border-primary/30"
                       >
                         <p className="text-white text-sm font-medium">
                           {executive.name || "Executive"}{executive.email && ` • ${executive.email}`}
@@ -326,33 +326,37 @@ export default function ClubPage({ params }: PageProps) {
                    {isClubExecutive && (
                      <button
                        onClick={handleManageClub}
-                       className="px-6 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-200 border border-white/30"
+                       className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all duration-200 border border-primary"
                      >
                        Manage Club
                      </button>
                    )}
-                   <button
+                     <button
                      onClick={handleFollowClub}
                      disabled={isFollowLoading}
-                     className="px-6 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-200 border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
+                     className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed ${
+                       isFollowing 
+                       ? "bg-pink-500 hover:bg-pink-600 text-white border-pink-500" 
+                       : "bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary"
+                     }`}
+                     >
                      {isFollowLoading ? (
                        <div className="flex items-center justify-center">
-                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                         Loading...
+                       <div className="w-4 h-4 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+                       Loading...
                        </div>
                      ) : isFollowing ? (
                        <div className="flex items-center gap-2">
-                         <HeartOff className="w-4 h-4" />
-                         Unfollow
+                       <HeartOff className="w-4 h-4" />
+                       Unfollow
                        </div>
                      ) : (
                        <div className="flex items-center gap-2">
-                         <Heart className="w-4 h-4" />
-                         Follow
+                       <Heart className="w-4 h-4" />
+                       Follow
                        </div>
                      )}
-                   </button>
+                     </button>
                  </div>
                )}
           </div>
@@ -364,13 +368,13 @@ export default function ClubPage({ params }: PageProps) {
 
         {/* Posts Section */}
         <div className="mb-8">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+          <div className="bg-card rounded-2xl shadow-lg border border-border p-8">
 
             {posts.length === 0 ? (
               <div className="text-center py-16">
                 <div className="mb-6">
                   <svg
-                    className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                    className="w-16 h-16 text-muted-foreground mx-auto mb-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -383,8 +387,8 @@ export default function ClubPage({ params }: PageProps) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No posts found</h3>
-                <p className="text-gray-500">This club hasn't posted anything yet</p>
+                <h3 className="text-xl font-semibold text-card-foreground mb-2">No posts found</h3>
+                <p className="text-muted-foreground">This club hasn't posted anything yet</p>
               </div>
             ) : (
                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

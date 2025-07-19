@@ -347,7 +347,7 @@ END:VCALENDAR`.trim();
   };
 
   return (
-    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={true}>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={true} backgroundClass="bg-[var(--expandable-post-card-bg)]">
       {/* Header */}
       <div className="relative">
         <img
@@ -364,23 +364,24 @@ END:VCALENDAR`.trim();
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors text-sm font-medium"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? 'Saving...' : 'Save'}
                   </button>
-                  <button
+                    <button
                     onClick={handleCancel}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
-                  >
+                    className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
+                    <X className="h-4 w-4" />
                     Cancel
-                  </button>
+                    </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-warning text-warning-foreground rounded-lg hover:bg-warning/90 transition-colors text-sm font-medium"
                   >
                     <Edit2 className="h-4 w-4" />
                     Edit
@@ -389,7 +390,7 @@ END:VCALENDAR`.trim();
                     <button
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                      className="flex items-center gap-2 px-3 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors text-sm font-medium"
                     >
                       <Trash2 className="h-4 w-4" />
                       {isDeleting ? 'Deleting...' : 'Delete'}
@@ -405,7 +406,7 @@ END:VCALENDAR`.trim();
           <button
             onClick={handleExportToCalendar}
             disabled={!currentUser || isLiking}
-            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full border-2 border-white/70 flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Calendar />
           </button>
@@ -413,19 +414,19 @@ END:VCALENDAR`.trim();
 
           {/* Likes overlay */}
           {!isCreating && (
-          <button
+            <button
             onClick={handleLike}
             disabled={!currentUser || isLiking}
-            className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            className="absolute bottom-4 right-4 bg-black/60 text-white border-2 border-white/70 px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
             <Heart 
               className={`h-5 w-5 transition-colors ${
-                isLiked ? 'text-red-500 fill-current' : 'text-red-400'
+              isLiked ? 'text-destructive fill-current' : 'text-white'
               }`}
               fill={isLiked ? "currentColor" : "none"}
             />
             <span className="font-medium">{likes}</span>
-          </button>
+            </button>
           )}
         </div>
 
@@ -435,41 +436,41 @@ END:VCALENDAR`.trim();
             <div className="space-y-6">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Title <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
                   value={editedPost.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Description <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   value={editedPost.details}
                   onChange={(e) => handleInputChange('details', e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Category <span className="text-destructive">*</span>
                 </label>
                 <select
                   value={editedPost.category}
                   onChange={(e) => handleInputChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 >
                   <option value="">Select a category</option>
@@ -482,13 +483,13 @@ END:VCALENDAR`.trim();
 
               {/* Campus */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Campus <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Campus <span className="text-destructive">*</span>
                 </label>
                 <select
                   value={editedPost.campus}
                   onChange={(e) => handleInputChange('campus', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 >
                   <option value="">Select a campus</option>
@@ -499,36 +500,36 @@ END:VCALENDAR`.trim();
               </div>              
               {/* Event Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Date <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Event Date <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="datetime-local"
                   value={editedPost.date_occuring ? new Date(editedPost.date_occuring).toISOString().slice(0, 16) : ''}
                   onChange={(e) => handleInputChange('date_occuring', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
               {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Image Upload</label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUploadInput}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                 />
               </div>
 
               {/* Hashtags */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Tags</label>
+                  <label className="block text-sm font-medium text-foreground">Tags</label>
                   <button
                     onClick={addHashtag}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
                   >
                     <Plus className="h-3 w-3" />
                     Add Tag
@@ -542,11 +543,11 @@ END:VCALENDAR`.trim();
                         value={hashtag}
                         onChange={(e) => updateHashtag(index, e.target.value)}
                         placeholder="Enter hashtag"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                       />
                       <button
                         onClick={() => removeHashtag(index)}
-                        className="px-2 py-2 text-red-500 hover:bg-red-50 rounded"
+                        className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -558,10 +559,10 @@ END:VCALENDAR`.trim();
               {/* Links */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Related Links</label>
+                  <label className="block text-sm font-medium text-foreground">Related Links</label>
                   <button
                     onClick={addLink}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
                   >
                     <Plus className="h-3 w-3" />
                     Add Link
@@ -575,11 +576,11 @@ END:VCALENDAR`.trim();
                         value={link}
                         onChange={(e) => updateLink(index, e.target.value)}
                         placeholder="Enter URL"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                       />
                       <button
                         onClick={() => removeLink(index)}
-                        className="px-2 py-2 text-red-500 hover:bg-red-50 rounded"
+                        className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -591,10 +592,10 @@ END:VCALENDAR`.trim();
           ) : (
             <div className="space-y-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <h1 className="text-2xl font-bold text-foreground mb-2">
                   {post.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {post.category}
@@ -612,8 +613,8 @@ END:VCALENDAR`.trim();
               
               {post.details && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <h3 className="font-semibold text-foreground mb-2">Description</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                     {post.details}
                   </p>
                 </div>
@@ -623,8 +624,8 @@ END:VCALENDAR`.trim();
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Event Date */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Event Date</h3>
-                  <p className="text-gray-700">
+                  <h3 className="font-semibold text-foreground mb-2">Event Date</h3>
+                  <p className="text-muted-foreground">
                     {post.date_occuring && !isNaN(new Date(post.date_occuring).getTime()) 
                       ? new Date(post.date_occuring).toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -641,8 +642,8 @@ END:VCALENDAR`.trim();
 
                 {/* Posted Date */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Posted Date</h3>
-                  <p className="text-gray-700">
+                  <h3 className="font-semibold text-foreground mb-2">Posted Date</h3>
+                  <p className="text-muted-foreground">
                     {post.date_posted && !isNaN(new Date(post.date_posted).getTime()) 
                       ? new Date(post.date_posted).toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -661,12 +662,12 @@ END:VCALENDAR`.trim();
               {/* Hashtags */}
               {post.hashtags && post.hashtags.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Tags</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {post.hashtags.map((hashtag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                        className="px-3 py-1 bg-accent/20 text-accent text-sm rounded-full"
                       >
                         #{hashtag}
                       </span>
@@ -678,13 +679,13 @@ END:VCALENDAR`.trim();
               {/* Links */}
               {post.links && post.links.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Related Links</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Related Links</h3>
                   <div className="space-y-2">
                     {post.links.map((link, index) => (
                       <button
                         key={index}
                         onClick={(e) => handleLinkClick(e, link)}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                        className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors text-sm"
                       >
                         <ExternalLink className="h-4 w-4" />
                         {link}

@@ -104,24 +104,25 @@ export default function PendingClubRequestPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">Request a New Club</h1>
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-slate-200">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-xl mx-auto py-10">
+        <h1 className="text-2xl font-bold mb-6 text-center text-foreground">Request a New Club</h1>
+      <div className="bg-card rounded-lg shadow-sm p-6 border-2 border-border form-glow">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-destructive/10 border-2 border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-4">
             <strong>Error:</strong> {error}
           </div>
         )}
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-success/10 border-2 border-success/20 text-success px-4 py-3 rounded-lg mb-4">
             {successMessage}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="clubName" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="clubName" className="block text-sm font-medium text-foreground mb-2">
               Club Name *
             </label>
             <input
@@ -131,13 +132,13 @@ export default function PendingClubRequestPage() {
               onChange={(e) => setClubName(e.target.value)}
               required
               maxLength={100}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card"
               placeholder="Enter the club name..."
             />
           </div>
 
           <div>
-            <label htmlFor="clubCampus" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="clubCampus" className="block text-sm font-medium text-foreground mb-2">
               Campus *
             </label>
             <select
@@ -145,7 +146,7 @@ export default function PendingClubRequestPage() {
               value={clubCampus}
               onChange={(e) => setClubCampus(e.target.value)}
               required
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card"
             >
               <option value="">Select a campus...</option>
               {campusOptions.map(option => (
@@ -157,7 +158,7 @@ export default function PendingClubRequestPage() {
           </div>
 
           <div>
-            <label htmlFor="clubDescription" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="clubDescription" className="block text-sm font-medium text-foreground mb-2">
               Club Description *
             </label>
             <textarea
@@ -167,16 +168,16 @@ export default function PendingClubRequestPage() {
               required
               maxLength={500}
               rows={4}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 resize-none"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card resize-none"
               placeholder="Describe your club's purpose, activities, and goals..."
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {clubDescription.length}/500 characters
             </p>
           </div>
 
           <div>
-            <label htmlFor="clubImage" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="clubImage" className="block text-sm font-medium text-foreground mb-2">
               Club Image (optional)
             </label>
             <input
@@ -188,12 +189,12 @@ export default function PendingClubRequestPage() {
                   setPendingImageFile(e.target.files[0]);
                 }
               }}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card"
             />
           </div>
 
           <div>
-            <label htmlFor="clubInstagram" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="clubInstagram" className="block text-sm font-medium text-foreground mb-2">
               Club Instagram
             </label>
             <input
@@ -202,7 +203,7 @@ export default function PendingClubRequestPage() {
               value={clubInstagram}
               onChange={(e) => setClubInstagram(e.target.value)}
               maxLength={100}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card"
               placeholder="Enter the club's Instagram handle or URL (optional)"
             />
           </div>
@@ -211,13 +212,14 @@ export default function PendingClubRequestPage() {
             <button
               type="submit"
               disabled={isSubmitting || !clubName.trim() || !clubCampus || !clubDescription.trim()}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors font-medium shadow-md hover:shadow-lg"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </button>
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 } 
