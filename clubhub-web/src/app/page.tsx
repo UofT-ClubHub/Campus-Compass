@@ -4,16 +4,29 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Autocomplete } from "@mantine/core"
 import { PostCard } from "@/components/post-card"
-import { Post, User } from "@/model/types";
-import { useState, useEffect } from "react";
+import { ClubCard } from "@/components/club-card"
+import { Post, User, Club } from "@/model/types";
+import { useState, useEffect, useRef, use } from "react";
 
 export default function HomePage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followedEvents, setFollowedEvents] = useState<Post[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingClubs, setLoadingClubs] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const clubScrollRef = useRef<HTMLDivElement>(null)
+  const postScrollRef = useRef<HTMLDivElement>(null)
+  const followedScrollRef = useRef<HTMLDivElement>(null)
+  const isUserScrollingRef = useRef(false)
+  const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true)
+  const [duplicatedPosts, setDuplicatedPosts] = useState<Post[]>([]);
+  const [duplicatedFollowed, setDuplicatedFollowed] =  useState<Post[]>([]);
+  const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([]);
 
   const fetchPosts = async () => {
     try {
@@ -23,13 +36,38 @@ export default function HomePage() {
         throw new Error(`Failed to fetch posts: ${response.statusText}`);
       }
       const data: Post[] = await response.json();
-      setPosts(data.slice(0, 3)); // Get top 3 posts
+
+      // Filter posts to only include those from followed clubs
+      if (currentUser && currentUser.followed_clubs) {
+        const followedClubIds = currentUser.followed_clubs;
+        const filteredPosts = data.filter(post => followedClubIds.includes(post.club));
+        setFollowedEvents(filteredPosts);
+      }
+      setPosts(data);
       setError(null);
     } catch (err: any) {
       setError(err.message);
       setPosts([]);
     } finally {
       setLoadingPosts(false);
+    }
+  };
+
+  const fetchClubs = async () => {
+    try{
+      setLoadingClubs(true);
+      const response = await fetch('/api/clubs');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch clubs: ${response.statusText}`);
+      }
+      const data: Club[] = await response.json();
+      setClubs(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      setClubs([]);
+    } finally {
+      setLoadingClubs(false);
     }
   };
 
@@ -58,8 +96,14 @@ export default function HomePage() {
   }, [authUser]);
 
   useEffect(() => {
-    fetchPosts();
+    fetchClubs();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchPosts(); 
+    }
+  }, [loading, currentUser]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -106,6 +150,127 @@ export default function HomePage() {
   const handlePostDelete = () => {
     fetchPosts();
   };
+
+  useEffect(() => {
+    const container = clubScrollRef.current
+    if (!container) return
+
+    const third = container.scrollWidth / 3
+
+    // Scroll to the middle set on mount
+    const setInitialScroll = () => {
+      container.scrollLeft = third
+    }
+
+    const handleInfiniteScroll = () => {
+      const scrollLeft = container.scrollLeft
+
+      if (scrollLeft <= third / 2) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft += third
+        container.style.scrollBehavior = "smooth"
+      } else if (scrollLeft >= third * 1.5) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft -= third
+        container.style.scrollBehavior = "smooth"
+      }
+    }
+
+    container.addEventListener("scroll", handleInfiniteScroll)
+
+    return () => {
+      container.removeEventListener("scroll", handleInfiniteScroll)
+    }
+  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs]);
+
+  useEffect(() => {
+    const container = postScrollRef.current
+    if (!container) return
+
+    const third = container.scrollWidth / 3
+
+    // Scroll to the middle set on mount
+    const setInitialScroll = () => {
+      container.scrollLeft = third
+    }
+
+    const handleInfiniteScroll = () => {
+      const scrollLeft = container.scrollLeft
+
+      if (scrollLeft <= third / 2) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft += third
+        container.style.scrollBehavior = "smooth"
+      } else if (scrollLeft >= third * 1.5) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft -= third
+        container.style.scrollBehavior = "smooth"
+      }
+    }
+
+    container.addEventListener("scroll", handleInfiniteScroll)
+
+    return () => {
+      container.removeEventListener("scroll", handleInfiniteScroll)
+    }
+  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs]);
+
+  useEffect(() => {
+    const container = followedScrollRef.current
+    if (!container) return
+
+    const third = container.scrollWidth / 3
+
+    // Scroll to the middle set on mount
+    const setInitialScroll = () => {
+      container.scrollLeft = third
+    }
+
+    const handleInfiniteScroll = () => {
+      const scrollLeft = container.scrollLeft
+
+      if (scrollLeft <= third / 2) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft += third
+        container.style.scrollBehavior = "smooth"
+      } else if (scrollLeft >= third * 1.5) {
+        container.style.scrollBehavior = "auto"
+        container.scrollLeft -= third
+        container.style.scrollBehavior = "smooth"
+      }
+    }
+
+    container.addEventListener("scroll", handleInfiniteScroll)
+
+    return () => {
+      container.removeEventListener("scroll", handleInfiniteScroll)
+    }
+  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs]);
+
+    useEffect(() => {
+      setDuplicatedPosts([...posts, ...posts, ...posts]);
+    }, [posts]);
+
+    useEffect(() => {
+      setDuplicatedFollowed([...followedEvents, ...followedEvents, ...followedEvents]);
+    }, [followedEvents]);
+
+    useEffect(() => {
+      setDuplicatedClubs([...clubs, ...clubs, ...clubs]);
+    }, [clubs]);
+
+    const handleUserScroll = () => {
+      isUserScrollingRef.current = true;
+
+      if (userScrollTimeoutRef.current) {
+        clearTimeout(userScrollTimeoutRef.current);
+      }
+
+      userScrollTimeoutRef.current = setTimeout(() => {
+        isUserScrollingRef.current = false;
+        setIsAutoScrolling(true);
+      }, 2000);
+  }
 
   return (
     <div>
@@ -154,8 +319,84 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Clubs Section */}
+      {clubs.length <= 4 && <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Clubs</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with all the latest clubs available on campus.</p>
+              </div>
 
-      <section className="py-12 bg-gray-50">
+              {loadingClubs && <p className="text-center">Loading clubs...</p>}
+              {error && <p className="text-center text-red-500">Error loading clubs: {error}</p>}
+              {!loadingClubs && !error && clubs.length === 0 && <p className="text-center">No clubs found.</p>}
+
+              {!loadingClubs && !error && clubs.length > 0 && (
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {clubs.map((club: Club, index: any) => (
+                      <div key={`${club.id}-${index}`} className="flex-shrink-0 w-80">
+                        <ClubCard key={club.id} club={club} currentUser={currentUser} className="h-full" />
+                      </div>
+                      ))}
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {clubs.length > 4 && <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Clubs</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with all the latest clubs available on campus.</p>
+              </div>
+
+              {loadingClubs && <p className="text-center">Loading clubs...</p>}
+              {error && <p className="text-center text-red-500">Error loading clubs: {error}</p>}
+              {!loadingClubs && !error && clubs.length === 0 && <p className="text-center">No clubs found.</p>}
+
+              {!loadingClubs && !error && clubs.length > 0 && (
+                <div className="relative overflow-hidden">
+                  { /* Manual Scroll Container */}
+                  <div
+                    ref={clubScrollRef}
+                    className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
+                    onScroll={handleUserScroll}
+                    onTouchStart={handleUserScroll}
+                    onTouchMove={handleUserScroll}>
+
+                    {/* Auto Scroll */}
+                    <div
+                      className={`flex gap-6 ${isAutoScrolling && duplicatedClubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
+                      style={{width: "fit-content",}}
+                      onMouseEnter={(e) => {
+                        if (e.target === e.currentTarget) {
+                          setIsAutoScrolling(false);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.relatedTarget;
+                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
+                          if (!isUserScrollingRef.current) {
+                            setIsAutoScrolling(true);
+                          }
+                        }
+                      }}>
+
+                      {duplicatedClubs.map((club: Club, index: any) => (
+                      <div key={`${club.id}-${index}`} className="flex-shrink-0 w-80">
+                        <ClubCard key={club.id} club={club} currentUser={currentUser} className="h-full" />
+                      </div>
+                      ))}
+
+                    </div>
+                  </div>
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {/* General Events Section */}
+      {posts.length <= 4 && !currentUser &&  <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-6">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
@@ -165,22 +406,171 @@ export default function HomePage() {
               {loadingPosts && <p className="text-center">Loading events...</p>}
               {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
               {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
-              
+
               {!loadingPosts && !error && posts.length > 0 && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"> 
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      currentUser={currentUser}
-                      onLikeUpdate={handleLikeUpdate}
-                      onRefresh={handlePostDelete}
-                    />
-                  ))}
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {posts.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
                 </div>
               )}
         </div>
-      </section>
+      </section>}
+
+      {posts.length > 4 && !currentUser &&  <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with the latest events happening on campus.</p>
+              </div>
+
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="relative overflow-hidden">
+                  { /* Manual Scroll Container */}
+                  <div
+                    ref={postScrollRef}
+                    className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
+                    onScroll={handleUserScroll}
+                    onTouchStart={handleUserScroll}
+                    onTouchMove={handleUserScroll}>
+
+                    {/* Auto Scroll */}
+                    <div
+                      className={`flex gap-6 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
+                      style={{width: "fit-content",}}
+                      onMouseEnter={(e) => {
+                        if (e.target === e.currentTarget) {
+                          setIsAutoScrolling(false);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.relatedTarget;
+                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
+                          if (!isUserScrollingRef.current) {
+                            setIsAutoScrolling(true);
+                          }
+                        }
+                      }}>
+
+                      {duplicatedPosts.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
+
+                    </div>
+                  </div>
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {/* User Events Section */}
+      {followedEvents.length <= 4 && currentUser &&  <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Upcoming Events</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with the latest events happening on campus.</p>
+              </div>
+
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                  {followedEvents.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
+                </div>
+              )}
+        </div>
+      </section>}
+
+      {followedEvents.length > 4 && currentUser &&  <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-6">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-center mb-4 text-[#1E3765]">Followed Events</h2>
+                <p className="text-center text-[#1E3765]">Stay updated with the latest events from the clubs you follow.</p>
+              </div>
+
+              {loadingPosts && <p className="text-center">Loading events...</p>}
+              {error && <p className="text-center text-red-500">Error loading events: {error}</p>}
+              {!loadingPosts && !error && posts.length === 0 && <p className="text-center">No events found.</p>}
+
+              {!loadingPosts && !error && posts.length > 0 && (
+                <div className="relative overflow-hidden">
+                  { /* Manual Scroll Container */}
+                  <div
+                    ref={followedScrollRef}
+                    className="overflow-x-auto scroll-smooth pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 manual-scroll-container scrollbar-hide"
+                    onScroll={handleUserScroll}
+                    onTouchStart={handleUserScroll}
+                    onTouchMove={handleUserScroll}>
+
+                    {/* Auto Scroll */}
+                    <div
+                      className={`flex gap-6 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
+                      style={{width: "fit-content",}}
+                      onMouseEnter={(e) => {
+                        if (e.target === e.currentTarget) {
+                          setIsAutoScrolling(false);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.relatedTarget;
+                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
+                          if (!isUserScrollingRef.current) {
+                            setIsAutoScrolling(true);
+                          }
+                        }
+                      }}>
+
+                      {duplicatedFollowed.map((post: Post, index: any) => (
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          currentUser={currentUser}
+                          onLikeUpdate={handleLikeUpdate}
+                          onRefresh={handlePostDelete}
+                          className="h-full"/>
+                      </div>
+                      ))}
+
+                    </div>
+                  </div>
+                </div>
+              )}
+        </div>
+      </section>}
+
     </div>
   );
 }
