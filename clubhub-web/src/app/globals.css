@@ -84,11 +84,6 @@
   --info:                    #06b6d4;
 }
 
-/* Deep Dark Bottom Glow Only */
-[data-theme="deep-dark"] header {
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2), 0 4px 40px rgba(255, 255, 255, 0.1);
-}
-
 /* — Vibrant Dark — */
 [data-theme="vibrant-dark"] {
   --background:              #0f0f23;
@@ -117,9 +112,14 @@
   --info:                    #60a5fa;
 }
 
-/* Vibrant Dark Purple Border Shadow */
+/* Deep Dark Bottom Glow Only */
+[data-theme="deep-dark"] header {
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2), 0 4px 40px rgba(255, 255, 255, 0.1);
+}
+
+/* Vibrant Dark Bottom Glow Only */
 [data-theme="vibrant-dark"] header {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 4px 40px rgba(139, 92, 246, 0.2);
 }
 
 /* Dark Theme Form Glow Effect For Request Club Form - matches header glow */
@@ -213,4 +213,8 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;  
   scrollbar-width: none;     
+}
+
+:root {
+  scrollbar-color: var(--primary) var(--muted); 
 }

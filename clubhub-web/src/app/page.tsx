@@ -1,4 +1,5 @@
 "use client"
+
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import { PostCard } from "@/components/post-card"

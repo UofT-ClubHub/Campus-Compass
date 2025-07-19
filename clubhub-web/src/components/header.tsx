@@ -54,12 +54,13 @@ export function Header() {
         if (!loading && user) {
             fetchUserData();
         }
-    }, [user, loading]);
-
+    }, [user, loading]);    
+    
     const handleSignOut = async () => {
         try {
             await signOut(auth);
             router.push('/');
+            window.location.reload();
         } catch (error) {
             console.error('Error signing out:', error);
         }
