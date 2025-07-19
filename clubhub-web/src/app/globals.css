@@ -117,9 +117,10 @@
   --info:                    #60a5fa;
 }
 
-/* Vibrant Dark Bottom Glow Only */
+/* Vibrant Dark Purple Border Shadow */
 [data-theme="vibrant-dark"] header {
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 4px 40px rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
 }
 
 /* Dark Theme Form Glow Effect For Request Club Form - matches header glow */
@@ -159,55 +160,6 @@
   --color-expandable-post-card-bg: var(--expandable-post-card-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-html {
-  transition: none;
-}
-
-/* Optimized theme transitions - only target specific elements */
-:root {
-  --transition-duration: 0.08s;
-}
-
-body,
-[class*="bg-"],
-[class*="text-"],
-[class*="border-"],
-header,
-main,
-.card,
-.post-card,
-.club-card,
-button,
-input,
-textarea,
-select {
-  transition: background-color var(--transition-duration, 0.08s) ease-out, 
-              color var(--transition-duration, 0.08s) ease-out, 
-              border-color var(--transition-duration, 0.08s) ease-out;
-}
-
-/* Additional performance optimizations */
-* {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* Optimize theme-specific glows */
-[data-theme="deep-dark"] header,
-[data-theme="vibrant-dark"] header {
-  transition: box-shadow var(--transition-duration, 0.08s) ease-out;
-}
-
-/* High-performance theme switching with CSS containment */
-html {
-  contain: layout style;
-}
-
-body {
-  contain: layout;
-  will-change: background-color, color;
 }
 
 body {

@@ -3,6 +3,7 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import { PostCard } from "@/components/post-card"
 import { ClubCard } from "@/components/club-card"
+
 import type { Post, User, Club } from "@/model/types"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useTheme } from "@/contexts/ThemeContext"
@@ -66,9 +67,10 @@ export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [followedEvents, setFollowedEvents] = useState<Post[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const [hasMoreClubs, setHasMoreClubs] = useState(true)
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false)
+  const [isLoadingClubs, setIsLoadingClubs] = useState(false)
   const POSTS_PER_PAGE = 10
   const CLUBS_PER_PAGE = 8
 
@@ -83,6 +85,9 @@ export default function HomePage() {
   const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([])
 
   const fetchPosts = async (page = 1, append = false) => {
+    if (!append) {
+      setIsLoadingPosts(true)
+    }
     try {
       const response = await fetch(`/api/posts?sort_by=likes&sort_order=desc&limit=${POSTS_PER_PAGE}&page=${page}`)
       if (!response.ok) {
@@ -107,10 +112,17 @@ export default function HomePage() {
     } catch (err: any) {
       setPosts([])
       setHasMorePosts(false)
+    } finally {
+      if (!append) {
+        setIsLoadingPosts(false)
+      }
     }
   }
 
   const fetchClubs = async (page = 1, append = false) => {
+    if (!append) {
+      setIsLoadingClubs(true)
+    }
     try {
       const response = await fetch(`/api/clubs?sort_by=followers&sort_order=desc&limit=${CLUBS_PER_PAGE}&page=${page}`)
       if (!response.ok) {
@@ -128,6 +140,10 @@ export default function HomePage() {
     } catch (err: any) {
       setClubs([])
       setHasMoreClubs(false)
+    } finally {
+      if (!append) {
+        setIsLoadingClubs(false)
+      }
     }
   }
 
@@ -433,7 +449,20 @@ export default function HomePage() {
             </div>
 
             {/* Clubs Grid */}
-            {clubs.length > 0 && (
+            {isLoadingClubs ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading clubs...</p>
+                  </div>
+                </div>
+              </div>
+            ) : clubs.length > 0 ? (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -464,7 +493,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
       )}
@@ -493,7 +522,20 @@ export default function HomePage() {
             </div>
 
             {/* Auto-Scrolling Clubs */}
-            {clubs.length > 0 && (
+            {isLoadingClubs ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading clubs...</p>
+                  </div>
+                </div>
+              </div>
+            ) : clubs.length > 0 ? (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -548,7 +590,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
       )}
@@ -578,7 +620,20 @@ export default function HomePage() {
             </div>
 
             {/* Events Grid */}
-            {posts.length > 0 && (
+            {isLoadingPosts ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading events...</p>
+                  </div>
+                </div>
+              </div>
+            ) : posts.length > 0 ? (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -612,7 +667,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
       )}
