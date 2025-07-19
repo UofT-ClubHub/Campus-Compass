@@ -6,24 +6,30 @@ import { PostCard } from "@/components/post-card";
 import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function PostFilterPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [nameFilter, setNameFilter] = useState("");
-  const [campusFilter, setCampusFilter] = useState("");
-  const [descriptionFilter, setDescriptionFilter] = useState("");
-  const [clubFilter, setClubFilter] = useState("");
-  const [hashtagsFilter, setHashtagsFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+
+  const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "");
+  const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "");
+  const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "");
+  const [clubFilter, setClubFilter] = useState(searchParams.get('club') || "");
+  const [hashtagsFilter, setHashtagsFilter] = useState(searchParams.get('hashtags') || "");
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
+
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 3;
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
-  const [sort_by, setSortBy] = useState("");
-  const [sort_order, setSortOrder] = useState("");
+  const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
+  const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "");
   const [showSortOrder, setShowSortOrder] = useState(false);
 
   useEffect(() => {
@@ -37,6 +43,24 @@ export default function PostFilterPage() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+  const params = new URLSearchParams();
+  
+  if (nameFilter) params.set('name', nameFilter);
+  if (campusFilter) params.set('campus', campusFilter);   
+  if (descriptionFilter) params.set('description', descriptionFilter); 
+  if (clubFilter) params.set('club', clubFilter);         
+  if (hashtagsFilter) params.set('hashtags', hashtagsFilter); 
+  if (categoryFilter) params.set('category', categoryFilter); 
+  if (sort_by) params.set('sort_by', sort_by);
+  if (sort_order) params.set('sort_order', sort_order);
+  
+  // Update URL without refreshing page
+  const url = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
+}, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, 
+    categoryFilter, sort_by, sort_order]);
 
   const filterPosts = async (isNewSearch = false) => {
     if (loadingRef.current) return;
