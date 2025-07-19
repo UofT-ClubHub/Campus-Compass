@@ -92,24 +92,24 @@ export default function AuthPage() {
     };
 
     if (authLoading) {
-        return <div className="flex justify-center items-center min-h-screen text-gray-800">Loading...</div>; // Changed text-white to text-gray-800
+        return <div className="flex justify-center items-center min-h-screen text-foreground">Loading...</div>;
     }
 
     return (
-        <div className="flex justify-center items-center min-h-screen">
-            <div className="w-full max-w-md p-8 rounded-lg text-gray-800"> {/* Changed text-white to text-gray-800 */}
+        <div className="flex justify-center items-center min-h-screen bg-background">
+            <div className="w-full max-w-md p-8 rounded-lg bg-card text-card-foreground border border-border">
                 <h1 className="text-2xl font-bold mb-6 text-center">
                     {mode === 'login' ? 'Log In' : mode === 'register' ? 'Create Account' : 'Reset Password'}
                 </h1>
                 
                 {error && (
-                    <div role="alert" className="bg-red-500 text-gray-100 p-3 mb-4 rounded"> {/* Changed text-white to text-gray-100 for better contrast on red */}
+                    <div role="alert" className="bg-destructive text-destructive-foreground p-3 mb-4 rounded">
                         <span>{error}</span>
                     </div>
                 )}
                 
                 {message && (
-                    <div role="alert" className="bg-green-500 text-gray-100 p-3 mb-4 rounded"> {/* Changed text-white to text-gray-100 for better contrast on green */}
+                    <div role="alert" className="bg-success text-white p-3 mb-4 rounded">
                         <span>{message}</span>
                     </div>
                 )}
@@ -125,7 +125,7 @@ export default function AuthPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
+                            className="w-full p-2 rounded bg-input text-foreground border border-border focus:border-ring focus:ring focus:ring-ring focus:outline-none"
                         />
                     </div>
                     
@@ -140,7 +140,7 @@ export default function AuthPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
+                                className="w-full p-2 rounded bg-input text-foreground border border-border focus:border-ring focus:ring focus:ring-ring focus:outline-none"
                             />
                         </div>
                     )}
@@ -156,7 +156,7 @@ export default function AuthPage() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="w-full p-2 rounded text-gray-800 bg-white border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:outline-none" /* Changed text-white to text-gray-800, added bg-white, adjusted border */
+                                className="w-full p-2 rounded bg-input text-foreground border border-border focus:border-ring focus:ring focus:ring-ring focus:outline-none"
                             />
                         </div>
                     )}
@@ -165,7 +165,7 @@ export default function AuthPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full p-2 bg-blue-600 hover:bg-blue-800 active:bg-blue-900 text-white rounded font-medium" /* Kept text-white for contrast on blue button */
+                            className="w-full p-2 bg-primary hover:bg-primary/80 active:bg-primary/90 text-primary-foreground rounded font-medium"
                         >
                             {loading ? 'Processing...' : mode === 'login' ? 'Log In' : mode === 'register' ? 'Create Account' : 'Send Reset Email'}
                         </button>
@@ -179,7 +179,7 @@ export default function AuthPage() {
                                 Don't have an account?{' '}
                                 <button 
                                     onClick={() => setMode('register')}
-                                    className="text-blue-400 hover:text-blue-300 focus:text-blue-500"
+                                    className="text-primary hover:text-primary/80 focus:text-primary/90"
                                 >
                                     Sign up
                                 </button>
@@ -187,7 +187,7 @@ export default function AuthPage() {
                             <p>
                                 <button 
                                     onClick={() => setMode('reset')}
-                                    className="text-blue-400 hover:text-blue-300 focus:text-blue-500"
+                                    className="text-primary hover:text-primary/80 focus:text-primary/90"
                                 >
                                     Forgot password?
                                 </button>
@@ -200,7 +200,7 @@ export default function AuthPage() {
                             Already have an account?{' '}
                             <button 
                                 onClick={() => setMode('login')}
-                                className="text-blue-400 hover:text-blue-300 focus:text-blue-500"
+                                className="text-primary hover:text-primary/80 focus:text-primary/90"
                             >
                                 Log in
                             </button>
@@ -211,7 +211,7 @@ export default function AuthPage() {
                         <p>
                             <button 
                                 onClick={() => setMode('login')}
-                                className="text-blue-400 hover:text-blue-300 focus:text-blue-500"
+                                className="text-primary hover:text-primary/80 focus:text-primary/90"
                             >
                                 Back to login
                             </button>

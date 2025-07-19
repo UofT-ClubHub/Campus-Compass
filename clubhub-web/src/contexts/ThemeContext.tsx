@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Sun, Moon, Palette, Sparkles } from 'lucide-react';
 
 type Theme = 'light' | 'warm-light' | 'deep-dark' | 'vibrant-dark';
@@ -58,44 +58,47 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (mounted) {
+      // Optimized theme switching - direct DOM update
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
     }
   }, [theme, mounted]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const currentIndex = THEMES.findIndex(t => t.value === theme);
     const nextIndex = (currentIndex + 1) % THEMES.length;
     setThemeState(THEMES[nextIndex].value);
-  };
+  }, [theme]);
 
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     if (THEMES.some(t => t.value === newTheme)) {
       setThemeState(newTheme);
     }
-  };
+  }, []);
 
-  const getThemeName = (themeValue: Theme): string => {
+  const getThemeName = useCallback((themeValue: Theme): string => {
     const themeObj = THEMES.find(t => t.value === themeValue);
     return themeObj ? themeObj.name : 'Unknown Theme';
-  };
+  }, []);
 
-  const getThemeIcon = (themeValue: Theme): React.ReactNode => {
+  const getThemeIcon = useCallback((themeValue: Theme): React.ReactNode => {
     const themeObj = THEMES.find(t => t.value === themeValue);
     return themeObj ? themeObj.icon : <Sun size={16} />;
-  };
+  }, []);
 
-  const getAllThemes = () => THEMES;
+  const getAllThemes = useCallback(() => THEMES, []);
+
+  const contextValue = useMemo(() => ({
+    theme, 
+    toggleTheme, 
+    setTheme, 
+    getThemeName, 
+    getThemeIcon,
+    getAllThemes 
+  }), [theme, toggleTheme, setTheme, getThemeName, getThemeIcon, getAllThemes]);
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      toggleTheme, 
-      setTheme, 
-      getThemeName, 
-      getThemeIcon,
-      getAllThemes 
-    }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

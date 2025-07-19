@@ -1,22 +1,76 @@
 "use client"
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
-import { Autocomplete } from "@mantine/core"
 import { PostCard } from "@/components/post-card"
 import { ClubCard } from "@/components/club-card"
 import type { Post, User, Club } from "@/model/types"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useTheme } from "@/contexts/ThemeContext"
+
+// Typewriter component for subtitle
+function TypewriterText() {
+  const [currentText, setCurrentText] = useState("")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
+  const texts = [
+    "Navigate your university journey with confidence. Discover clubs, events, and opportunities that shape your future.",
+    "Connect with like-minded students and explore your passions through our diverse community of clubs.",
+    "Your gateway to campus life. Find events, join clubs, and make the most of your university experience."
+  ]
+
+  useEffect(() => {
+    const currentFullText = texts[currentIndex]
+    
+    if (!isDeleting) {
+      if (currentText.length < currentFullText.length) {
+        const timeout = setTimeout(() => {
+          setCurrentText(currentFullText.slice(0, currentText.length + 1))
+        }, 50)
+        return () => clearTimeout(timeout)
+      } else {
+        const timeout = setTimeout(() => {
+          setIsDeleting(true)
+        }, 2000)
+        return () => clearTimeout(timeout)
+      }
+    } else {
+      if (currentText.length > 0) {
+        const timeout = setTimeout(() => {
+          setCurrentText(currentText.slice(0, currentText.length - 1))
+        }, 30)
+        return () => clearTimeout(timeout)
+      } else {
+        setIsDeleting(false)
+        setCurrentIndex((prev) => (prev + 1) % texts.length)
+      }
+    }
+  }, [currentText, currentIndex, isDeleting, texts])
+
+  return (
+    <div className="mb-12 h-8 md:h-10 lg:h-12 flex items-center justify-center">
+      <p className="text-base md:text-lg lg:text-xl font-light leading-relaxed max-w-4xl mx-auto text-primary-foreground">
+        {currentText}
+        <span className="text-primary-foreground animate-pulse">|</span>
+      </p>
+    </div>
+  )
+}
 
 export default function HomePage() {
+  const { theme } = useTheme()
+  const isLightTheme = theme === 'light' || theme === 'warm-light'
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [followedEvents, setFollowedEvents] = useState<Post[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
-  const [loadingPosts, setLoadingPosts] = useState(true)
-  const [loadingClubs, setLoadingClubs] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMorePosts, setHasMorePosts] = useState(true)
+  const [hasMoreClubs, setHasMoreClubs] = useState(true)
+  const POSTS_PER_PAGE = 10
+  const CLUBS_PER_PAGE = 8
 
   const clubScrollRef = useRef<HTMLDivElement>(null)
   const postScrollRef = useRef<HTMLDivElement>(null)
@@ -28,45 +82,52 @@ export default function HomePage() {
   const [duplicatedFollowed, setDuplicatedFollowed] = useState<Post[]>([])
   const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([])
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (page = 1, append = false) => {
     try {
-      setLoadingPosts(true)
-      const response = await fetch("/api/posts?sort_by=likes&sort_order=desc")
+      const response = await fetch(`/api/posts?sort_by=likes&sort_order=desc&limit=${POSTS_PER_PAGE}&page=${page}`)
       if (!response.ok) {
         throw new Error(`Failed to fetch posts: ${response.statusText}`)
       }
       const data: Post[] = await response.json()
+      
+      if (append) {
+        setPosts(prev => [...prev, ...data])
+      } else {
+        setPosts(data)
+      }
+      
+      setHasMorePosts(data.length === POSTS_PER_PAGE)
+      
       // Filter posts to only include those from followed clubs
       if (currentUser && currentUser.followed_clubs) {
         const followedClubIds = currentUser.followed_clubs
         const filteredPosts = data.filter((post) => followedClubIds.includes(post.club))
         setFollowedEvents(filteredPosts)
       }
-      setPosts(data)
-      setError(null)
     } catch (err: any) {
-      setError(err.message)
       setPosts([])
-    } finally {
-      setLoadingPosts(false)
+      setHasMorePosts(false)
     }
   }
 
-  const fetchClubs = async () => {
+  const fetchClubs = async (page = 1, append = false) => {
     try {
-      setLoadingClubs(true)
-      const response = await fetch("/api/clubs")
+      const response = await fetch(`/api/clubs?sort_by=followers&sort_order=desc&limit=${CLUBS_PER_PAGE}&page=${page}`)
       if (!response.ok) {
         throw new Error(`Failed to fetch clubs: ${response.statusText}`)
       }
       const data: Club[] = await response.json()
-      setClubs(data)
-      setError(null)
+      
+      if (append) {
+        setClubs(prev => [...prev, ...data])
+      } else {
+        setClubs(data)
+      }
+      
+      setHasMoreClubs(data.length === CLUBS_PER_PAGE)
     } catch (err: any) {
-      setError(err.message)
       setClubs([])
-    } finally {
-      setLoadingClubs(false)
+      setHasMoreClubs(false)
     }
   }
 
@@ -94,12 +155,12 @@ export default function HomePage() {
   }, [authUser])
 
   useEffect(() => {
-    fetchClubs()
+    fetchClubs(1, false)
   }, [])
 
   useEffect(() => {
     if (!loading) {
-      fetchPosts()
+      fetchPosts(1, false)
     }
   }, [loading, currentUser])
 
@@ -133,17 +194,27 @@ export default function HomePage() {
   }
 
   const handlePostDelete = () => {
-    fetchPosts()
+    fetchPosts(1, false)
+  }
+
+  const loadMorePosts = () => {
+    if (hasMorePosts) {
+      const nextPage = Math.ceil(posts.length / POSTS_PER_PAGE) + 1
+      fetchPosts(nextPage, true)
+    }
+  }
+
+  const loadMoreClubs = () => {
+    if (hasMoreClubs) {
+      const nextPage = Math.ceil(clubs.length / CLUBS_PER_PAGE) + 1
+      fetchClubs(nextPage, true)
+    }
   }
 
   useEffect(() => {
     const container = clubScrollRef.current
     if (!container) return
     const third = container.scrollWidth / 3
-    // Scroll to the middle set on mount
-    const setInitialScroll = () => {
-      container.scrollLeft = third
-    }
     const handleInfiniteScroll = () => {
       const scrollLeft = container.scrollLeft
       if (scrollLeft <= third / 2) {
@@ -160,16 +231,12 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs])
+  }, [duplicatedClubs])
 
   useEffect(() => {
     const container = postScrollRef.current
     if (!container) return
     const third = container.scrollWidth / 3
-    // Scroll to the middle set on mount
-    const setInitialScroll = () => {
-      container.scrollLeft = third
-    }
     const handleInfiniteScroll = () => {
       const scrollLeft = container.scrollLeft
       if (scrollLeft <= third / 2) {
@@ -186,16 +253,12 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs])
+  }, [duplicatedPosts])
 
   useEffect(() => {
     const container = followedScrollRef.current
     if (!container) return
     const third = container.scrollWidth / 3
-    // Scroll to the middle set on mount
-    const setInitialScroll = () => {
-      container.scrollLeft = third
-    }
     const handleInfiniteScroll = () => {
       const scrollLeft = container.scrollLeft
       if (scrollLeft <= third / 2) {
@@ -212,21 +275,33 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [duplicatedPosts, duplicatedFollowed, duplicatedClubs])
+  }, [duplicatedFollowed])
 
-  useEffect(() => {
-    setDuplicatedPosts([...posts, ...posts, ...posts])
+  const duplicatedPostsMemo = useMemo(() => {
+    return posts.length > 0 ? [...posts, ...posts, ...posts] : []
   }, [posts])
 
-  useEffect(() => {
-    setDuplicatedFollowed([...followedEvents, ...followedEvents, ...followedEvents])
+  const duplicatedFollowedMemo = useMemo(() => {
+    return followedEvents.length > 0 ? [...followedEvents, ...followedEvents, ...followedEvents] : []
   }, [followedEvents])
 
-  useEffect(() => {
-    setDuplicatedClubs([...clubs, ...clubs, ...clubs])
+  const duplicatedClubsMemo = useMemo(() => {
+    return clubs.length > 0 ? [...clubs, ...clubs, ...clubs] : []
   }, [clubs])
 
-  const handleUserScroll = () => {
+  useEffect(() => {
+    setDuplicatedPosts(duplicatedPostsMemo)
+  }, [duplicatedPostsMemo])
+
+  useEffect(() => {
+    setDuplicatedFollowed(duplicatedFollowedMemo)
+  }, [duplicatedFollowedMemo])
+
+  useEffect(() => {
+    setDuplicatedClubs(duplicatedClubsMemo)
+  }, [duplicatedClubsMemo])
+
+  const handleUserScroll = useCallback(() => {
     isUserScrollingRef.current = true
     if (userScrollTimeoutRef.current) {
       clearTimeout(userScrollTimeoutRef.current)
@@ -235,14 +310,18 @@ export default function HomePage() {
       isUserScrollingRef.current = false
       setIsAutoScrolling(true)
     }, 2000)
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
+      <section className="relative min-h-[500px] overflow-hidden">
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/40 z-10" />
+        <div className={`absolute inset-0 bg-gradient-to-br z-10 ${
+          isLightTheme
+            ? 'from-black/50 via-black/40 to-black/30' 
+            : 'from-black/70 via-black/60 to-black/s0'
+        }`} />
 
         {/* Background Image */}
         <img
@@ -252,31 +331,81 @@ export default function HomePage() {
         />
 
         {/* Content */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white px-6">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6">
           <div className="text-center max-w-5xl mx-auto">
-            {/* Main Title */}
-            <div className="mb-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-none tracking-tight">
-                <span className="block bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-2xl">
-                  Campus
-                </span>
-                <span className="block bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 bg-clip-text text-transparent drop-shadow-2xl">
-                  Compass
+            {/* Main Title with Icons */}
+            <div className="mb-8 flex items-center justify-center gap-8 md:gap-12 lg:gap-16">
+              {/* Left Icon */}
+              <span className="hidden md:inline-flex">
+                <svg 
+                  className="w-12 h-12" 
+                  fill="none" 
+                  stroke="#fff" 
+                  strokeWidth={2} 
+                  viewBox="0 0 24 24"
+                  style={{
+                    filter: `
+                      drop-shadow(1px 1px 4px #000)
+                      drop-shadow(0 2px 8px #000)
+                      drop-shadow(0 0 12px #a5b4fc)
+                    `
+                  }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.418 0-8-5.373-8-10A8 8 0 1 1 20 11c0 4.627-3.582 10-8 10z" />
+                  <circle cx="12" cy="11" r="3" />
+                </svg>
+              </span>
+              
+              {/* Main Title */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-none tracking-tight">
+                <span
+                  className="block font-sans font-extrabold tracking-tight"
+                  style={{
+                    color: "#fff",
+                    textShadow: `
+                      1px 1px 4px #000,
+                      0 2px 8px #000,
+                      0 0 12px #a5b4fc
+                    `
+                  }}
+                >
+                  Campus Compass
                 </span>
               </h1>
+              
+              {/* Right Icon */}
+              <span className="hidden md:inline-flex">
+                <svg 
+                  className="w-12 h-12" 
+                  fill="none" 
+                  stroke="#fff" 
+                  strokeWidth={2} 
+                  viewBox="0 0 24 24"
+                  style={{
+                    filter: `
+                      drop-shadow(1px 1px 4px #000)
+                      drop-shadow(0 2px 8px #000)
+                      drop-shadow(0 0 12px #a5b4fc)
+                    `
+                  }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </span>
             </div>
 
             {/* Subtitle */}
-            <p className="text-base md:text-lg lg:text-xl mb-12 text-blue-100/90 font-light leading-relaxed max-w-4xl mx-auto">
-              Navigate your university journey with confidence. Discover clubs, events, and opportunities that shape
-              your future.
-            </p>
-
+            <TypewriterText />
           </div>
         </div>
 
         {/* Bottom Fade */}
-        <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-background to-transparent z-15" />
+        <div
+          className={`
+            absolute bottom-0 left-0 w-full h-40 z-15
+            bg-gradient-to-t from-background to-transparent
+          `}
+        />
       </section>
 
       {/* Clubs Section */}
@@ -303,61 +432,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingClubs && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-primary"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading clubs: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingClubs && !error && clubs.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No clubs found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Clubs Grid */}
-            {!loadingClubs && !error && clubs.length > 0 && (
+            {clubs.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -381,7 +457,6 @@ export default function HomePage() {
                         <ClubCard
                           key={club.id}
                           club={club}
-                          currentUser={currentUser}
                           className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
                         />
                       </div>
@@ -417,61 +492,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingClubs && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-primary"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading clubs: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingClubs && !error && clubs.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No clubs found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Auto-Scrolling Clubs */}
-            {!loadingClubs && !error && clubs.length > 0 && (
+            {clubs.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -518,7 +540,6 @@ export default function HomePage() {
                           <ClubCard
                             key={club.id}
                             club={club}
-                            currentUser={currentUser}
                             className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
                           />
                         </div>
@@ -534,12 +555,12 @@ export default function HomePage() {
 
       {/* General Events Section */}
       {posts.length <= 4 && !currentUser && (
-        <section className="py-12 bg-muted relative">
+        <section className="py-12 bg-background relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-accent rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
+                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -549,80 +570,27 @@ export default function HomePage() {
                 </svg>
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Upcoming <span className="text-accent">Events</span>
+                Upcoming <span className="text-primary">Events</span>
               </h2>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Don't miss out on the exciting events happening across campus. Your next adventure awaits.
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingPosts && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-accent"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-accent/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading events: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingPosts && !error && posts.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No events found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Events Grid */}
-            {!loadingPosts && !error && posts.length > 0 && (
+            {posts.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 rounded-3xl blur-3xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-accent/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
                       className="absolute inset-0"
                       style={{
-                        backgroundImage: `radial-gradient(circle at 75% 25%, var(--accent) 2px, transparent 2px)`,
+                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
                         backgroundSize: "40px 40px",
                       }}
                     ></div>
@@ -630,7 +598,7 @@ export default function HomePage() {
 
                   <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
                     {posts.map((post: Post, index: any) => (
-                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64">
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
                           key={post.id}
                           post={post}
@@ -649,13 +617,24 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Fading Line Separator */}
+      {!currentUser && (
+        <div className="py-8 bg-background">
+          <div className="container mx-auto px-6">
+            <div className="relative flex items-center justify-center">
+              <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {posts.length > 4 && !currentUser && (
-        <section className="py-12 bg-muted relative">
+        <section className="py-12 bg-background relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-accent rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
+                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -665,80 +644,27 @@ export default function HomePage() {
                 </svg>
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Upcoming <span className="text-accent">Events</span>
+                Upcoming <span className="text-primary">Events</span>
               </h2>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Don't miss out on the exciting events happening across campus. Your next adventure awaits.
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingPosts && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-accent"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-accent/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading events: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingPosts && !error && posts.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No events found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Auto-Scrolling Events */}
-            {!loadingPosts && !error && posts.length > 0 && (
+            {posts.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-accent/10 to-accent/5 rounded-3xl blur-3xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-accent/20 rounded-3xl shadow-2xl">
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
                       className="absolute inset-0"
                       style={{
-                        backgroundImage: `radial-gradient(circle at 75% 25%, var(--accent) 2px, transparent 2px)`,
+                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
                         backgroundSize: "40px 40px",
                       }}
                     ></div>
@@ -769,7 +695,7 @@ export default function HomePage() {
                       }}
                     >
                       {duplicatedPosts.map((post: Post, index: any) => (
-                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64">
+                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                           <PostCard
                             key={post.id}
                             post={post}
@@ -806,91 +732,38 @@ export default function HomePage() {
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-success rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
+                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Discover <span className="text-primary">Clubs</span>
+                Your <span className="text-primary">Events</span>
               </h2>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Stay connected with events from the clubs you follow. Your personalized campus experience.
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingPosts && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-success"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-success/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading events: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingPosts && !error && posts.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No events found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Events Grid */}
-            {!loadingPosts && !error && posts.length > 0 && (
+            {followedEvents.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-success/5 via-success/10 to-success/5 rounded-3xl blur-3xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-success/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
                       className="absolute inset-0"
                       style={{
-                        backgroundImage: `radial-gradient(circle at 25% 75%, var(--success) 2px, transparent 2px)`,
+                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
                         backgroundSize: "40px 40px",
                       }}
                     ></div>
@@ -898,7 +771,7 @@ export default function HomePage() {
 
                   <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
                     {followedEvents.map((post: Post, index: any) => (
-                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64">
+                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
                           key={post.id}
                           post={post}
@@ -922,91 +795,38 @@ export default function HomePage() {
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-success rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
+                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Your <span className="text-success">Events</span>
+                Your <span className="text-primary">Events</span>
               </h2>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Stay connected with events from the clubs you follow. Your personalized campus experience.
               </p>
             </div>
 
-            {/* Loading State */}
-            {loadingPosts && (
-              <div className="flex justify-center items-center py-24">
-                <div className="relative">
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-muted border-t-success"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-success/20"></div>
-                </div>
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-24">
-                <div className="bg-destructive/10 border-2 border-destructive/20 rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-destructive font-semibold text-lg">Error loading events: {error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loadingPosts && !error && posts.length === 0 && (
-              <div className="text-center py-24">
-                <div className="bg-muted/50 border-2 border-border rounded-3xl p-12 max-w-lg mx-auto">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg
-                      className="w-8 h-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-muted-foreground font-medium text-lg">No events found.</p>
-                </div>
-              </div>
-            )}
-
             {/* Auto-Scrolling Followed Events */}
-            {!loadingPosts && !error && posts.length > 0 && (
+            {followedEvents.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-success/5 via-success/10 to-success/5 rounded-3xl blur-3xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-success/20 rounded-3xl shadow-2xl">
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
                       className="absolute inset-0"
                       style={{
-                        backgroundImage: `radial-gradient(circle at 25% 75%, var(--success) 2px, transparent 2px)`,
+                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
                         backgroundSize: "40px 40px",
                       }}
                     ></div>
@@ -1037,7 +857,7 @@ export default function HomePage() {
                       }}
                     >
                       {duplicatedFollowed.map((post: Post, index: any) => (
-                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64">
+                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                           <PostCard
                             key={post.id}
                             post={post}

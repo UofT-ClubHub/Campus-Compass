@@ -25,7 +25,7 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-club-card-bg rounded-xl shadow-sm border border-border-2 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col ${className}`}
+      className={`bg-club-card-bg rounded-xl shadow-sm border-2 border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col ${className}`}
     >
       <div className="relative h-40 bg-muted">
         <img
