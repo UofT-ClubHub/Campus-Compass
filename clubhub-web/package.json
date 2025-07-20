@@ -6,6 +6,7 @@
     "dev": "next dev",
     "test": "jest",
     "test:watch": "jest --watchAll",
+    "test:api": "jest --config jest.api.config.js --coverage",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
