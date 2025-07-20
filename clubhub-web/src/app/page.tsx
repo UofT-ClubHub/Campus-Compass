@@ -77,6 +77,7 @@ export default function HomePage() {
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
   const [duplicatedPosts, setDuplicatedPosts] = useState<Post[]>([])
+  const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([])
 
   const fetchPosts = async () => {
     setIsLoadingPosts(true)
@@ -212,7 +213,7 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [clubs])
+  }, [duplicatedClubs])
 
   useEffect(() => {
     const container = postScrollRef.current
@@ -265,6 +266,14 @@ export default function HomePage() {
   useEffect(() => {
     setDuplicatedPosts(duplicatedPostsMemo)
   }, [duplicatedPostsMemo])
+
+  const duplicatedClubsMemo = useMemo(() => {
+    return clubs.length > 0 ? [...clubs, ...clubs, ...clubs] : []
+  }, [clubs])
+
+  useEffect(() => {
+    setDuplicatedClubs(duplicatedClubsMemo)
+  }, [duplicatedClubsMemo])
 
   const handleUserScroll = useCallback(() => {
     isUserScrollingRef.current = true
@@ -526,7 +535,7 @@ export default function HomePage() {
                         }
                       }}
                     >
-                      {clubs.map((club: Club, index: any) => (
+                      {duplicatedClubs.map((club: Club, index: any) => (
                         <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
                           <ClubCard
                             key={club.id}
