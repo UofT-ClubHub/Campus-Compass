@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getVertexAI, getGenerativeModel } from '@firebase/vertexai-preview';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import { searchClubs, getClubDetails, searchPosts, getUpcomingEvents,
   getCategories, getCampuses, searchEvents, getEventLocation } from './functions';
 
@@ -15,21 +16,63 @@ const firebaseConfig = {
   measurementId: "G-XSZBKS1H6K"
 };
 
-// Initialize Firebase and Vertex AI
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const vertexAI = getVertexAI(app);
-const model = getGenerativeModel(vertexAI, { model: 'gemini-1.5-flash' });
+const auth = getAuth(app);
+
+// Initialize Vertex AI after authentication
+let vertexAI: any = null;
+let model: any = null;
+
+// Authentication function
+async function ensureAuthenticated() {
+  // Check if user is already signed in (no anonymous sign-in)
+  if (!auth.currentUser) {
+    throw new Error('User must be signed in to use the chatbot. Please log in first.');
+  }
+  
+  console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
+  
+  if (!vertexAI) {
+    vertexAI = getVertexAI(app);
+    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
+  }
+}
+
+// Test Mode
+// async function ensureAuthenticated() {
+//   // Test mode for development - add this to your .env.local: CHATBOT_TEST_MODE=true
+//   const isTestMode = process.env.CHATBOT_TEST_MODE === 'true';
+  
+//   if (isTestMode) {
+//     console.log('🧪 Running in test mode - bypassing authentication');
+//   } else {
+//     // Check if user is already signed in (no anonymous sign-in)
+//     if (!auth.currentUser) {
+//       throw new Error('User must be signed in to use the chatbot. Please log in first.');
+//     }
+//     console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
+//   }
+  
+//   if (!vertexAI) {
+//     vertexAI = getVertexAI(app);
+//     model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
+//   }
+// }
 
 export class VertexChatbotService {
   async processMessage(message: string): Promise<{ message: string; data?: any }> {
     try {
+      // Ensure we're authenticated before making AI calls
+      await ensureAuthenticated();
+      
       // Analyze the message and gather relevant data
       const context = await this.gatherContext(message);
       
       // Create the prompt for AI
       const prompt = this.createPrompt(message, context);
       
-      // Use Firebase Vertex AI
+      // Use Firebase Vertex AI (now with authentication)
       const result = await model.generateContent(prompt);
       const response = result.response;
       const responseText = response.text();
@@ -42,7 +85,7 @@ export class VertexChatbotService {
     } catch (error) {
       console.error('AI error:', error);
       return {
-        message: "I'm sorry, I encountered an error while processing your request. Please try again or ask for help! 🤖"
+        message: "I'm sorry, I encountered an error while processing your request. Please try again or ask for help!"
       };
     }
   }
@@ -51,6 +94,14 @@ export class VertexChatbotService {
     const lowerMessage = message.toLowerCase();
     let context = '';
     let data: any = {};
+
+    // Handles greetings
+    if (this.isGreeting(lowerMessage)) {
+        context += `User is greeting the chatbot. Respond in a friendly, welcoming way and offer to help with ClubHub.\n`;
+        context += `Available services: club search, event information, post discovery across UTSG, UTM, and UTSC campuses.\n\n`;
+        data.greeting = true;
+        return { context, data };
+    }
 
     // 1. Handle specific event location queries
     if (this.isLocationQuery(lowerMessage)) {
@@ -63,7 +114,7 @@ export class VertexChatbotService {
       });
       
       data.eventLocations = events;
-      
+
       if (Array.isArray(events) && events.length > 0) {
         context += `Location information for "${eventName}":\n`;
         events.forEach((event: any, index: number) => {
@@ -109,8 +160,17 @@ export class VertexChatbotService {
     else if (this.isClubRelated(lowerMessage)) {
       const query = this.extractQuery(message);
       const campus = this.extractCampus(message);
-      
+
+      console.log('🔍 Club Search Debug:');
+      console.log('  Original message:', message);
+      console.log('  Extracted query:', query);
+      console.log('  Extracted campus:', campus);
+
       const clubs = await searchClubs({ query, campus, limit: 5 });
+
+      console.log('🔍 Club Search Results:');
+      console.log('  Found clubs:', clubs);
+
       data.clubs = clubs;
       
       if (Array.isArray(clubs) && clubs.length > 0) {
@@ -188,32 +248,40 @@ export class VertexChatbotService {
     return { context, data };
   }
 
+  private isGreeting(message: string): boolean {
+    const greetingKeywords = [
+        'hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 
+        'greetings', 'howdy', 'what\'s up', 'whats up', 'sup'
+    ];
+    return greetingKeywords.some(keyword => message.includes(keyword)) || message.length < 10;
+  }
+
   private createPrompt(message: string, contextData: { context: string; data: any }): string {
     return `You are ClubHub Assistant, a helpful and friendly AI chatbot for the ClubHub university club management platform at the University of Toronto.
 
-Your role:
-- Help students find clubs, events, and posts across three campuses: UTSG (St. George downtown), UTM (Mississauga), and UTSC (Scarborough)
-- Provide accurate information based on the database context provided below
-- Be conversational, helpful, and encouraging
-- Use emojis occasionally to make responses engaging (but not too many!)
-- Format responses clearly with bullet points, lists, or sections when appropriate
-- Always be positive and student-focused
+    Your role:
+    - Help students find clubs, events, and posts across three campuses: UTSG (St. George downtown), UTM (Mississauga), and UTSC (Scarborough)
+    - Provide accurate information based on the database context provided below
+    - Be conversational, helpful, and encouraging
+    - Use emojis occasionally to make responses engaging (but not too many!)
+    - Format responses clearly with bullet points, lists, or sections when appropriate
+    - Always be positive and student-focused
 
-Guidelines:
-- Always base your answers on the provided context data
-- If no relevant data is found, suggest alternatives or provide helpful guidance
-- Encourage users to visit club pages or contact clubs directly for more details
-- Be specific about dates, locations, and contact information when available
-- If users ask about joining clubs, suggest they check the club's contact information
-- Keep responses concise but informative
-- Use natural, friendly language
+    Guidelines:
+    - Always base your answers on the provided context data
+    - If no relevant data is found, suggest alternatives or provide helpful guidance
+    - Encourage users to visit club pages or contact clubs directly for more details
+    - Be specific about dates, locations, and contact information when available
+    - If users ask about joining clubs, suggest they check the club's contact information
+    - Keep responses concise but informative
+    - Use natural, friendly language
 
-Context from ClubHub database:
-${contextData.context || 'No specific data found for this query.'}
+    Context from ClubHub database:
+    ${contextData.context || 'No specific data found for this query.'}
 
-User question: ${message}
+    User question: ${message}
 
-Please provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
+    Please provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
   }
 
   // Intent detection methods
