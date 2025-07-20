@@ -133,7 +133,10 @@ export default function PostFilterPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (authUser) {
-        const response = await fetch(`/api/users?id=${authUser.uid}`);
+        const token = await authUser.getIdToken();
+        const response = await fetch(`/api/users?id=${authUser.uid}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser(userData);

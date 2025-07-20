@@ -9,6 +9,7 @@ type AuthMode = 'login' | 'register' | 'reset';
 
 export default function AuthPage() {
     const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [mode, setMode] = useState<AuthMode>('login');
@@ -42,6 +43,11 @@ export default function AuthPage() {
 
         try {
             if (mode === 'register') {
+                if (!name) {
+                    setError('Name is required');
+                    setLoading(false);
+                    return;
+                }
                 if (password !== confirmPassword) {
                     setError('Passwords do not match');
                     setLoading(false);
@@ -53,7 +59,7 @@ export default function AuthPage() {
                     // Wait for the user to be authenticated
                     const idToken = await newUser.getIdToken();
                     
-                    const a = await fetch('/api/users', {
+                    const response = await fetch('/api/users', {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json' ,
@@ -61,7 +67,7 @@ export default function AuthPage() {
                         },
                         body: JSON.stringify({
                             id: newUser.uid,
-                            name: '',
+                            name: name,
                             email: newUser.email || '',
                             campus: '',
                             bio: '',
@@ -72,7 +78,15 @@ export default function AuthPage() {
                             managed_clubs: []
                         }),
                     });
-                    console.log('User created in Firestore:', await a.json());
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        setError(`Failed to create user profile: ${errorData.error}`);
+                        return;
+                    }
+                    
+                    const result = await response.json();
+                    console.log('User created in Firestore:', result);
                     setMessage('Account created successfully! Redirecting...');
                     setTimeout(() => router.push('/'), 3000);
                 }
@@ -93,12 +107,10 @@ export default function AuthPage() {
 
     if (authLoading) {
         return <div className="flex justify-center items-center min-h-screen text-foreground">Loading...</div>;
-    }
-
-    return (
-        <div className="flex justify-center items-center min-h-screen bg-background">
-            <div className="w-full max-w-md p-8 rounded-lg bg-card text-card-foreground border border-border">
-                <h1 className="text-2xl font-bold mb-6 text-center">
+    }    return (
+        <div className="flex justify-center items-center min-h-screen bg-background p-4">
+            <div className="w-full max-w-md p-8 rounded-xl bg-card text-card-foreground border border-border shadow-lg mx-4">
+                <h1 className="text-3xl font-bold mb-8 text-center text-primary">
                     {mode === 'login' ? 'Log In' : mode === 'register' ? 'Create Account' : 'Reset Password'}
                 </h1>
                 
@@ -129,6 +141,22 @@ export default function AuthPage() {
                         />
                     </div>
                     
+                    {mode === 'register' && (
+                        <div className="mb-4">
+                            <label htmlFor="name" className="block mb-2">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                className="w-full p-2 rounded bg-input text-foreground border border-border focus:border-ring focus:ring focus:ring-ring focus:outline-none"
+                            />
+                        </div>
+                    )}
+
                     {mode !== 'reset' && (
                         <div className="mb-4">
                             <label htmlFor="password" className="block mb-2">
