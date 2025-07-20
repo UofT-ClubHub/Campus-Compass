@@ -85,9 +85,12 @@ export default function HomePage() {
       // Build API URL with clubs filter if user is logged in and has followed clubs
       let apiUrl = `/api/posts?sort_by=likes&sort_order=desc`
       
-      if (currentUser && currentUser.followed_clubs && currentUser.followed_clubs.length > 0) {
+      // Use currentUser from state, but also check if we have followed clubs
+      const followedClubs = currentUser?.followed_clubs || []
+      
+      if (followedClubs.length > 0) {
         // Filter by followed clubs only
-        apiUrl += `&clubs=${encodeURIComponent(JSON.stringify(currentUser.followed_clubs))}`
+        apiUrl += `&clubs=${encodeURIComponent(JSON.stringify(followedClubs))}`
       }
       
       const response = await fetch(apiUrl)
@@ -153,8 +156,27 @@ export default function HomePage() {
     fetchClubs()
   }, [])
 
+  // Track the followed clubs to avoid unnecessary refetches
+  const followedClubsRef = useRef<string[]>([])
+
+  // Handle posts fetching - only when loading state changes or followed clubs change
   useEffect(() => {
     if (!loading) {
+      const currentFollowedClubs = currentUser?.followed_clubs || []
+      
+      // Only refetch if the followed clubs have actually changed
+      if (JSON.stringify(currentFollowedClubs) !== JSON.stringify(followedClubsRef.current)) {
+        followedClubsRef.current = currentFollowedClubs
+        fetchPosts()
+      }
+    }
+  }, [loading, currentUser?.followed_clubs])
+
+  // Handle initial load when user first logs in
+  useEffect(() => {
+    if (!loading && currentUser && followedClubsRef.current.length === 0) {
+      const currentFollowedClubs = currentUser.followed_clubs || []
+      followedClubsRef.current = currentFollowedClubs
       fetchPosts()
     }
   }, [loading, currentUser])

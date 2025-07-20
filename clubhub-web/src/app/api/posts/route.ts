@@ -47,9 +47,11 @@ export async function GET(request: NextRequest) {
         if (categoryFilter) {
             query = query.where('category', '==', categoryFilter);
         }
+        // If clubsFilter exists, filter by club id(s) (Firestore supports up to 10 values for 'in')
+        let usingClubsFilter = false;
         if (clubsFilter.length > 0 && clubsFilter.length <= 10) {
-            // Firestore 'in' operator supports up to 10 values
             query = query.where('club', 'in', clubsFilter);
+            usingClubsFilter = true;
         }
 
         // Apply sorting with index support
@@ -79,12 +81,18 @@ export async function GET(request: NextRequest) {
 
         // Get club IDs for club name filtering (only if needed)
         let clubIds: string[] = [];
+
         if (clubFilter) {
             const clubsCollection = firestore.collection('Clubs');
             const clubsSnapshot = await clubsCollection.get();
             const clubs: Club[] = clubsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Club));
             const matchingClubs = clubs.filter(club => club.name && club.name.toLowerCase().includes(clubFilter.toLowerCase()));
             clubIds = matchingClubs.map(club => club.id);
+        }
+
+        // If clubsFilter exists and is valid, filter posts in memory as well (in case Firestore 'in' is not used, e.g. >10 ids)
+        if (clubsFilter.length > 10) {
+            posts = posts.filter(post => post.club && clubsFilter.includes(post.club));
         }
 
         // Apply text-based filters in memory (these can't use Firestore indexes efficiently)
