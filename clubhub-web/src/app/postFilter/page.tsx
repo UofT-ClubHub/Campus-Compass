@@ -32,6 +32,18 @@ export default function PostFilterPage() {
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "");
   const [showSortOrder, setShowSortOrder] = useState(false);
 
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setNameFilter("");
+    setCampusFilter("");
+    setDescriptionFilter("");
+    setClubFilter("");
+    setHashtagsFilter("");
+    setCategoryFilter("");
+    setSortBy("");
+    setSortOrder("");
+  };
+
   useEffect(() => {
     setShowSortOrder(sort_by !== "");
   }, [sort_by]);
@@ -394,6 +406,16 @@ export default function PostFilterPage() {
                   <option value="asc">Ascending</option>
                 </select>
               )}
+            </div>
+            
+            {/* Clear All Filters Button */}
+            <div className="flex justify-center mt-4 pt-3 border-t border-border">
+              <button
+                onClick={clearAllFilters}
+                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
             </div>
           </div>
         </div>

@@ -37,11 +37,47 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ ...doc.data(), id: doc.id }, { status: 200 });
         }
 
-        // Otherwise fetch all and apply filters
-        const snapshot = await postsCollection.get();
+        // Build Firestore query with efficient filtering
+        let query: any = postsCollection;
 
-        let posts: Post[] = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
+        // Apply Firestore-supported filters first (these use indexes)
+        if (campusFilter) {
+            query = query.where('campus', '==', campusFilter);
+        }
+        if (categoryFilter) {
+            query = query.where('category', '==', categoryFilter);
+        }
+        if (clubsFilter.length > 0 && clubsFilter.length <= 10) {
+            // Firestore 'in' operator supports up to 10 values
+            query = query.where('club', 'in', clubsFilter);
+        }
 
+        // Apply sorting with index support
+        if (sortBy && ['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {
+            const order = sortOrder === 'asc' ? 'asc' : 'desc';
+            query = query.orderBy(sortBy, order);
+        } else {
+            // Default sorting for consistent pagination
+            query = query.orderBy('date_posted', 'desc');
+        }
+
+        // Handle pagination - Firestore doesn't support offset directly, so we need to handle it
+        let posts: Post[] = [];
+        
+        if (offset === 0) {
+            // First page - use limit directly
+            query = query.limit(limit);
+            const snapshot = await query.get();
+            posts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
+        } else {
+            // Subsequent pages - fetch offset + limit and slice
+            query = query.limit(offset + limit);
+            const snapshot = await query.get();
+            const allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
+            posts = allPosts.slice(offset, offset + limit);
+        }
+
+        // Get club IDs for club name filtering (only if needed)
         let clubIds: string[] = [];
         if (clubFilter) {
             const clubsCollection = firestore.collection('Clubs');
@@ -51,36 +87,34 @@ export async function GET(request: NextRequest) {
             clubIds = matchingClubs.map(club => club.id);
         }
 
-        // Apply all filters if they exist
+        // Apply text-based filters in memory (these can't use Firestore indexes efficiently)
         posts = posts.filter(post =>
             (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
             (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
-            (!campusFilter || (post.campus && post.campus.toLowerCase() === campusFilter.toLowerCase())) &&
             (!clubFilter || (post.club && clubIds.includes(post.club))) &&
-            (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
             (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
-            ))) &&
-            (clubsFilter.length === 0 || (post.club && clubsFilter.includes(post.club)))
+            )))
         );
 
-        // Sort by specified field and order if provided
-        if (sortBy && ['likes', 'date_occuring', 'date_posted'].includes(sortBy)) {
-            const order = sortOrder === 'asc' ? 1 : -1;
-            posts.sort((a, b) => {
-                const aVal = a[sortBy as keyof Post];
-                const bVal = b[sortBy as keyof Post];
-                if (aVal == null || bVal == null) return 0;
-                if (aVal === bVal) return 0;
-                return aVal > bVal ? order : -order;
-            });
+        // Apply sorting in memory if not already sorted by Firestore
+        if (!sortBy || !['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {
+            if (sortBy && ['likes', 'date_occuring', 'date_posted'].includes(sortBy)) {
+                const order = sortOrder === 'asc' ? 1 : -1;
+                posts.sort((a, b) => {
+                    const aVal = a[sortBy as keyof Post];
+                    const bVal = b[sortBy as keyof Post];
+                    if (aVal == null || bVal == null) return 0;
+                    if (aVal === bVal) return 0;
+                    return aVal > bVal ? order : -order;
+                });
+            }
         }
 
-        const paginated = posts.slice(offset, offset + limit);
-    
-    return NextResponse.json(paginated, { status: 200 });
+        return NextResponse.json(posts, { status: 200 });
 
     } catch (error: any) {
+        console.error('Posts API Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

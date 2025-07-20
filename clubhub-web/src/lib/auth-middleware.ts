@@ -216,36 +216,6 @@ export async function checkUserPermissions(request: NextRequest, targetUserId?: 
 }
 
 /**
- * Generic API permission checker based on endpoint and method
- */
-export async function checkAPIPermissions(request: NextRequest, endpoint: string): Promise<PermissionResult> {
-    const method = request.method;
-    const permissionKey = `${method} ${endpoint}`;
-    const permissions = API_PERMISSIONS[permissionKey as keyof typeof API_PERMISSIONS];
-
-    if (!permissions) {
-        // If no specific permissions configured, allow access (for GET requests mostly)
-        return { authorized: true, status: 200 };
-    }
-
-    const authResult = await getCurrentUserAuth(request);
-    
-    if (permissions.requiresAuth && !authResult.uid) {
-        return { authorized: false, error: 'Authentication required', status: 401 };
-    }
-
-    if (permissions.requiresAdmin && !authResult.isAdmin) {
-        return { authorized: false, error: 'Admin access required', status: 403 };
-    }
-
-    if (permissions.requiresExecOrAdmin && !authResult.isAdmin && !authResult.isExecutive) {
-        return { authorized: false, error: 'Executive or admin access required', status: 403 };
-    }
-
-    return { authorized: true, status: 200 };
-}
-
-/**
  * Middleware wrapper for API routes that automatically enforces permissions from API_PERMISSIONS
  */
 export function withAuth(handler: Function) {

@@ -19,6 +19,7 @@ export default function clubSearchPage() {
   const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "")
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
+  const [sortOrder, setsortOrder] = useState(searchParams.get('sort_order') || "")
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -26,6 +27,14 @@ export default function clubSearchPage() {
   const [initialLoading, setInitialLoading] = useState(false);
   const limit = 4;
   const loadingRef = useRef(false);
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setNameFilter("");
+    setCampusFilter("");
+    setDescriptionFilter("");
+    setsortOrder("");
+  };
   
 
   useEffect(() => {
@@ -64,11 +73,12 @@ export default function clubSearchPage() {
   if (nameFilter) params.set('name', nameFilter);
   if (campusFilter) params.set('campus', campusFilter);
   if (descriptionFilter) params.set('description', descriptionFilter);
+  if (sortOrder) params.set('sort_order', sortOrder);
   
   // Update URL as filters are applied
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter]);
+}, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
 
   const clubSearch = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -99,6 +109,8 @@ export default function clubSearchPage() {
       nameFilter ? params.append("name", nameFilter) : null
       campusFilter ? params.append("campus", campusFilter) : null
       descriptionFilter ? params.append("description", descriptionFilter) : null
+      sortOrder ? params.append("sort_by", "followers") : null
+      sortOrder ? params.append("sort_order", sortOrder) : null
       params.append("offset", currentOffset.toString())
       params.append("limit", limit.toString());
 
@@ -159,7 +171,7 @@ export default function clubSearchPage() {
       // Cancel any ongoing requests when component unmounts or dependencies change
       loadingRef.current = false;
     };
-  }, [nameFilter, campusFilter, descriptionFilter]);
+  }, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
 
   // Infinite scrolling logic with debouncing
   useEffect(() => {
@@ -216,7 +228,7 @@ export default function clubSearchPage() {
 
           {/* Compact Search Filters */}
           <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Club Name Filter */}
               <input
                 type="text"
@@ -246,6 +258,26 @@ export default function clubSearchPage() {
                 <option value="UTSG">UTSG</option>
                 <option value="UTM">UTM</option>
               </select>
+
+              {/* Sort By Followers */}
+              <select
+                value={sortOrder}
+                onChange={(e) => setsortOrder(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
+              >
+                <option value="desc">Follows (Descending)</option>
+                <option value="asc">Follows (Ascending)</option>
+              </select>
+            </div>
+            
+            {/* Clear All Filters Button */}
+            <div className="flex justify-center mt-4 pt-3 border-t border-border">
+              <button
+                onClick={clearAllFilters}
+                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
             </div>
           </div>
         </div>
