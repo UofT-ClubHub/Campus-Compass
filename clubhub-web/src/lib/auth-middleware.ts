@@ -25,7 +25,6 @@ export interface APIPermission {
 // API endpoint permissions configuration
 export const API_PERMISSIONS: Record<string, APIPermission> = {
     // User endpoints
-    'PUT /api/users': { requiresAdminOrSelf: true },
     'DELETE /api/users': { requiresAdmin: true },
     
     // Club endpoints  
@@ -80,7 +79,7 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
         const userDoc = await firestore.collection('Users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return { uid, isAdmin: false, isExecutive: false, error: 'User not found', status: 404 };
+            return { uid, isAdmin: false, isExecutive: false, status: 200 };
         }
 
         const userData = userDoc.data();

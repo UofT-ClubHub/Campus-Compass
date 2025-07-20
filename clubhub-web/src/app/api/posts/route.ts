@@ -15,9 +15,13 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get("limit") || "10");
         const offset = parseInt(searchParams.get("offset") || "0");
 
-        // Get back arrays for hashtags
+        // Get back arrays for hashtags and clubs
         const hashtagsFilterRaw = searchParams.get('hashtags');
         const hashtagsFilter = hashtagsFilterRaw ? JSON.parse(hashtagsFilterRaw) : [];
+        
+        // New: Filter by specific club IDs (array)
+        const clubsFilterRaw = searchParams.get('clubs');
+        const clubsFilter = clubsFilterRaw ? JSON.parse(clubsFilterRaw) : [];
 
         // Sorting filters
         const sortBy = searchParams.get('sort_by')
@@ -56,7 +60,8 @@ export async function GET(request: NextRequest) {
             (!categoryFilter || (post.category && post.category.toLowerCase() === categoryFilter.toLowerCase())) &&
             (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
-            )))
+            ))) &&
+            (clubsFilter.length === 0 || (post.club && clubsFilter.includes(post.club)))
         );
 
         // Sort by specified field and order if provided

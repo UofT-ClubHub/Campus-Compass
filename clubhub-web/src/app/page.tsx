@@ -66,14 +66,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
-  const [followedEvents, setFollowedEvents] = useState<Post[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
-  const [hasMorePosts, setHasMorePosts] = useState(true)
-  const [hasMoreClubs, setHasMoreClubs] = useState(true)
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
   const [isLoadingClubs, setIsLoadingClubs] = useState(false)
-  const POSTS_PER_PAGE = 10
-  const CLUBS_PER_PAGE = 8
 
   const clubScrollRef = useRef<HTMLDivElement>(null)
   const postScrollRef = useRef<HTMLDivElement>(null)
@@ -82,69 +77,51 @@ export default function HomePage() {
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isAutoScrolling, setIsAutoScrolling] = useState(true)
   const [duplicatedPosts, setDuplicatedPosts] = useState<Post[]>([])
-  const [duplicatedFollowed, setDuplicatedFollowed] = useState<Post[]>([])
-  const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([])
 
-  const fetchPosts = async (page = 1, append = false) => {
-    if (!append) {
-      setIsLoadingPosts(true)
-    }
+  const fetchPosts = async () => {
+    setIsLoadingPosts(true)
     try {
-      const response = await fetch(`/api/posts?sort_by=likes&sort_order=desc&limit=${POSTS_PER_PAGE}&page=${page}`)
+      // Build API URL with clubs filter if user is logged in and has followed clubs
+      let apiUrl = `/api/posts?sort_by=likes&sort_order=desc`
+      
+      if (currentUser && currentUser.followed_clubs && currentUser.followed_clubs.length > 0) {
+        // Filter by followed clubs only
+        apiUrl += `&clubs=${encodeURIComponent(JSON.stringify(currentUser.followed_clubs))}`
+      }
+      
+      const response = await fetch(apiUrl)
       if (!response.ok) {
         throw new Error(`Failed to fetch posts: ${response.statusText}`)
       }
       const data: Post[] = await response.json()
       
-      if (append) {
-        setPosts(prev => [...prev, ...data])
-      } else {
-        setPosts(data)
-      }
+      setPosts(data)
       
-      setHasMorePosts(data.length === POSTS_PER_PAGE)
-      
-      // Filter posts to only include those from followed clubs
-      if (currentUser && currentUser.followed_clubs) {
-        const followedClubIds = currentUser.followed_clubs
-        const filteredPosts = data.filter((post) => followedClubIds.includes(post.club))
-        setFollowedEvents(filteredPosts)
-      }
     } catch (err: any) {
+      console.error("Error fetching posts:", err)
       setPosts([])
-      setHasMorePosts(false)
     } finally {
-      if (!append) {
-        setIsLoadingPosts(false)
-      }
+      setIsLoadingPosts(false)
     }
   }
 
-  const fetchClubs = async (page = 1, append = false) => {
-    if (!append) {
-      setIsLoadingClubs(true)
-    }
+
+
+  const fetchClubs = async () => {
+    setIsLoadingClubs(true)
     try {
-      const response = await fetch(`/api/clubs?sort_by=followers&sort_order=desc&limit=${CLUBS_PER_PAGE}&page=${page}`)
+      const response = await fetch(`/api/clubs?sort_by=followers&sort_order=desc`)
       if (!response.ok) {
         throw new Error(`Failed to fetch clubs: ${response.statusText}`)
       }
       const data: Club[] = await response.json()
       
-      if (append) {
-        setClubs(prev => [...prev, ...data])
-      } else {
-        setClubs(data)
-      }
-      
-      setHasMoreClubs(data.length === CLUBS_PER_PAGE)
+      setClubs(data)
     } catch (err: any) {
+      console.error("Error fetching clubs:", err)
       setClubs([])
-      setHasMoreClubs(false)
     } finally {
-      if (!append) {
-        setIsLoadingClubs(false)
-      }
+      setIsLoadingClubs(false)
     }
   }
 
@@ -172,14 +149,15 @@ export default function HomePage() {
   }, [authUser])
 
   useEffect(() => {
-    fetchClubs(1, false)
+    fetchClubs()
   }, [])
 
   useEffect(() => {
     if (!loading) {
-      fetchPosts(1, false)
+      fetchPosts()
     }
   }, [loading, currentUser])
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -211,21 +189,7 @@ export default function HomePage() {
   }
 
   const handlePostDelete = () => {
-    fetchPosts(1, false)
-  }
-
-  const loadMorePosts = () => {
-    if (hasMorePosts) {
-      const nextPage = Math.ceil(posts.length / POSTS_PER_PAGE) + 1
-      fetchPosts(nextPage, true)
-    }
-  }
-
-  const loadMoreClubs = () => {
-    if (hasMoreClubs) {
-      const nextPage = Math.ceil(clubs.length / CLUBS_PER_PAGE) + 1
-      fetchClubs(nextPage, true)
-    }
+    fetchPosts()
   }
 
   useEffect(() => {
@@ -248,7 +212,7 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [duplicatedClubs])
+  }, [clubs])
 
   useEffect(() => {
     const container = postScrollRef.current
@@ -292,31 +256,15 @@ export default function HomePage() {
     return () => {
       container.removeEventListener("scroll", handleInfiniteScroll)
     }
-  }, [duplicatedFollowed])
+  }, [duplicatedPosts])
 
   const duplicatedPostsMemo = useMemo(() => {
     return posts.length > 0 ? [...posts, ...posts, ...posts] : []
   }, [posts])
 
-  const duplicatedFollowedMemo = useMemo(() => {
-    return followedEvents.length > 0 ? [...followedEvents, ...followedEvents, ...followedEvents] : []
-  }, [followedEvents])
-
-  const duplicatedClubsMemo = useMemo(() => {
-    return clubs.length > 0 ? [...clubs, ...clubs, ...clubs] : []
-  }, [clubs])
-
   useEffect(() => {
     setDuplicatedPosts(duplicatedPostsMemo)
   }, [duplicatedPostsMemo])
-
-  useEffect(() => {
-    setDuplicatedFollowed(duplicatedFollowedMemo)
-  }, [duplicatedFollowedMemo])
-
-  useEffect(() => {
-    setDuplicatedClubs(duplicatedClubsMemo)
-  }, [duplicatedClubsMemo])
 
   const handleUserScroll = useCallback(() => {
     isUserScrollingRef.current = true
@@ -562,7 +510,7 @@ export default function HomePage() {
                     onTouchMove={handleUserScroll}
                   >
                     <div
-                      className={`flex gap-4 ${isAutoScrolling && duplicatedClubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
+                      className={`flex gap-4 ${isAutoScrolling && clubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
                       style={{ width: "fit-content" }}
                       onMouseEnter={(e) => {
                         if (e.target === e.currentTarget) {
@@ -578,7 +526,7 @@ export default function HomePage() {
                         }
                       }}
                     >
-                      {duplicatedClubs.map((club: Club, index: any) => (
+                      {clubs.map((club: Club, index: any) => (
                         <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
                           <ClubCard
                             key={club.id}
@@ -596,7 +544,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* General Events Section */}
+      {/* General Events Section - Only show for non-logged-in users */}
       {posts.length <= 4 && !currentUser && (
         <section className="py-12 bg-background relative">
           <div className="container mx-auto px-6">
@@ -684,6 +632,7 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Auto-scrolling General Events Section - Only show for non-logged-in users */}
       {posts.length > 4 && !currentUser && (
         <section className="py-12 bg-background relative">
           <div className="container mx-auto px-6">
@@ -708,7 +657,20 @@ export default function HomePage() {
             </div>
 
             {/* Auto-Scrolling Events */}
-            {posts.length > 0 && (
+            {isLoadingPosts ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading events...</p>
+                  </div>
+                </div>
+              </div>
+            ) : posts.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -783,7 +745,7 @@ export default function HomePage() {
       )}
 
       {/* User Events Section */}
-      {followedEvents.length <= 4 && currentUser && (
+      {posts.length <= 4 && currentUser && (
         <section className="py-8 bg-background relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
@@ -807,7 +769,20 @@ export default function HomePage() {
             </div>
 
             {/* Events Grid */}
-            {followedEvents.length > 0 && (
+            {isLoadingPosts ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading your events...</p>
+                  </div>
+                </div>
+              </div>
+            ) : posts.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -826,7 +801,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
-                    {followedEvents.map((post: Post, index: any) => (
+                    {posts.map((post: Post, index: any) => (
                       <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
                           key={post.id}
@@ -846,7 +821,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {followedEvents.length > 4 && currentUser && (
+      {posts.length > 4 && currentUser && (
         <section className="py-8 bg-background relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
@@ -865,12 +840,25 @@ export default function HomePage() {
                 Your <span className="text-primary">Events</span>
               </h2>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Stay connected with events from the clubs you follow. Your personalized campus experience.
+                Stay connected with events from the clubs you follow. Your personalized campus einxperience.
               </p>
             </div>
 
             {/* Auto-Scrolling Followed Events */}
-            {followedEvents.length > 0 && (
+            {isLoadingPosts ? (
+              <div className="relative">
+                {/* Decorative Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
+
+                {/* Main Container */}
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading your events...</p>
+                  </div>
+                </div>
+              </div>
+            ) : posts.length > 0 && (
               <div className="relative">
                 {/* Decorative Background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
@@ -912,7 +900,7 @@ export default function HomePage() {
                         }
                       }}
                     >
-                      {duplicatedFollowed.map((post: Post, index: any) => (
+                      {duplicatedPosts.map((post: Post, index: any) => (
                         <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                           <PostCard
                             key={post.id}

@@ -70,7 +70,10 @@ export default function ExecPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`/api/users?id=${authUser.uid}`);
+        const token = await authUser.getIdToken();
+        const response = await fetch(`/api/users?id=${authUser.uid}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error);
@@ -118,7 +121,10 @@ export default function ExecPage() {
           if (club.id && club.executives && club.executives.length > 0) {
             const execDetailsPromises = club.executives.map(async (execId) => {
               try {
-                const response = await fetch(`/api/users?id=${execId}`);
+                const token = await authUser?.getIdToken();
+                const response = await fetch(`/api/users?id=${execId}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (!response.ok) {
                   return null;
                 }
@@ -190,7 +196,10 @@ export default function ExecPage() {
     }
 
     try {
-      const userResponse = await fetch(`/api/users?email=${encodeURIComponent(newExecEmail)}`);
+      const token = await authUser?.getIdToken();
+      const userResponse = await fetch(`/api/users?email=${encodeURIComponent(newExecEmail)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!userResponse.ok) {
         setError("Failed to fetch user data.");
         return;
@@ -349,12 +358,12 @@ export default function ExecPage() {
     )
   }
 
-  if (error) {
+  if (!userData?.is_executive && !userData?.is_admin && !isLoading && !authLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-background">
         <div className="bg-card p-6 rounded-lg shadow-md max-w-md w-full border border-border">
           <h2 className="text-xl font-semibold text-destructive mb-3">Access Denied</h2>
-          <p className="text-destructive">Access Denied: You are not an exec.</p>
+          <p className="text-destructive">Access Denied: You are not an admin or executive.</p>
         </div>
       </div>
     )
@@ -488,9 +497,6 @@ export default function ExecPage() {
                                 >
                                   <p className="text-sm font-semibold truncate" title={execUser.name}>
                                     {execUser.name || "N/A"}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground truncate" title={execUser.email}>
-                                    {execUser.email || "N/A"}
                                   </p>
                                 </div>
                               ))
