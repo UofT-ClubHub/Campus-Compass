@@ -5,6 +5,7 @@ import { Post, User } from "@/model/types";
 import { PostCard } from "@/components/post-card";
 import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function PostFilterPage() {
@@ -385,6 +386,7 @@ export default function PostFilterPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
               {/* Sort By */}
               <select
+                data-testid="sort-by"
                 value={sort_by}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
@@ -398,6 +400,7 @@ export default function PostFilterPage() {
               {/* Sort Order */}
               {showSortOrder && (
                 <select
+                  data-testid="sort-order"
                   value={sort_order}
                   onChange={(e) => setSortOrder(e.target.value)}
                   className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"

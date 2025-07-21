@@ -5,6 +5,7 @@ import { Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2
 import type { Post, Club } from "@/model/types";
 import { auth } from "@/model/firebase";
 import { Modal } from "./modal";
+import React from "react";
 
 interface ExpandablePostCardProps {
   post: Post;

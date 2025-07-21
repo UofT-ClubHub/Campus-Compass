@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { auth } from '@/model/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import type { PendingClub, User } from '@/model/types';
+import React from "react";
 
 export default function PendingClubsManagement() {
   const [user] = useAuthState(auth);
@@ -112,8 +113,8 @@ export default function PendingClubsManagement() {
         throw new Error(errorData.error);
       }
       
-      const message = action === 'approve' ? 'Club approved and created successfully!' : 'Club request rejected successfully.';
-      setSuccessMessage(message);
+      const data = await response.json();
+      setSuccessMessage(data.response);
       
       // Refresh the list
       await fetchPendingClubs();
@@ -242,6 +243,7 @@ export default function PendingClubsManagement() {
                   
                   <div className="flex gap-2 lg:ml-4">
                     <button
+                      data-testid="approve-button"
                       onClick={() => handleAction(pendingClub.id, 'approve')}
                       disabled={isProcessing}
                       className="px-4 py-2 bg-success text-primary-foreground rounded-lg hover:bg-success/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors font-medium"
@@ -249,6 +251,7 @@ export default function PendingClubsManagement() {
                       {isProcessing ? 'Processing...' : 'Approve'}
                     </button>
                     <button
+                      data-testid="reject-button"
                       onClick={() => handleAction(pendingClub.id, 'reject')}
                       disabled={isProcessing}
                       className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors font-medium"

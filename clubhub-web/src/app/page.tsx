@@ -831,7 +831,7 @@ export default function HomePage() {
                     ></div>
                   </div>
 
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide" data-testid="posts-container">
                     {posts.map((post: Post, index: any) => (
                       <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
