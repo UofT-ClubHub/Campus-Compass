@@ -1,5 +1,16 @@
 import { GET, POST, DELETE } from '../pending-clubs/route';
 
+// Mock NextResponse (allowwing us to use NextResponse.json() in the handler)
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((data, options) => ({
+      json: () => Promise.resolve(data),
+      status: options?.status || 200,
+      data: data
+    }))
+  }
+}));
+
 // Mock the firebaseAdmin module
 // Mocking firebase calls so we don't need to interact with real firebase database
 jest.mock('../firebaseAdmin', () => ({

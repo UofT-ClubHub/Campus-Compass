@@ -7,6 +7,7 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "test:api": "jest --config jest.api.config.js --coverage",
+    "test:frontend": "jest --testPathIgnorePatterns=src/app/api/__tests__ --coverage --testPathIgnorePatterns=src/lib/__tests__",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

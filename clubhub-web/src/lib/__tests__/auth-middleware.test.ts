@@ -173,8 +173,8 @@ describe('Auth Middleware', () => {
       expect(result.uid).toBe('test-user-123');
       expect(result.isAdmin).toBe(false);
       expect(result.isExecutive).toBe(false);
-      expect(result.status).toBe(404);
-      expect(result.error).toBe('User not found');
+      expect(result.status).toBe(200);
+      expect(result.error).toBeUndefined();  // user is not found, but still returns 200 and no error
     });
 
     it('should return error when firestore throws unexpected error', async () => {

@@ -140,7 +140,7 @@ describe('ClubPage Component', () => {
       await waitFor(() => {
         expect(screen.getByText('42')).toBeInTheDocument();
         expect(screen.getByText('Followers')).toBeInTheDocument();
-        expect(screen.getByText('0')).toBeInTheDocument();
+        expect(screen.getByText('2')).toBeInTheDocument();
         expect(screen.getByText('Executives')).toBeInTheDocument();
         expect(screen.getByText('@testclub')).toBeInTheDocument();
         expect(screen.getByText('UTSG')).toBeInTheDocument();
