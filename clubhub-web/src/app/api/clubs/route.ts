@@ -31,10 +31,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all and apply filters
-    let snapshot = await clubsCollection.get();
-    let clubs: Club[] = snapshot.docs.map(
-      (doc) => ({ ...doc.data(), id: doc.id } as Club)
-    );
+    let query: any = clubsCollection;
+
+    if (campusFilter) {
+        query = query.where('campus', '==', campusFilter);
+    }
+
+    if (sortBy && ['followers'].includes(sortBy)) {
+        const order = sortOrder === 'asc' ? 'asc' : 'desc';
+        query = query.orderBy(sortBy, order);
+    }
+
+    const snapshot = await query.get();
+    let clubs: Club[] = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Club));
 
     // Filters
     clubs = clubs.filter(

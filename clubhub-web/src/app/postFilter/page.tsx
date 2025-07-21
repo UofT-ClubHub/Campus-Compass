@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Post, User } from "@/model/types";
 import { PostCard } from "@/components/post-card";
 import { auth } from "@/model/firebase";
@@ -24,13 +24,26 @@ export default function PostFilterPage() {
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
 
   const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [offset, setOffset] = useState(0);
-  const limit = 3;
+  const limit = 9;
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
   const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "");
   const [showSortOrder, setShowSortOrder] = useState(false);
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setNameFilter("");
+    setCampusFilter("");
+    setDescriptionFilter("");
+    setClubFilter("");
+    setHashtagsFilter("");
+    setCategoryFilter("");
+    setSortBy("");
+    setSortOrder("");
+  };
 
   useEffect(() => {
     setShowSortOrder(sort_by !== "");
@@ -63,15 +76,26 @@ export default function PostFilterPage() {
     categoryFilter, sort_by, sort_order]);
 
   const filterPosts = async (isNewSearch = false) => {
-    if (loadingRef.current) return;
+    // Prevent multiple simultaneous calls
+    if (loadingRef.current) {
+      console.log("Filter posts already in progress, skipping...");
+      return;
+    }
+    
     loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
 
     if (isNewSearch) {
       setPosts([]);
+      setInitialLoading(true);
     } else {
       setLoadingMore(true);
+    }
+
+    // Add a small delay to prevent rapid successive calls
+    if (!isNewSearch) {
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
     try {
@@ -99,11 +123,17 @@ export default function PostFilterPage() {
       const response = await fetch(`/api/posts?${params.toString()}`, {
         method: "GET",
       });
+      
       if (!response.ok) {
-        throw new Error("Failed to fetch clubs"); // Throws error to be caught
+        throw new Error(`Failed to fetch posts: ${response.status}`);
       }
 
       const data = await response.json();
+
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format");
+      }
 
       setOffset(currentOffset + data.length);
       setHasMore(data.length === limit);
@@ -122,9 +152,13 @@ export default function PostFilterPage() {
 
       console.log("Filtered posts:", data);
     } catch (error) {
-      console.log("Error fetching clubs:", error);
+      console.error("Error fetching posts:", error);
+      // Reset loading states on error
+      setHasMore(false);
     } finally {
-      if (!isNewSearch) {
+      if (isNewSearch) {
+        setInitialLoading(false);
+      } else {
         setLoadingMore(false);
       }
       loadingRef.current = false;
@@ -134,7 +168,10 @@ export default function PostFilterPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (authUser) {
-        const response = await fetch(`/api/users?id=${authUser.uid}`);
+        const token = await authUser.getIdToken();
+        const response = await fetch(`/api/users?id=${authUser.uid}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser(userData);
@@ -146,12 +183,19 @@ export default function PostFilterPage() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
+      // Cancel any ongoing requests
+      loadingRef.current = false;
       setHasMore(true); // Reset hasMore to true for new search
       setOffset(0); // Reset offset for new search
+      setInitialLoading(true); // Show loading state for new search
       filterPosts(true);
-    }, 500); // waits 500ms after user stops typing
+    }, 300); // Reduced from 500ms to 300ms for faster response
 
-    return () => clearTimeout(delay); // cancel previous timeout if input changes
+    return () => {
+      clearTimeout(delay);
+      // Cancel any ongoing requests when component unmounts or dependencies change
+      loadingRef.current = false;
+    };
   }, [
     nameFilter,
     campusFilter,
@@ -163,26 +207,50 @@ export default function PostFilterPage() {
     sort_order,
   ]);
 
-  // Infinite Scrolling Logic
+  // Infinite Scrolling Logic with debouncing
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    let isScrolling = false;
+    let lastScrollTime = 0;
+
     const handleScroll = () => {
+      const now = Date.now();
+      
+      // Prevent rapid successive calls
+      if (now - lastScrollTime < 100) {
+        return;
+      }
+      lastScrollTime = now;
+
       if (
         window.innerHeight + document.documentElement.scrollTop <
-          document.documentElement.offsetHeight - 100 ||
-        !hasMore
+          document.documentElement.offsetHeight - 300 || // Increased threshold
+        !hasMore ||
+        loadingMore ||
+        loadingRef.current
       ) {
         return;
       }
-      filterPosts();
+
+      // Clear any existing timeout
+      clearTimeout(scrollTimeout);
+      
+      // Set a longer debounce to prevent rapid calls
+      scrollTimeout = setTimeout(() => {
+        if (!loadingRef.current && !loadingMore && hasMore) {
+          filterPosts();
+        }
+      }, 300); // Increased debounce time
     };
 
-    // Add scroll event listener
-    window.addEventListener("scroll", handleScroll);
+    // Add scroll event listener with throttling
+    window.addEventListener("scroll", handleScroll, { passive: true });
     console.log("Scroll event listener added");
 
     // Cleanup
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimeout);
     };
   }, [hasMore, offset, loadingMore]);
 
@@ -342,6 +410,16 @@ export default function PostFilterPage() {
                 </select>
               )}
             </div>
+            
+            {/* Clear All Filters Button */}
+            <div className="flex justify-center mt-4 pt-3 border-t border-border">
+              <button
+                onClick={clearAllFilters}
+                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -354,7 +432,11 @@ export default function PostFilterPage() {
               Post Results
             </h2>
 
-            {posts.length === 0 ? (
+            {initialLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : posts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg
@@ -379,18 +461,35 @@ export default function PostFilterPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.map((post: Post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    currentUser={currentUser}
-                    onLikeUpdate={handleLikeUpdate}
-                    onDelete={handleDeletePost}
-                    onRefresh={refreshPosts}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {posts.map((post: Post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      currentUser={currentUser}
+                      onLikeUpdate={handleLikeUpdate}
+                      onDelete={handleDeletePost}
+                      onRefresh={refreshPosts}
+                    />
+                  ))}
+                </div>
+                
+                {/* Loading more posts indicator */}
+                {loadingMore && (
+                  <div className="mt-8 py-4 flex flex-col items-center">
+                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <p className="text-center text-muted-foreground mt-2">Loading more posts...</p>
+                  </div>
+                )}
+                
+                {/* End of results indicator */}
+                {!hasMore && posts.length > 0 && (
+                  <div className="mt-8 py-4 text-center">
+                    <p className="text-muted-foreground">No more posts to load</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

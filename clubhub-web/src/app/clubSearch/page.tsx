@@ -19,12 +19,22 @@ export default function clubSearchPage() {
   const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "")
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
+  const [sortOrder, setsortOrder] = useState(searchParams.get('sort_order') || "")
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const limit = 4;
   const loadingRef = useRef(false);
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setNameFilter("");
+    setCampusFilter("");
+    setDescriptionFilter("");
+    setsortOrder("");
+  };
   
 
   useEffect(() => {
@@ -63,22 +73,34 @@ export default function clubSearchPage() {
   if (nameFilter) params.set('name', nameFilter);
   if (campusFilter) params.set('campus', campusFilter);
   if (descriptionFilter) params.set('description', descriptionFilter);
+  if (sortOrder) params.set('sort_order', sortOrder);
   
   // Update URL as filters are applied
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter]);
+}, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
 
   const clubSearch = async (isNewSearch = false) => {
-    if (loadingRef.current) return;
+    // Prevent multiple simultaneous calls
+    if (loadingRef.current) {
+      console.log("Club search already in progress, skipping...");
+      return;
+    }
+    
     loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
 
     if (isNewSearch) {
       setClubs([]);
+      setInitialLoading(true);
     } else {
       setLoadingMore(true);
+    }
+
+    // Add a small delay to prevent rapid successive calls
+    if (!isNewSearch) {
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
     try {
@@ -87,6 +109,8 @@ export default function clubSearchPage() {
       nameFilter ? params.append("name", nameFilter) : null
       campusFilter ? params.append("campus", campusFilter) : null
       descriptionFilter ? params.append("description", descriptionFilter) : null
+      sortOrder ? params.append("sort_by", "followers") : null
+      sortOrder ? params.append("sort_order", sortOrder) : null
       params.append("offset", currentOffset.toString())
       params.append("limit", limit.toString());
 
@@ -95,10 +119,15 @@ export default function clubSearchPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to fetch clubs")
+        throw new Error(`Failed to fetch clubs: ${res.status}`);
       }
 
       const data = await res.json()
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format");
+      }
       
       setOffset(currentOffset + data.length);
       setHasMore(data.length === limit);
@@ -114,9 +143,13 @@ export default function clubSearchPage() {
 
       console.log("Club list updated:", data)
     } catch (error) {
-      console.log("Error fetching clubs:", error)
+      console.error("Error fetching clubs:", error);
+      // Reset loading states on error
+      setHasMore(false);
     } finally {
-      if (!isNewSearch) {
+      if (isNewSearch) {
+        setInitialLoading(false);
+      } else {
         setLoadingMore(false);
       }
       loadingRef.current = false;
@@ -125,30 +158,64 @@ export default function clubSearchPage() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
+      // Cancel any ongoing requests
+      loadingRef.current = false;
       setHasMore(true); // Reset hasMore for new search
       setOffset(0); // Reset offset for new search
+      setInitialLoading(true); // Show loading state for new search
       clubSearch(true);
-    }, 500); // waits 500ms after user stops typing
+    }, 300); // Reduced from 500ms to 300ms for faster response
   
-    return () => clearTimeout(delay); // cancel previous timeout if input changes
-  }, [nameFilter, campusFilter, descriptionFilter]);
+    return () => {
+      clearTimeout(delay);
+      // Cancel any ongoing requests when component unmounts or dependencies change
+      loadingRef.current = false;
+    };
+  }, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
 
-// Infinite scrolling logic
-useEffect(() => {
-  const handleScroll = () => {
-    if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 100 || !hasMore) {
-      return;
-    }
-    clubSearch();
+  // Infinite scrolling logic with debouncing
+  useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    let lastScrollTime = 0;
+
+    const handleScroll = () => {
+      const now = Date.now();
+      
+      // Prevent rapid successive calls
+      if (now - lastScrollTime < 100) {
+        return;
+      }
+      lastScrollTime = now;
+
+      if (
+        window.innerHeight + document.documentElement.scrollTop <
+          document.documentElement.offsetHeight - 300 || // Increased threshold
+        !hasMore ||
+        loadingMore ||
+        loadingRef.current
+      ) {
+        return;
+      }
+
+    // Clear any existing timeout
+    clearTimeout(scrollTimeout);
+    
+    // Set a longer debounce to prevent rapid calls
+    scrollTimeout = setTimeout(() => {
+      if (!loadingRef.current && !loadingMore && hasMore) {
+        clubSearch();
+      }
+    }, 300); // Increased debounce time
   };
 
-  // Add scroll event listener
-  window.addEventListener('scroll', handleScroll);
+  // Add scroll event listener with throttling
+  window.addEventListener('scroll', handleScroll, { passive: true });
   console.log("Scroll event listener added");
 
   // Cleanup
   return () => {
     window.removeEventListener('scroll', handleScroll);
+    clearTimeout(scrollTimeout);
   };
 }, [hasMore, offset, loadingMore]);
 
@@ -161,7 +228,7 @@ useEffect(() => {
 
           {/* Compact Search Filters */}
           <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Club Name Filter */}
               <input
                 type="text"
@@ -191,6 +258,26 @@ useEffect(() => {
                 <option value="UTSG">UTSG</option>
                 <option value="UTM">UTM</option>
               </select>
+
+              {/* Sort By Followers */}
+              <select
+                value={sortOrder}
+                onChange={(e) => setsortOrder(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
+              >
+                <option value="desc">Follows (Descending)</option>
+                <option value="asc">Follows (Ascending)</option>
+              </select>
+            </div>
+            
+            {/* Clear All Filters Button */}
+            <div className="flex justify-center mt-4 pt-3 border-t border-border">
+              <button
+                onClick={clearAllFilters}
+                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
+              >
+                Clear All Filters
+              </button>
             </div>
           </div>
         </div>
@@ -202,7 +289,11 @@ useEffect(() => {
           <div className="bg-card rounded-lg shadow-md border border-border p-6 form-glow">
             <h2 className="text-2xl font-bold text-primary mb-6 text-center">Club Results</h2>
 
-            {clubs.length === 0 ? (
+            {initialLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : clubs.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg
@@ -222,14 +313,31 @@ useEffect(() => {
                 <h3 className="text-lg font-semibold text-card-foreground mb-2">No clubs found</h3>
                 <p className="text-muted-foreground text-sm">Try adjusting your filters to find more clubs</p>
               </div>            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {clubs.map((club: Club) => (
-                    <ClubCard
-                      key={club.id} 
-                      club={club} 
-                    />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {clubs.map((club: Club) => (
+                      <ClubCard
+                        key={club.id} 
+                        club={club} 
+                      />
+                  ))}
+                </div>
+                
+                {/* Loading more clubs indicator */}
+                {loadingMore && (
+                  <div className="mt-8 py-4 flex flex-col items-center">
+                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <p className="text-center text-muted-foreground mt-2">Loading more clubs...</p>
+                  </div>
+                )}
+                
+                {/* End of results indicator */}
+                {!hasMore && clubs.length > 0 && (
+                  <div className="mt-8 py-4 text-center">
+                    <p className="text-muted-foreground">No more clubs to load</p>
+                  </div>
+                )}
+              </>
             )}
 
           </div>

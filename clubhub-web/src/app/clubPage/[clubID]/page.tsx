@@ -117,16 +117,16 @@ export default function ClubPage({ params }: PageProps) {
         setExecutivesLoading(true)
         try {
           const user = auth.currentUser
-          if (!user) {
-            setExecutivesLoading(false)
-            return
-          }
-
-          const token = await user.getIdToken()
           const executivePromises = clubData.executives.map(async (execId: string) => {
             try {
+              const headers: Record<string, string> = {}
+              if (user) {
+                const token = await user.getIdToken()
+                headers.Authorization = `Bearer ${token}`
+              }
+              
               const res = await fetch(`/api/users?id=${execId}`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers,
               })
               return res.ok ? await res.json() : null
             } catch {
@@ -312,7 +312,7 @@ export default function ClubPage({ params }: PageProps) {
                         className="bg-primary/20 backdrop-blur-sm rounded-lg px-3 py-2 text-center border border-primary/30"
                       >
                         <p className="text-white text-sm font-medium">
-                          {executive.name || "Executive"}{executive.email && ` • ${executive.email}`}
+                          {executive.name || "Executive"}
                         </p>
                       </div>
                     ))}

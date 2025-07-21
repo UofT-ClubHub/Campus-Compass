@@ -168,7 +168,7 @@ export default function PendingClubRequestPage() {
               required
               maxLength={500}
               rows={4}
-              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card resize-none"
+              className="w-full p-3 border-2 border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-card resize-none placeholder:text-muted-foreground"
               placeholder="Describe your club's purpose, activities, and goals..."
             />
             <p className="text-sm text-muted-foreground mt-1">

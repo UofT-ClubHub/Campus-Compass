@@ -102,18 +102,25 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-background pt-20">
-            <div className="container mx-auto px-6 py-8">
+            <div className="container mx-auto px-6 py-8">                
                 <div className="mb-6 bg-card border-2 border-border rounded-lg shadow-sm p-8">
-                    <div className="flex items-start gap-8">
-                        <div className="flex-1 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-6">
+                        <div className="flex-1 space-y-4 w-full">
                             
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                                 <h1 className="text-3xl font-bold text-foreground">
-                                    {userData ? userData.name : "No Name Provided"}
+                                     {userData ? userData.name : "No Name Provided"}
                                 </h1>
+                                {/* Settings button for mobile - inline with name */}
+                                <button 
+                                    onClick={handleSettingsClick}
+                                    className="sm:hidden self-start p-2 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
+                                >
+                                    <Settings size={18} className="text-foreground" /> 
+                                </button>
                             </div>
                             
-                            <div className="flex gap-6 text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-muted-foreground">
                                 <div className="flex items-center gap-2">
                                     <Mail size={16} />
                                     <span className="text-sm">{userData?.email?.trim() || "No Email Provided"}</span>
@@ -126,7 +133,7 @@ export default function ProfilePage() {
 
                             <p className="text-sm text-muted-foreground max-w-2xl">{userData?.bio?.trim() || "No Bio Provided"}</p>
 
-                            <div className="flex gap-6 mt-6">
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-6">
                                 <div className="flex items-center gap-2">
                                     <Users size={16} className="text-blue-500" />
                                     <span className="text-sm font-medium text-foreground">{userData ? userData.followed_clubs.length : "0"} Clubs Following</span>
@@ -145,9 +152,10 @@ export default function ProfilePage() {
                         
                         </div>
 
+                        {/* Settings button for desktop - positioned to the right */}
                         <button 
                             onClick={handleSettingsClick}
-                            className="p-3 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
+                            className="hidden sm:block p-3 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
                         >
                             <Settings size={20} className="text-foreground" /> 
                         </button>
