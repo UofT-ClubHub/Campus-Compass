@@ -35,26 +35,29 @@
 - **Imran**: UI Overhaul & Dynamic Routing for Clubs
 - **Eishan**: Testing & Sorting for Events/Posts
 - **Dibya**: Chatbot/URL State Persistance
-- **Hong Yu**: Export to Calander & Home Page Autoscrolling
+- **Hong Yu**: Export to Calendar & Home Page Autoscrolling
 
 ### Metrics for Measurement
-- Confirm that unauthorized users do not have access to protected pages/features
-- Scraper scrapes all the relevant club/post information with 90% accuracy
-- Correct retrieval/storage of data of posts/clubs/users 
+- All events/clubs are shown on the carousel with smooth autoscrolling
+- Only authorized users are able to manage clubs
+- 100% success rate on create/edit/delete club operations
 
 ## Release Scope
 
 ### Included Features
-- UI Overhaul
+- UI/UX Overhaul
   - Different Themes
   - Each club has their own page
   - General UI improvements
+  - Filter persist across refreshes
 - Carousel for Events/Clubs
   - Implemented infinite horizontal scrolling clubs/events
   - Automatically scroll for events/clubs
 - Create/Delete/View Clubs
   - Edit/Delete/Edit Clubs
   - Allow users to request clubs
+- Export to Calendar
+  - Users are able to export events as an .ics file
 
 ### Excluded Features
 - AI-Powered Chatbot for Instant Answers
