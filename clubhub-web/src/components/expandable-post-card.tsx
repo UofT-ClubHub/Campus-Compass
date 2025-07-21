@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2 } from "lucide-react";
+import { Heart, Calendar, MapPin, Edit2, ExternalLink, Users, Save, Plus, Trash2, X } from "lucide-react";
 import type { Post, Club } from "@/model/types";
-import firebase from "@/model/firebase";
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from "@/model/firebase";
+import { Modal } from "./modal";
+import React from "react";
 
 interface ExpandablePostCardProps {
   post: Post;
@@ -29,6 +30,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
 
   // Update likes when post prop changes
   useEffect(() => {
@@ -54,7 +56,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             setClubName("Unknown Club");
           }
         } catch (error) {
-          console.log("Error fetching club name:", error);
           setClubName("Unknown Club");
         }
       }
@@ -80,7 +81,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsDeleting(true);
     
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (!user) {
         alert('Please log in to delete posts');
         return;
@@ -105,12 +106,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
         onClose();
       } else {
-        const errorData = await response.text();
-        console.log('Failed to delete post:', response.status, errorData);
-        alert('Failed to delete post. You may not have permission to delete this post.');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error deleting post:', error);
       alert('Error occurred while deleting post');
     } finally {
       setIsDeleting(false);
@@ -122,37 +121,34 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     setIsSaving(true);
 
     try {
+      let imageUrl = editedPost.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImageToBackend(pendingImageFile, 'posts');
+      }
       const url = isCreating ? `/api/posts` : `/api/posts?id=${post.id}`;
       const method = isCreating ? 'POST' : 'PUT';
-
-      const authUser = firebase.auth().currentUser;
-      
+      const authUser = auth.currentUser;
       if (authUser) {
         const token = await authUser.getIdToken();
-
         const response = await fetch(url, {
           method: method,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(editedPost),
+          body: JSON.stringify({ ...editedPost, image: imageUrl }),
         });
-
         if (response.ok) {
           const savedPost = await response.json();
           setIsEditing(false);
-          
+          setPendingImageFile(null);
           if (onEdit) onEdit(savedPost);
           if (onSave) onSave(savedPost);
-
-          // Force a re-render by updating the post prop reference
           Object.assign(post, savedPost);
         } else {
           const errorData = await response.json();
-          console.log('Failed to save post', errorData);
           if (onSaveError) {
-            onSaveError(errorData.message || errorData.error || 'Failed to save post');
+            onSaveError(errorData);
           }
         }
       } else {
@@ -161,7 +157,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         }
       }
     } catch (error) {
-      console.log('Error saving post:', error);
       if (onSaveError) {
         onSaveError(error instanceof Error ? error.message : 'An unknown error occurred.');
       }
@@ -221,33 +216,26 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
     window.open(link, '_blank', 'noopener,noreferrer');
   };
 
-  const handleCloseOverlay = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClose = () => {
     onClose();
   };
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (isLiking) {
-      console.log('Already loading, skipping...');
-      return;
-    }
+    if (isLiking) return;
     
     setIsLiking(true);
     
     try {
-      const user = firebase.auth().currentUser;
-      console.log('Firebase user:', user?.uid);
+      const user = auth.currentUser;
       
       if (!user) {
-        console.log('User not authenticated');
         alert('Please log in to like posts');
         return;
       }
 
       const idToken = await user.getIdToken();
-      console.log('Making API call to like post:', post.id);
       
       const response = await fetch('/api/likes', {
         method: 'POST',
@@ -259,55 +247,114 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           postId: post.id
         })
       });
-
-      console.log('API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Like response data:', data);
         setLikes(data.likes);
         setIsLiked(data.liked);
         if (onLikeUpdate) {
           onLikeUpdate(post.id, data.likes, data.liked);
         }
       } else {
-        const errorData = await response.text();
-        console.log('Failed to like/unlike post:', response.status, errorData);
-        alert('Failed to like/unlike post');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
     } catch (error) {
-      console.log('Error handling like:', error);
       alert('Error occurred while liking/unliking post');
     } finally {
       setIsLiking(false);
     }
   };
 
+  const handleExportToCalendar = (e: React.MouseEvent) => {
+  e.stopPropagation();
+
+  if (!editedPost.date_occuring) {
+    alert('No Event Date Specified');
+    return;
+  }
+
+  const start = new Date(editedPost.date_occuring);
+  const end = new Date(start.getTime() + 60 * 60 * 1000); // Default 1 hour event
+
+  const formatDate = (date: Date) => {
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  }
+
+  const icsContent = 
+    `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//YourApp//EN
+BEGIN:VEVENT
+UID:${post.id}@yourapp.com
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(start)}
+DTEND:${formatDate(end)}
+SUMMARY:${editedPost.title}
+DESCRIPTION:${editedPost.details || ''}
+LOCATION:${editedPost.campus || ''}
+END:VEVENT
+END:VCALENDAR`.trim();
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${editedPost.title.replace(/\s+/g, "_")}.ics`;
+    link.click();
+
+    URL.revokeObjectURL(url); // clean up
+};
+
+
+  const handleImageUploadInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPendingImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImageToBackend = async (file: File, folder: string = 'posts'): Promise<string> => {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Please log in to upload images');
+    }
+
+    const token = await user.getIdToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+    formData.append('postId', post.id);
+    formData.append('originalImageUrl', post.image || "");
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error);
+    }
+
+    const data = await response.json();
+    return data.downloadURL;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={handleCloseOverlay}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="relative">
-          <img
-            src={post.image || "/placeholder.jpg"}
-            alt={post.title}
-            className="w-full h-64 object-cover"
-          />
-          
-          {/* Close button */}
-          <button
-            onClick={handleCloseOverlay}
-            className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <Modal open={true} onOpenChange={handleClose} title={isCreating ? "Create New Post" : editedPost.title} showCloseButton={true} backgroundClass="bg-[var(--expandable-post-card-bg)]">
+      {/* Header */}
+      <div className="relative">
+        <img
+          src={post.image || "/placeholder.jpg"}
+          alt={post.title}
+          className="w-full h-64 object-cover"
+        />
 
           {/* Edit/Save/Cancel/Delete buttons for club admins */}
           {(isClubAdmin || isCreating) && (
@@ -317,24 +364,24 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors text-sm font-medium"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? 'Saving...' : 'Save'}
                   </button>
-                  <button
+                    <button
                     onClick={handleCancel}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
-                  >
+                    className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
                     <X className="h-4 w-4" />
                     Cancel
-                  </button>
+                    </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-2 px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 bg-warning text-warning-foreground rounded-lg hover:bg-warning/90 transition-colors text-sm font-medium"
                   >
                     <Edit2 className="h-4 w-4" />
                     Edit
@@ -343,7 +390,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                     <button
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                      className="flex items-center gap-2 px-3 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors text-sm font-medium"
                     >
                       <Trash2 className="h-4 w-4" />
                       {isDeleting ? 'Deleting...' : 'Delete'}
@@ -354,24 +401,32 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             </div>
           )}
 
-          {/* Likes overlay */}
+          {/* Export to Calendar */}
           {!isCreating && (
           <button
-            onClick={(e) => {
-              console.log('Like button clicked - current state:', { isLiked, likes, postId: post.id });
-              handleLike(e);
-            }}
+            onClick={handleExportToCalendar}
             disabled={!currentUser || isLiking}
-            className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full border-2 border-white/70 flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            <Calendar />
+          </button>
+          )}
+
+          {/* Likes overlay */}
+          {!isCreating && (
+            <button
+            onClick={handleLike}
+            disabled={!currentUser || isLiking}
+            className="absolute bottom-4 right-4 bg-black/60 text-white border-2 border-white/70 px-3 py-2 rounded-full flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
             <Heart 
               className={`h-5 w-5 transition-colors ${
-                isLiked ? 'text-red-500 fill-current' : 'text-red-400'
+              isLiked ? 'text-destructive fill-current' : 'text-white'
               }`}
               fill={isLiked ? "currentColor" : "none"}
             />
             <span className="font-medium">{likes}</span>
-          </button>
+            </button>
           )}
         </div>
 
@@ -381,41 +436,41 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             <div className="space-y-6">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Title <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
                   value={editedPost.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Description <span className="text-destructive">*</span>
                 </label>
                 <textarea
                   value={editedPost.details}
                   onChange={(e) => handleInputChange('details', e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Category <span className="text-destructive">*</span>
                 </label>
                 <select
                   value={editedPost.category}
                   onChange={(e) => handleInputChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 >
                   <option value="">Select a category</option>
@@ -428,13 +483,13 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
               {/* Campus */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Campus <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Campus <span className="text-destructive">*</span>
                 </label>
                 <select
                   value={editedPost.campus}
                   onChange={(e) => handleInputChange('campus', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 >
                   <option value="">Select a campus</option>
@@ -445,44 +500,36 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               </div>              
               {/* Event Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Date <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Event Date <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="datetime-local"
                   value={editedPost.date_occuring ? new Date(editedPost.date_occuring).toISOString().slice(0, 16) : ''}
                   onChange={(e) => handleInputChange('date_occuring', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                   required
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Image Upload</label>
                 <input
                   type="file"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        handleInputChange('image', reader.result as string);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  accept="image/*"
+                  onChange={handleImageUploadInput}
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                 />
               </div>
 
               {/* Hashtags */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Tags</label>
+                  <label className="block text-sm font-medium text-foreground">Tags</label>
                   <button
                     onClick={addHashtag}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
                   >
                     <Plus className="h-3 w-3" />
                     Add Tag
@@ -496,11 +543,11 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                         value={hashtag}
                         onChange={(e) => updateHashtag(index, e.target.value)}
                         placeholder="Enter hashtag"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                       />
                       <button
                         onClick={() => removeHashtag(index)}
-                        className="px-2 py-2 text-red-500 hover:bg-red-50 rounded"
+                        className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -512,10 +559,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               {/* Links */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Related Links</label>
+                  <label className="block text-sm font-medium text-foreground">Related Links</label>
                   <button
                     onClick={addLink}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                    className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
                   >
                     <Plus className="h-3 w-3" />
                     Add Link
@@ -529,11 +576,11 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
                         value={link}
                         onChange={(e) => updateLink(index, e.target.value)}
                         placeholder="Enter URL"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                       />
                       <button
                         onClick={() => removeLink(index)}
-                        className="px-2 py-2 text-red-500 hover:bg-red-50 rounded"
+                        className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -545,10 +592,10 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
           ) : (
             <div className="space-y-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <h1 className="text-2xl font-bold text-foreground mb-2">
                   {post.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {post.category}
@@ -566,8 +613,8 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               
               {post.details && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <h3 className="font-semibold text-foreground mb-2">Description</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                     {post.details}
                   </p>
                 </div>
@@ -577,8 +624,8 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Event Date */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Event Date</h3>
-                  <p className="text-gray-700">
+                  <h3 className="font-semibold text-foreground mb-2">Event Date</h3>
+                  <p className="text-muted-foreground">
                     {post.date_occuring && !isNaN(new Date(post.date_occuring).getTime()) 
                       ? new Date(post.date_occuring).toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -595,8 +642,8 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
                 {/* Posted Date */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Posted Date</h3>
-                  <p className="text-gray-700">
+                  <h3 className="font-semibold text-foreground mb-2">Posted Date</h3>
+                  <p className="text-muted-foreground">
                     {post.date_posted && !isNaN(new Date(post.date_posted).getTime()) 
                       ? new Date(post.date_posted).toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -615,12 +662,12 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               {/* Hashtags */}
               {post.hashtags && post.hashtags.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Tags</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {post.hashtags.map((hashtag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                        className="px-3 py-1 bg-accent/20 text-accent text-sm rounded-full"
                       >
                         #{hashtag}
                       </span>
@@ -632,13 +679,13 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
               {/* Links */}
               {post.links && post.links.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Related Links</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Related Links</h3>
                   <div className="space-y-2">
                     {post.links.map((link, index) => (
                       <button
                         key={index}
                         onClick={(e) => handleLinkClick(e, link)}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                        className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors text-sm"
                       >
                         <ExternalLink className="h-4 w-4" />
                         {link}
@@ -650,7 +697,6 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
             </div>
           )}
         </div>       
-      </div>
-    </div>
+    </Modal>
   );
 }

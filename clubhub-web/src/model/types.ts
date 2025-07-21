@@ -37,3 +37,14 @@ export interface Post {
     image: string;
     links: string[];
 }
+
+export interface PendingClub {
+    id: string;
+    user: string;
+    club_name: string;
+    club_campus: string;
+    club_description: string;
+    created_at: string;
+    club_image: string;
+    club_instagram: string;
+}

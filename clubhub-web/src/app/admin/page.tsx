@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/model/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { User, Club } from '@/model/types';
+import type { User, Club } from '@/model/types';
+import PendingClubsManagement from '@/components/pending-clubs-management';
 
 export default function AdminPage() {
-    const { user: authUser, loading: authLoading } = useAuth();
+    const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const router = useRouter();
     const [currentUserData, setCurrentUserData] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +36,15 @@ export default function AdminPage() {
         { value: 'UTSC', label: 'UTSC' },
         { value: 'UTM', label: 'UTM' }
     ];
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (error) {
@@ -294,67 +306,73 @@ export default function AdminPage() {
 
     if (authLoading || isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-screen bg-slate-50">
+            <div className="flex justify-center items-center min-h-screen bg-background">
                 <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 border-4 border-slate-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-                    <p className="text-slate-600 font-medium">Loading admin panel...</p>
+                    <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-muted-foreground font-medium">Loading admin panel...</p>
                 </div>
             </div>
         )
-    } if (!currentUserData?.is_admin && !isLoading && !authLoading) {
+    } 
+    
+    if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
-            <div className="flex justify-center items-center min-h-screen bg-slate-50">
-                <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
-                    <h2 className="text-xl font-semibold text-red-600 mb-3">Access Denied</h2>
-                    <p className="text-red-500">Access Denied: You are not an admin.</p>
+            <div className="flex justify-center items-center min-h-screen bg-background">
+                <div className="bg-card p-6 rounded-lg shadow-md max-w-md w-full border border-border">
+                    <h2 className="text-xl font-semibold text-destructive mb-3">Access Denied</h2>
+                    <p className="text-destructive">Access Denied: You are not an admin.</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+        <div className="min-h-screen bg-background p-4 md:p-6">
             <div className="max-w-5xl mx-auto">
 
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Panel</h1>
-                    <p className="text-slate-600 text-lg mb-2">
-                        Welcome, <span className="text-blue-600 font-semibold">{currentUserData?.name || currentUserData?.email}</span>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
+                    <p className="text-muted-foreground text-lg mb-2">
+                        Welcome, <span className="text-primary font-semibold">{currentUserData?.name || currentUserData?.email}</span>
                     </p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-6">
                         <strong>Error:</strong> {error}
                     </div>
                 )}
 
                 {successMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                    <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-lg mb-6">
                         {successMessage}
                     </div>)}
 
                 <section className="mb-8">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-4">Search Users</h2>
+                    <PendingClubsManagement />
+                </section>
+
+                <section className="mb-8">
+                    <h2 className="text-xl font-semibold text-foreground mb-4">Search Users</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <input
                             type="text"
                             placeholder="Filter by name..."
                             value={nameFilter}
                             onChange={(e) => setNameFilter(e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+                            className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground"
                         />
                         <input
                             type="text"
                             placeholder="Filter by email..."
                             value={emailFilter}
                             onChange={(e) => setEmailFilter(e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+                            className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground"
                         />
                         <select
                             value={campusFilter}
                             onChange={(e) => setCampusFilter(e.target.value)}
-                            className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-transparent"
+                            className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground"
                         >
                             <option value="">All Campuses</option>
                             {campusOptions.map(option => (
@@ -365,16 +383,16 @@ export default function AdminPage() {
                         </select>
                     </div>
                     {allUsers.length > 0 && (
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-96 overflow-y-auto">
+                        <div className="bg-card border border-border rounded-lg shadow-sm max-h-96 overflow-y-auto">
                             {allUsers.map((user: User) => (
                                 <div
                                     key={user.id}
                                     onClick={() => handleSelectUser(user)}
-                                    className="p-3 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50 transition-colors"
+                                    className="p-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted transition-colors"
                                 >
-                                    <span className="font-medium text-slate-900">{user.name || ""}</span>
-                                    <span className="text-slate-600"> ({user.email})</span>
-                                    <span className="text-slate-500"> - Campus: {user.campus || ""}</span>
+                                    <span className="font-medium text-foreground">{user.name || ""}</span>
+                                    <span className="text-muted-foreground"> ({user.email})</span>
+                                    <span className="text-muted-foreground"> - Campus: {user.campus || ""}</span>
                                 </div>
                             ))}
                         </div>
@@ -383,63 +401,63 @@ export default function AdminPage() {
                 </section>
 
                 {isEditing && selectedUser && (
-                    <section className="bg-white rounded-lg shadow-sm p-6 border border-slate-200">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-6">Edit User: {selectedUser.name || selectedUser.email}</h2>                        <div className="mb-4">
-                            <label className="flex items-center text-slate-700">
+                    <section className="bg-card rounded-lg shadow-sm p-6 border border-border">
+                        <h2 className="text-xl font-semibold text-foreground mb-6">Edit User: {selectedUser.name || selectedUser.email}</h2>                        <div className="mb-4">
+                            <label className="flex items-center text-foreground">
                                 <input
                                     type="checkbox"
                                     checked={editIsAdmin}
                                     onChange={(e) => setEditIsAdmin(e.target.checked)}
                                     disabled={true}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded opacity-50 cursor-not-allowed"
+                                    className="mr-3 h-4 w-4 text-primary focus:ring-ring border-border rounded opacity-50 cursor-not-allowed"
                                 />
                                 Is Admin (Read-only)
                             </label>
                         </div>
 
                         <div className="mb-4">
-                            <label className="flex items-center text-slate-700">
+                            <label className="flex items-center text-foreground">
                                 <input
                                     type="checkbox"
                                     checked={editIsExecutive}
                                     onChange={(e) => setEditIsExecutive(e.target.checked)}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                                    className="mr-3 h-4 w-4 text-primary focus:ring-ring border-border rounded"
                                 />
                                 Is Executive
                             </label>
                         </div>            <div className="mb-6">
-                            <h3 className="text-lg font-medium text-slate-800 mb-3">Managed Clubs</h3>
+                            <h3 className="text-lg font-medium text-foreground mb-3">Managed Clubs</h3>
                             <input
                                 type="text"
                                 placeholder="Search clubs to add..."
                                 value={clubSearchTerm}
                                 onChange={(e) => setClubSearchTerm(e.target.value)}
-                                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 mb-3"
+                                className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground mb-3"
                             />
                             {searchedClubs.length > 0 && (
-                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-40 overflow-y-auto">
+                                <div className="bg-card border border-border rounded-lg shadow-sm max-h-40 overflow-y-auto">
                                     {searchedClubs.map(club => (
                                         <div
                                             key={club.id}
                                             onClick={() => handleAddClubToManaged(club.id)}
-                                            className="p-3 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50 transition-colors"
+                                            className="p-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted transition-colors"
                                         >
-                                            <span className="font-medium text-slate-900">{club.name}</span>
-                                            <span className="text-slate-500"> (ID: {club.id})</span>
+                                            <span className="font-medium text-foreground">{club.name}</span>
+                                            <span className="text-muted-foreground"> (ID: {club.id})</span>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <div className="mt-4">
-                                <p className="text-sm font-medium text-slate-600 mb-2">Current Managed Clubs:</p>
+                                <p className="text-sm font-medium text-muted-foreground mb-2">Current Managed Clubs:</p>
                                 {managedClubDetails.length > 0 ? (
                                     <div className="space-y-2">
                                         {managedClubDetails.map(clubDetail => (
-                                            <div key={clubDetail.id} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
-                                                <span className="text-slate-700">{clubDetail.name}</span>
+                                            <div key={clubDetail.id} className="flex items-center justify-between p-2 bg-muted rounded border border-border">
+                                                <span className="text-foreground">{clubDetail.name}</span>
                                                 <button
                                                     onClick={() => handleRemoveClubFromManaged(clubDetail.id)}
-                                                    className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
+                                                    className="px-3 py-1 bg-destructive text-destructive-foreground text-sm rounded hover:bg-destructive/90 transition-colors"
                                                 >
                                                     Remove
                                                 </button>
@@ -447,7 +465,7 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-slate-500 text-sm">{isEditing && selectedUser && editManagedClubs.length > 0 ? 'Loading club names...' : 'No clubs managed.'}</p>
+                                    <p className="text-muted-foreground text-sm">{isEditing && selectedUser && editManagedClubs.length > 0 ? 'Loading club names...' : 'No clubs managed.'}</p>
                                 )}
                             </div>
                         </div>
@@ -455,13 +473,13 @@ export default function AdminPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={handleUpdateUser}
-                                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                             >
                                 Save Changes
                             </button>
                             <button
                                 onClick={() => { setIsEditing(false); setSelectedUser(null); setError(null); setSuccessMessage(null); }}
-                                className="px-6 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                                className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
                             >
                                 Cancel
                             </button>

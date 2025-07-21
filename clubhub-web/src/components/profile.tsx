@@ -70,7 +70,7 @@ export function Profile({ opened, onClose, user, token, onUserUpdate}: UserSetti
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.successMessage || "Failed to update profile");
+                throw new Error(errorData.error);
             }
 
             const updatedUser: User = await response.json();
@@ -124,8 +124,8 @@ export function Profile({ opened, onClose, user, token, onUserUpdate}: UserSetti
                 />
 
                 <Group justify="flex-end" mt="md">
-                    <Button variant="outline" color="#1E3765" onClick={handleCancel} disabled={loading}>Cancel</Button>
-                    <Button color="#1E3765" onClick={handleSave} loading={loading} disabled={loading}>Save Changes</Button>
+                    <Button variant="outline" onClick={handleCancel} disabled={loading}>Cancel</Button>
+                    <Button onClick={handleSave} loading={loading} disabled={loading}>Save Changes</Button>
                 </Group>
             </Stack>
         </Modal>

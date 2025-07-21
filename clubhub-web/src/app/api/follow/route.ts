@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore } from '../firebaseAdmin';
 import { User, Club } from '@/model/types';
-import { getCurrentUserId } from '../amenities';
+import { withAuth } from '@/lib/auth-middleware';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
     try {
-        const { uid, error, status } = await getCurrentUserId(request);
-
-        if (error || !uid) {
-            return NextResponse.json({ error: error || 'User not authenticated' }, { status: status || 401 });
-        }
+        const authResult = (request as any).auth; // Added by middleware
 
         const { clubId } = await request.json();
 
@@ -17,7 +13,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Club ID is required' }, { status: 400 });
         }
 
-        const userDocRef = firestore.collection('Users').doc(uid);
+        const userDocRef = firestore.collection('Users').doc(authResult.uid);
         const clubDocRef = firestore.collection('Clubs').doc(clubId);
 
         const [userDoc, clubDoc] = await Promise.all([
@@ -70,4 +66,4 @@ export async function POST(request: NextRequest) {
         console.log('Error in POST /api/follow:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});
