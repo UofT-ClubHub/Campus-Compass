@@ -47,4 +47,6 @@ export interface PendingClub {
     created_at: string;
     club_image: string;
     club_instagram: string;
+    status: 'pending' | 'approved' | 'rejected';
+    message?: string;
 }
