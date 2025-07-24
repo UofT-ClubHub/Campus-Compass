@@ -3,6 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { ReactNode } from 'react';
+import React from "react";
 
 interface ModalProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ModalProps {
   title: string;
   className?: string;
   showCloseButton?: boolean;
+  backgroundClass?: string;
 }
 
 export function Modal({ 
@@ -19,7 +21,8 @@ export function Modal({
   children, 
   title,
   className = "",
-  showCloseButton = true 
+  showCloseButton = true,
+  backgroundClass = "bg-card"
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -30,10 +33,10 @@ export function Modal({
           <Dialog.Description className="sr-only">
             {title} details and information
           </Dialog.Description>
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className={`relative ${backgroundClass} rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col`}>
             {showCloseButton && (
               <Dialog.Close asChild>
-                <button className="absolute top-4 right-4 z-10 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors">
+                <button className="absolute top-4 right-4 z-10 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors border-2 border-white/70">
                   <X className="h-5 w-5" />
                 </button>
               </Dialog.Close>

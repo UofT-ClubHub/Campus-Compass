@@ -24,6 +24,7 @@
   --ring:                    #2563eb;
   --success:                 #16a34a;
   --warning:                 #ea580c;
+  --warning-foreground:      #ffffff;
   --info:                    #0ea5e9;
 }
 
@@ -51,6 +52,7 @@
   --ring:                    #ea580c;
   --success:                 #15803d;
   --warning:                 #d97706;
+  --warning-foreground:      #ffffff;
   --info:                    #0284c7;
 }
 
@@ -73,11 +75,12 @@
   --accent-foreground:       #ffffff;
   --destructive:             #ef4444;
   --destructive-foreground:  #ffffff;
-  --border:                  #44403c;
+  --border:                  #9a938c;
   --input:                   #1c1917;
   --ring:                    #3b82f6;
   --success:                 #22c55e;
   --warning:                 #f59e0b;
+  --warning-foreground:      #ffffff;
   --info:                    #06b6d4;
 }
 
@@ -87,10 +90,10 @@
   --foreground:              #f0f9ff;
   --card:                    #1e1b4b;
   --card-foreground:         #f0f9ff;
-  --club-card-bg:            #312e81;
+  --club-card-bg:            #232346;
   --post-card-bg:            #1a1a3a;
   --expandable-post-card-bg: #252560;
-  --primary:                 #06b6d4;
+  --primary:                  #f7bf06;
   --primary-foreground:      #ffffff;
   --secondary:               #8b5cf6;
   --secondary-foreground:    #ffffff;
@@ -105,7 +108,29 @@
   --ring:                    #06b6d4;
   --success:                 #34d399;
   --warning:                 #fbbf24;
+  --warning-foreground:      #ffffff;
   --info:                    #60a5fa;
+}
+
+/* Deep Dark Bottom Glow Only */
+[data-theme="deep-dark"] header {
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2), 0 4px 40px rgba(255, 255, 255, 0.1);
+}
+
+/* Vibrant Dark Bottom Glow Only */
+[data-theme="vibrant-dark"] header {
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 4px 40px rgba(139, 92, 246, 0.2);
+}
+
+/* Dark Theme Form Glow Effect For Request Club Form - matches header glow */
+[data-theme="deep-dark"] .form-glow {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 0 0 40px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="vibrant-dark"] .form-glow {
+  border: 2px solid rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
 }
 
 @theme inline {
@@ -136,12 +161,60 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Smooth infinite scroll animation with better transitions */
+@keyframes smooth-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%); /* Move by 1/3 since we have 3 sets */
+  }
+}
+
+.animate-smooth-scroll {
+  animation: smooth-scroll 60s linear infinite;
+}
+
+/* Smoother pause/resume transitions */
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.duration-100 {
+  transition-duration: 100ms;
+}
+
+.ease-out {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Pause animation on hover */
+.animate-smooth-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Manual scroll container */
+.manual-scroll-container {
+  position: relative;
+  z-index: 10;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  
+  scrollbar-width: none;     
+}
+
+:root {
+  scrollbar-color: var(--primary) var(--muted); 
 }

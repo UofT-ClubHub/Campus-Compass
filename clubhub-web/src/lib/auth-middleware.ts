@@ -25,7 +25,6 @@ export interface APIPermission {
 // API endpoint permissions configuration
 export const API_PERMISSIONS: Record<string, APIPermission> = {
     // User endpoints
-    'PUT /api/users': { requiresAdminOrSelf: true },
     'DELETE /api/users': { requiresAdmin: true },
     
     // Club endpoints  
@@ -80,7 +79,7 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
         const userDoc = await firestore.collection('Users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return { uid, isAdmin: false, isExecutive: false, error: 'User not found', status: 404 };
+            return { uid, isAdmin: false, isExecutive: false, status: 200 };
         }
 
         const userData = userDoc.data();
@@ -214,36 +213,6 @@ export async function checkUserPermissions(request: NextRequest, targetUserId?: 
         console.error('Error checking user permissions:', error);
         return { authorized: false, error: error.message, status: 500 };
     }
-}
-
-/**
- * Generic API permission checker based on endpoint and method
- */
-export async function checkAPIPermissions(request: NextRequest, endpoint: string): Promise<PermissionResult> {
-    const method = request.method;
-    const permissionKey = `${method} ${endpoint}`;
-    const permissions = API_PERMISSIONS[permissionKey as keyof typeof API_PERMISSIONS];
-
-    if (!permissions) {
-        // If no specific permissions configured, allow access (for GET requests mostly)
-        return { authorized: true, status: 200 };
-    }
-
-    const authResult = await getCurrentUserAuth(request);
-    
-    if (permissions.requiresAuth && !authResult.uid) {
-        return { authorized: false, error: 'Authentication required', status: 401 };
-    }
-
-    if (permissions.requiresAdmin && !authResult.isAdmin) {
-        return { authorized: false, error: 'Admin access required', status: 403 };
-    }
-
-    if (permissions.requiresExecOrAdmin && !authResult.isAdmin && !authResult.isExecutive) {
-        return { authorized: false, error: 'Executive or admin access required', status: 403 };
-    }
-
-    return { authorized: true, status: 200 };
 }
 
 /**

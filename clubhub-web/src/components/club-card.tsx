@@ -25,9 +25,9 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col ${className}`}
+      className={`bg-club-card-bg rounded-xl shadow-sm border-2 border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer flex flex-col ${className}`}
     >
-      <div className="relative h-40 bg-gray-200">
+      <div className="relative h-40 bg-muted">
         <img
           src={club.image || "placeholder.jpg"}
           alt={club.name}
@@ -36,11 +36,11 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+        <h3 className="text-lg font-semibold text-card-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
           {club.name}
         </h3>
 
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
           <span className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
             {club.campus}
@@ -51,7 +51,7 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
           </span>
         </div>
 
-        <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
+        <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-1">
           {club.description}
         </p>
       </div>

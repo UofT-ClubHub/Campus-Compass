@@ -54,12 +54,13 @@ export function Header() {
         if (!loading && user) {
             fetchUserData();
         }
-    }, [user, loading]);
-
+    }, [user, loading]);    
+    
     const handleSignOut = async () => {
         try {
             await signOut(auth);
             router.push('/');
+            window.location.reload();
         } catch (error) {
             console.error('Error signing out:', error);
         }
@@ -210,8 +211,8 @@ export function Header() {
                   </button>
                 </div>
               )}
-            </nav>
-
+            </nav>        
+                
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center gap-2">
               {/* Mobile Theme Toggle */}
@@ -226,36 +227,24 @@ export function Header() {
                 </span>
               </button>
               
-              {!loading && !user && (
-                <button 
-                  onClick={(e) => handleNavigation(e, '/auth')}
-                  className="bg-primary hover:bg-secondary text-primary-foreground px-3 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out text-sm cursor-pointer"
-                  type="button"
-                >   
-                  Login
-                </button>
-              )}
-              {!loading && user && (
-                <button
-                  onClick={toggleMobileMenu}
-                  className="p-2 text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
-                  aria-label="Toggle mobile menu"
-                  type="button"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {isMobileMenuOpen ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                  </svg>
-                </button>
-              )}
+              {/* Always show mobile menu button */}
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
+                aria-label="Toggle mobile menu"
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isMobileMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
             </div>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && user && (
+          </div>          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
             <div className="md:hidden bg-card border-t border-border">
               <nav className="px-4 py-4 space-y-4">
                 <button
@@ -278,7 +267,7 @@ export function Header() {
                   }`}
                   type="button"
                 >
-                  Search
+                  Clubs
                 </button>
                 <button 
                   onClick={(e) => handleNavigation(e, '/postFilter')}
@@ -291,7 +280,7 @@ export function Header() {
                 >
                   Posts
                 </button>
-                {isAdmin && (
+                {user && isAdmin && (
                   <button 
                     onClick={(e) => handleNavigation(e, '/admin')}
                     className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
@@ -304,7 +293,7 @@ export function Header() {
                     Admin
                   </button>
                 )}
-                {isExecutive && (
+                {user && isExecutive && (
                   <button 
                     onClick={(e) => handleNavigation(e, '/exec')}
                     className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
@@ -328,21 +317,37 @@ export function Header() {
                 >
                   Request Club
                 </button>
+                
                 <hr className="border-border" />
-                <button 
-                  onClick={(e) => handleNavigation(e, '/profile')}
-                  className="block w-full text-left text-muted-foreground hover:text-secondary transition-colors cursor-pointer bg-transparent border-0 p-0"
-                  type="button"
-                >
-                  Profile
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="block w-full text-left bg-destructive hover:bg-destructive/80 text-destructive-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
-                  type="button"
-                >
-                  Sign Out
-                </button>
+                
+                {!loading && !user && (
+                  <button 
+                    onClick={(e) => handleNavigation(e, '/auth')}
+                    className="block w-full text-left bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
+                    type="button"
+                  >   
+                    Login / Register
+                  </button>
+                )}
+                
+                {!loading && user && (
+                  <>
+                    <button 
+                      onClick={(e) => handleNavigation(e, '/profile')}
+                      className="block w-full text-left text-muted-foreground hover:text-secondary transition-colors cursor-pointer bg-transparent border-0 p-0"
+                      type="button"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left bg-destructive hover:bg-destructive/80 text-destructive-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
+                      type="button"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                )}
               </nav>
             </div>
           )}
