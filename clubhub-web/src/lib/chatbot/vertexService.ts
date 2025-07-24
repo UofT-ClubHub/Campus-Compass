@@ -82,17 +82,20 @@ export class VertexChatbotService {
     let data: any = {};
 
     // Handles greetings
-    if (this.isGreeting(lowerMessage)) {
-        context += `User is greeting the chatbot. Respond in a friendly, welcoming way and offer to help with ClubHub.\n`;
-        context += `Available services: club search, event information, post discovery across UTSG, UTM, and UTSC campuses.\n\n`;
-        data.greeting = true;
-        return { context, data };
+    const saidGreeting = this.isGreeting(lowerMessage);
+    if (saidGreeting) {
+      context += `User greeted the bot. Begin with a friendly welcome.\n\n`;
+      data.greeting = true;
     }
 
     // 1. Handle specific event location queries
     if (this.isLocationQuery(lowerMessage)) {
       const eventName = this.extractEventName(message);
       const campus = this.extractCampus(message);
+      
+      console.log('🔍 Location Query Debug:');
+      console.log('  Event name:', eventName);
+      console.log('  Campus:', campus);
       
       const events = await getEventLocation({ 
         eventQuery: eventName, 
@@ -114,35 +117,167 @@ export class VertexChatbotService {
       }
     }
 
-    // 2. Handle specific event date/time queries
-    else if (this.isSpecificEventQuery(lowerMessage)) {
+    // 2. Handle specific event date/time queries - ENHANCED FOR DS3 PROJECT SHOWCASE
+    else if (this.isSpecificEventQuery(lowerMessage) || this.isEventRelated(lowerMessage)) {
       const eventName = this.extractEventName(message);
       const campus = this.extractCampus(message);
       
-      const events = await searchEvents({ 
+      console.log('🔍 Event Query Debug:');
+      console.log('  Event name extracted:', eventName);
+      console.log('  Campus:', campus);
+      
+      // Try multiple search strategies for events
+      let events: any[] = [];
+      
+      // Strategy 1: Search in Events category first
+      events = await searchEvents({ 
         query: eventName, 
         campus, 
         includeExpired: false, 
-        limit: 3 
+        limit: 5 
       });
+      
+      // Strategy 2: If no events found, search ALL posts for event-related content
+      if (!events || events.length === 0) {
+        console.log('🔄 No events found, searching all posts...');
+        events = await searchPosts({ 
+          query: eventName, 
+          campus, 
+          limit: 10 
+        });
+      }
+      
+      // Strategy 3: Try broader search terms
+      if (!events || events.length === 0) {
+        const broaderTerms = this.generateBroaderSearchTerms(eventName);
+        console.log('🔄 Trying broader terms:', broaderTerms);
+        
+        for (const term of broaderTerms) {
+          events = await searchPosts({ 
+            query: term, 
+            campus, 
+            limit: 5 
+          });
+          if (events && events.length > 0) break;
+        }
+      }
       
       data.specificEvents = events;
       
       if (Array.isArray(events) && events.length > 0) {
-        context += `Found specific events matching "${eventName}":\n`;
-        events.forEach((event: any, index: number) => {
-          context += `${index + 1}. ${event.title || 'Event'}\n`;
-          context += `   Date: ${event.date_occuring ? new Date(event.date_occuring).toLocaleDateString() : 'TBA'}\n`;
-          context += `   Time: ${event.date_occuring ? new Date(event.date_occuring).toLocaleTimeString() : 'TBA'}\n`;
+        const postsWithClubNames = await this.enrichPostsWithClubNames(events);
+        
+        context += `Found events/posts matching "${eventName}":\n`;
+        postsWithClubNames.forEach((event: any, index: number) => {
+          context += `${index + 1}. **${event.title || 'Event'}**\n`;
+          context += `   Posted by: ${event.club_name || 'Unknown Club'}\n`;
           context += `   Campus: ${event.campus || 'Unknown'}\n`;
-          context += `   Details: ${event.details || 'No details available'}\n\n`;
+          
+          // Handle both event dates and post dates
+          if (event.date_occuring) {
+            context += `   📅 Event Date: ${new Date(event.date_occuring).toLocaleDateString()}\n`;
+            context += `   🕐 Event Time: ${new Date(event.date_occuring).toLocaleTimeString()}\n`;
+          } else if (event.date_posted || event.date_created) {
+            const postDate = event.date_posted || event.date_created;
+            context += `   📅 Posted Date: ${new Date(postDate).toLocaleDateString()}\n`;
+          }
+          
+          if (event.location || event.venue) {
+            context += `   📍 Location: ${event.location || event.venue}\n`;
+          }
+          
+          if (event.details) {
+            context += `   Details: ${event.details.substring(0, 200)}${event.details.length > 200 ? '...' : ''}\n`;
+          }
+          
+          if (event.hashtags && event.hashtags.length > 0) {
+            context += `   Tags: ${event.hashtags.join(', ')}\n`;
+          }
+          context += '\n';
         });
       } else {
-        context += `No events found matching "${eventName}". Try checking upcoming events or different keywords.\n\n`;
+        context += `No events or posts found matching "${eventName}". Try checking upcoming events or different keywords.\n\n`;
       }
     }
 
-    // 3. Handle general club searches - ENHANCED WITH MULTIPLE SEARCH STRATEGIES
+    // 3. Handle post searches - ENHANCED WITH CLUB NAME LOOKUP AND COMPREHENSIVE SEARCH
+    else if (this.isPostRelated(lowerMessage)) {
+      const query = this.extractPostQuery(message);
+      const campus = this.extractCampus(message);
+      const category = this.extractCategory(message);
+      
+      console.log('🔍 Post Search Debug:');
+      console.log('  Original message:', message);
+      console.log('  Extracted query:', query);
+      console.log('  Campus:', campus);
+      console.log('  Category:', category);
+      
+      // Use comprehensive search strategy
+      const posts = await this.searchPostsComprehensively(query, campus, category);
+      
+      // Cross-reference club IDs with club names
+      if (Array.isArray(posts) && posts.length > 0) {
+        const postsWithClubNames = await this.enrichPostsWithClubNames(posts);
+        data.posts = postsWithClubNames;
+        
+        // Check if user is asking for a specific post name or date
+        const isAskingForSpecificInfo = lowerMessage.includes('name of') || 
+                                       lowerMessage.includes('posted date') ||
+                                       lowerMessage.includes('orientation committee') ||
+                                       lowerMessage.includes('applications open') ||
+                                       lowerMessage.includes('what is the posted date');
+        
+        if (isAskingForSpecificInfo && postsWithClubNames.length > 0) {
+          // Show detailed info for specific requests
+          context += `Here's what I found:\n\n`;
+          postsWithClubNames.slice(0, 3).forEach((post: any, index: number) => {
+            context += `📝 **"${post.title || 'Untitled Post'}"**\n`;
+            context += `   Posted by: ${post.club_name || 'Unknown Club'}\n`;
+            context += `   Category: ${post.category || 'General'}\n`;
+            context += `   Campus: ${post.campus || 'Unknown'}\n`;
+            
+            if (post.date_created || post.date_posted) {
+              const postDate = post.date_created || post.date_posted;
+              context += `   📅 Posted Date: ${new Date(postDate).toLocaleDateString()} at ${new Date(postDate).toLocaleTimeString()}\n`;
+            }
+            if (post.details) {
+              context += `   Details: ${post.details.substring(0, 200)}${post.details.length > 200 ? '...' : ''}\n`;
+            }
+            if (post.hashtags && post.hashtags.length > 0) {
+              context += `   Tags: ${post.hashtags.join(', ')}\n`;
+            }
+            context += '\n';
+          });
+        } else {
+          // Show regular list for general searches
+          context += `Found ${postsWithClubNames.length} posts in ClubHub database:\n\n`;
+          postsWithClubNames.forEach((post: any, index: number) => {
+            context += `${index + 1}. **${post.title || 'Post'}**\n`;
+            context += `   Posted by: ${post.club_name || 'Unknown Club'}\n`;
+            context += `   Category: ${post.category || 'General'}\n`;
+            context += `   Campus: ${post.campus || 'Unknown'}\n`;
+            if (post.date_created || post.date_posted) {
+              const postDate = post.date_created || post.date_posted;
+              context += `   Posted: ${new Date(postDate).toLocaleDateString()}\n`;
+            }
+            if (post.details) {
+              context += `   Preview: ${post.details.substring(0, 100)}${post.details.length > 100 ? '...' : ''}\n`;
+            }
+            context += '\n';
+          });
+        }
+        
+        context += `\nTip: Check ClubHub posts section for the latest updates!\n\n`;
+      } else {
+        context += `No posts found matching "${query}".\n\n`;
+        context += `Try:\n`;
+        context += `• Searching for different keywords\n`;
+        context += `• Checking specific club pages\n`;
+        context += `• Browsing the ClubHub posts section\n\n`;
+      }
+    }
+
+    // 4. Handle general club searches - ENHANCED WITH MULTIPLE SEARCH STRATEGIES
     else if (this.isClubRelated(lowerMessage)) {
       const query = this.extractQuery(message);
       const campus = this.extractCampus(message);
@@ -206,7 +341,7 @@ export class VertexChatbotService {
       }
     }
 
-    // 4. Handle general upcoming events - ENHANCED
+    // 5. Handle general upcoming events - ENHANCED
     else if (this.isEventRelated(lowerMessage)) {
       const campus = this.extractCampus(message);
       const daysAhead = this.extractDaysAhead(message);
@@ -241,41 +376,6 @@ export class VertexChatbotService {
         context += `• Check different campuses (UTSG, UTM, UTSC)\n`;
         context += `• Look for events in ClubHub's event section\n`;
         context += `• Follow clubs you're interested in for event notifications\n\n`;
-      }
-    }
-
-    // 5. Handle post searches - ENHANCED
-    else if (this.isPostRelated(lowerMessage)) {
-      const query = this.extractQuery(message);
-      const campus = this.extractCampus(message);
-      const category = this.extractCategory(message);
-      
-      console.log('🔍 Post Search Debug:');
-      console.log('  Query:', query);
-      console.log('  Campus:', campus);
-      console.log('  Category:', category);
-      
-      const posts = await searchPosts({ query, campus, category, limit: 8 });
-      data.posts = posts;
-      
-      if (Array.isArray(posts) && posts.length > 0) {
-        context += `Found ${posts.length} posts in ClubHub database matching "${query}":\n`;
-        posts.forEach((post: any, index: number) => {
-          context += `${index + 1}. ${post.title || 'Post'}\n`;
-          context += `   Category: ${post.category || 'General'}\n`;
-          context += `   Campus: ${post.campus || 'Unknown'}\n`;
-          context += `   Details: ${post.details || 'No details available'}\n`;
-          
-          if (post.date_created) {
-            context += `   Posted: ${new Date(post.date_created).toLocaleDateString()}\n`;
-          }
-          context += '\n';
-        });
-        
-        context += `\nTip: Check ClubHub posts section for the latest updates and opportunities!\n\n`;
-      } else {
-        context += `No posts found in ClubHub database matching "${query}".\n\n`;
-        context += `Try searching with different keywords or check the ClubHub posts section directly.\n\n`;
       }
     }
 
@@ -388,6 +488,141 @@ export class VertexChatbotService {
     return clubs || [];
   }
 
+  // NEW: Enhanced post search with multiple strategies
+  private async searchPostsComprehensively(query: string, campus?: string, category?: string): Promise<any[]> {
+    let posts: any[] = [];
+    
+    console.log('🔍 Comprehensive Post Search:');
+    console.log('  Query:', query);
+    console.log('  Campus:', campus);
+    console.log('  Category:', category);
+    
+    // Strategy 1: Direct search with current query
+    if (query && query.trim() !== '') {
+      console.log('🎯 Trying direct search...');
+      posts = await searchPosts({ query, campus, category, limit: 15 });
+      if (posts && posts.length > 0) {
+        console.log(`✅ Found ${posts.length} posts with direct search`);
+        return posts;
+      }
+    }
+    
+    // Strategy 2: Organization-specific search (for CSSU, etc.)
+    if (query.includes('cssu') || query.includes('computer science')) {
+      console.log('🏫 Trying organization-specific search...');
+      const orgQueries = ['cssu', 'computer science student union', 'computer science', 'cs'];
+      
+      for (const orgQuery of orgQueries) {
+        posts = await searchPosts({ query: orgQuery, campus, category, limit: 15 });
+        if (posts && posts.length > 0) {
+          console.log(`✅ Found ${posts.length} posts with org query: "${orgQuery}"`);
+          break;
+        }
+      }
+    }
+    
+    // Strategy 3: Get recent posts if no specific query
+    if ((!posts || posts.length === 0) && (!query || query.trim() === '')) {
+      console.log('📰 Getting recent posts...');
+      posts = await searchPosts({ query: '', campus, category, limit: 15 });
+    }
+    
+    // Strategy 4: Broad search without filters if still no results
+    if (!posts || posts.length === 0) {
+      console.log('🌐 Trying broad search...');
+      posts = await searchPosts({ query: '', limit: 20 });
+    }
+    
+    // Strategy 5: Try searching by common post terms
+    if (!posts || posts.length === 0) {
+      console.log('🔑 Trying common post terms...');
+      const commonTerms = ['application', 'opportunity', 'event', 'meeting', 'workshop', 'volunteer', 'orientation', 'committee', 'showcase', 'project'];
+      
+      for (const term of commonTerms) {
+        posts = await searchPosts({ query: term, campus, limit: 10 });
+        if (posts && posts.length > 0) {
+          console.log(`✅ Found ${posts.length} posts with term: "${term}"`);
+          break;
+        }
+      }
+    }
+    
+    return posts || [];
+  }
+
+  // FIXED: Enrich posts with actual club names by cross-referencing club IDs
+  private async enrichPostsWithClubNames(posts: any[]): Promise<any[]> {
+    const enrichedPosts = [];
+    
+    for (const post of posts) {
+      const enrichedPost = { ...post };
+      
+      // If post has a club ID, look up the actual club name
+      if (post.club && typeof post.club === 'string') {
+        try {
+          console.log(`🔄 Looking up club name for ID: ${post.club}`);
+          const clubDetails = await getClubDetails(post.club);
+          if (
+            clubDetails &&
+            !('error' in clubDetails) &&
+            'name' in clubDetails &&
+            clubDetails.name
+          ) {
+            enrichedPost.club_name = clubDetails.name;
+            enrichedPost.club_campus = 'campus' in clubDetails ? clubDetails.campus : undefined;
+            enrichedPost.club_instagram = 'instagram' in clubDetails ? (clubDetails as any).instagram : undefined;
+            console.log(`✅ Found club: ${clubDetails.name}`);
+          } else {
+            console.log(`❌ No club found for ID: ${post.club}`);
+            enrichedPost.club_name = 'Unknown Club';
+          }
+        } catch (error) {
+          console.error(`❌ Error looking up club ${post.club}:`, error);
+          enrichedPost.club_name = 'Unknown Club';
+        }
+      }
+      
+      enrichedPosts.push(enrichedPost);
+    }
+    
+    // FIX: Added missing return statement!
+    return enrichedPosts;
+  }
+
+  // NEW: Generate broader search terms for better matching
+  private generateBroaderSearchTerms(query: string): string[] {
+    const terms = [];
+    const words = query.toLowerCase().split(' ');
+    
+    // Add individual words
+    words.forEach(word => {
+      if (word.length > 3) {
+        terms.push(word);
+      }
+    });
+    
+    // Add partial phrases
+    if (words.length > 1) {
+      terms.push(words.slice(0, 2).join(' '));
+      terms.push(words.slice(-2).join(' '));
+    }
+    
+    // Handle specific cases
+    if (query.toLowerCase().includes('ds3')) {
+      terms.push('data science', 'ds3', 'project', 'showcase');
+    }
+    
+    if (query.toLowerCase().includes('project')) {
+      terms.push('project', 'showcase', 'presentation');
+    }
+    
+    if (query.toLowerCase().includes('showcase')) {
+      terms.push('showcase', 'presentation', 'demo', 'project');
+    }
+    
+    return [...new Set(terms)]; // Remove duplicates
+  }
+
   // Enhanced relevance scoring
   private calculateRelevanceScore(club: any, query: string): number {
     let score = 0;
@@ -470,59 +705,92 @@ export class VertexChatbotService {
 
   private isSpecificEventQuery(message: string): boolean {
     const specificEventPhrases = [
-      'when does', 'when is', 'what time', 'date of', 'schedule for', 'time of'
+      'when does', 'when is', 'what time', 'date of', 'schedule for', 'time of', 'when will'
     ];
-    return specificEventPhrases.some(phrase => message.includes(phrase));
+    const eventTerms = ['event', 'showcase', 'project', 'presentation', 'meeting', 'workshop'];
+    
+    return specificEventPhrases.some(phrase => message.includes(phrase)) ||
+           (message.includes('when') && eventTerms.some(term => message.includes(term)));
+  }
+
+  // Enhanced post detection - IMPROVED TO PRIORITIZE POST KEYWORDS
+  private isPostRelated(message: string): boolean {
+    const lowerMessage = message.toLowerCase();
+    
+    const postKeywords = [
+      'post', 'posts', 'announcement', 'announcements', 'news', 'update', 
+      'updates', 'hiring', 'job', 'opportunity', 'opportunities', 'posted date',
+      'when was posted', 'date of post'
+    ];
+    
+    const postPhrases = [
+      'posts from', 'post from', 'name of a post', 'name of the post', 'title of post', 
+      'posted date', 'when was', 'date of the', 'give me the name'
+    ];
+    
+    const specificTitles = [
+      'orientation committee applications open', 'applications open', 'committee applications'
+    ];
+    
+    return postKeywords.some(keyword => lowerMessage.includes(keyword)) ||
+           postPhrases.some(phrase => lowerMessage.includes(phrase)) ||
+           specificTitles.some(title => lowerMessage.includes(title));
   }
 
   // Enhanced club-related detection
   private isClubRelated(message: string): boolean {
+    const lower = message.toLowerCase();
+
     const clubKeywords = [
-      'club', 'clubs', 'organization', 'organizations', 'society', 'societies', 
-      'group', 'groups', 'student union', 'association', 'team', 'teams',
-      'union', 'committee', 'council', 'collective', 'network'
+      'club','clubs','organization','organizations','society','societies',
+      'group','groups','student union','association','team','teams',
+      'union','committee','council','collective','network'
     ];
-    
     const subjectKeywords = [
-      'computer science', 'cs', 'programming', 'tech', 'technology', 'software',
-      'engineering', 'business', 'arts', 'science', 'music', 'sports', 'cultural', 
-      'academic', 'math', 'mathematics', 'physics', 'chemistry', 'biology',
-      'psychology', 'sociology', 'economics', 'finance', 'marketing', 'design',
-      'robotics', 'ai', 'artificial intelligence', 'machine learning', 'data science'
+      'computer science','cs','programming','tech','technology',
+      'software','engineering','business','arts','science','music',
+      'sports','cultural','academic','math','physics','chemistry',
+      'biology','psychology','sociology','economics','finance',
+      'marketing','design','robotics','ai','artificial intelligence',
+      'machine learning','data science'
     ];
-    
     const searchPhrases = [
-      'find clubs', 'search clubs', 'looking for clubs', 'clubs that', 'clubs focused',
-      'clubs about', 'clubs related to', 'show me clubs', 'list clubs', 'clubs for',
-      'give me clubs', 'computer science clubs', 'programming clubs', 'tech clubs',
-      'other clubs', 'some clubs', 'any clubs', 'more clubs'  // Added these general phrases
+      'find clubs','search clubs','looking for clubs','clubs that',
+      'clubs about','show me clubs','list clubs','clubs for',
+      'give me clubs','other clubs','some clubs','any clubs'
     ];
-    
-    return clubKeywords.some(keyword => message.includes(keyword)) ||
-           subjectKeywords.some(term => message.includes(term)) ||
-           searchPhrases.some(phrase => message.includes(phrase));
+
+    if (
+      clubKeywords.some(k => lower.includes(k)) ||
+      subjectKeywords.some(k => lower.includes(k)) ||
+      searchPhrases.some(p => lower.includes(p))
+    ) {
+      return true;
+    }
+
+    const query = this.extractQuery(message);
+    if (query && /^[a-z0-9]{2,5}$/.test(query)) {
+      // treat any 2–5 character alphanumeric as a club lookup
+      return true;
+    }
+
+    return false;
   }
 
   private isEventRelated(message: string): boolean {
     const eventKeywords = [
       'event', 'events', 'happening', 'upcoming', 'activities', 'activity',
-      'this week', 'next week', 'today', 'tomorrow', 'weekend', 'soon'
+      'this week', 'next week', 'today', 'tomorrow', 'weekend', 'soon',
+      'showcase', 'presentation', 'workshop', 'meeting'
     ];
     const eventPhrases = [
       'events within', 'events in', 'what\'s happening', 'whats happening',
-      'upcoming events', 'events this', 'events next', 'events today'
+      'upcoming events', 'events this', 'events next', 'events today',
+      'when is', 'when does', 'when will'
     ];
     
     return eventKeywords.some(keyword => message.includes(keyword)) ||
            eventPhrases.some(phrase => message.includes(phrase));
-  }
-
-  private isPostRelated(message: string): boolean {
-    const postKeywords = [
-      'post', 'posts', 'announcement', 'announcements', 'news', 'update', 
-      'updates', 'hiring', 'job', 'opportunity', 'opportunities'
-    ];
-    return postKeywords.some(keyword => message.includes(keyword));
   }
 
   private isGeneralInfo(message: string): boolean {
@@ -539,89 +807,164 @@ export class VertexChatbotService {
            message.length < 15;
   }
 
-  // Enhanced query extraction with better handling of general requests - FIXED
-  private extractQuery(message: string): string {
+  // Enhanced post query extraction for better parsing
+  private extractPostQuery(message: string): string {
     const lowerMessage = message.toLowerCase();
     
-    // Handle general club requests without specific subjects
-    if (lowerMessage.includes('other clubs') || lowerMessage.includes('some clubs') || lowerMessage.includes('any clubs')) {
-      return ''; // Return empty string to get all clubs
+    // Handle specific post title requests (like "Orientation Committee Applications Open!")
+    const titleMatch = lowerMessage.match(/["']([^"']+)["']/);
+    if (titleMatch) {
+      console.log(`📝 Extracted title from quotes: "${titleMatch[1]}"`);
+      return titleMatch[1];
     }
     
-    if (lowerMessage.includes('give me clubs') || lowerMessage.includes('show me clubs') || lowerMessage.includes('find clubs')) {
-      // Check if there are specific subject terms after the general request
-      const afterRequest = lowerMessage.split(/give me|show me|find/)[1] || '';
-      if (afterRequest.includes('computer') || afterRequest.includes('cs')) {
-        return 'computer science cs programming software development tech technology coding';
-      }
-      if (afterRequest.includes('tech')) {
-        return 'technology tech computer science programming software engineering';
-      }
-      // If no specific subject, return empty for general search
-      return '';
+    // Handle "posted date of [title]" or "name of [title]" patterns
+    const ofMatch = lowerMessage.match(/(?:posted date of|name of|title of)\s+(.+)/);
+    if (ofMatch) {
+      const extracted = ofMatch[1].trim().replace(/["'!?]/g, '');
+      console.log(`📝 Extracted from 'of' pattern: "${extracted}"`);
+      return extracted;
     }
     
-    // Handle specific patterns for better extraction
-    if (lowerMessage.includes('computer science') || lowerMessage.includes('cs')) {
-      return 'computer science cs programming software development tech technology coding';
-    }
-    if (lowerMessage.includes('programming') || lowerMessage.includes('coding')) {
-      return 'programming coding computer science cs software development';
-    }
-    if (lowerMessage.includes('tech') || lowerMessage.includes('technology')) {
-      return 'technology tech computer science programming software engineering';
-    }
-    if (lowerMessage.includes('software')) {
-      return 'software programming computer science development engineering tech';
-    }
-    if (lowerMessage.includes('engineering')) {
-      return 'engineering technical science computer software';
-    }
-    if (lowerMessage.includes('data science') || lowerMessage.includes('machine learning') || lowerMessage.includes('ai')) {
-      return 'data science machine learning ai artificial intelligence computer science programming';
-    }
-    if (lowerMessage.includes('business')) {
-      return 'business commerce management entrepreneurship finance';
-    }
-    if (lowerMessage.includes('arts')) {
-      return 'arts creative culture visual performing';
-    }
-    if (lowerMessage.includes('music')) {
-      return 'music performance band orchestra choir';
-    }
-    if (lowerMessage.includes('sports') || lowerMessage.includes('athletic')) {
-      return 'sports athletic fitness recreation physical';
-    }
-    if (lowerMessage.includes('math') || lowerMessage.includes('mathematics')) {
-      return 'mathematics math statistics calculus algebra';
+    // Handle specific organization mentions with better club name matching
+    if (lowerMessage.includes('cssu') || lowerMessage.includes('computer science student union')) {
+      return 'cssu';
     }
     
-    // Extract meaningful words with better filtering
+    if (lowerMessage.includes('amacss')) {
+      return 'amacss';
+    }
+    
+    if (lowerMessage.includes('data science') || lowerMessage.includes('ds3')) {
+      return 'data science';
+    }
+    
+    // Handle "posts from [org]" patterns
+    const fromOrgMatch = lowerMessage.match(/posts?\s+from\s+(.+?)(?:\s+page|\s*$)/);
+    if (fromOrgMatch) {
+      const org = fromOrgMatch[1].trim();
+      console.log(`🏫 Extracted organization: "${org}"`);
+      if (org.includes('cssu')) return 'cssu';
+      if (org.includes('amacss')) return 'amacss';
+      if (org.includes('data science') || org.includes('ds3')) return 'data science';
+      return org;
+    }
+    
+    // Extract meaningful words for general search
     const words = lowerMessage.split(' ');
     const stopWords = [
-      'what', 'is', 'are', 'the', 'find', 'search', 'for', 'about', 'show', 'me', 
-      'at', 'in', 'on', 'can', 'you', 'i', 'want', 'to', 'looking', 'any', 'some',
-      'that', 'clubs', 'focused', 'around', 'within', 'events', 'upcoming', 'give',
-      'related', 'help', 'please', 'thanks', 'thank', 'other', 'from', 'utsg', 'utm', 'utsc'
+      'what', 'is', 'are', 'the', 'show', 'me', 'give', 'name', 'of', 'post', 'posts',
+      'from', 'a', 'an', 'some', 'any', 'tell', 'find', 'when', 'was', 'posted', 'date'
     ];
     
     const meaningfulWords = words.filter(word => 
       !stopWords.includes(word) && 
-      word.length > 2 && 
-      !word.match(/^\d+$/)
+      word.length > 2 &&
+      !word.match(/^[!?.,]+$/) // Remove punctuation-only words
     );
     
-    // If no meaningful words found, return empty string for general search
-    if (meaningfulWords.length === 0) {
-      return '';
-    }
-    
-    return meaningfulWords.join(' ');
+    const result = meaningfulWords.join(' ') || '';
+    console.log(`🔍 Extracted meaningful words: "${result}"`);
+    return result;
   }
+
+  // Enhanced query extraction with better handling of general requests - FIXED
+  private extractQuery(message: string): string {
+  // 1) Acronym detection: catch UTFR, CSSU, etc. first
+  const acronymMatch = message.match(/\b([A-Z0-9]{2,5})\b/);
+  if (acronymMatch) {
+    return acronymMatch[1].toLowerCase();
+  }
+
+  // 2) Strip punctuation so "UTFR," → "UTFR"
+  const noPunct    = message.replace(/[^\w\s]/g, ' ');
+  const lowerClean = noPunct.toLowerCase();
+
+  // raw lowercase for your existing .includes() checks
+  const lowerMessage = message.toLowerCase();
+
+  // 3) Handle general club requests without specific subjects
+  if (lowerMessage.includes('other clubs') ||
+      lowerMessage.includes('some clubs') ||
+      lowerMessage.includes('any clubs')) {
+    return '';
+  }
+
+  if (lowerMessage.includes('give me clubs') ||
+      lowerMessage.includes('show me clubs') ||
+      lowerMessage.includes('find clubs')) {
+    const afterRequest = lowerMessage.split(/give me|show me|find/)[1] || '';
+    if (afterRequest.includes('computer') || afterRequest.includes('cs')) {
+      return 'computer science cs programming software development tech technology coding';
+    }
+    if (afterRequest.includes('tech')) {
+      return 'technology tech computer science programming software engineering';
+    }
+    return '';
+  }
+
+  // 4) Your subject‑specific shortcuts
+  if (lowerMessage.includes('computer science') || lowerMessage.includes('cs')) {
+    return 'computer science cs programming software development tech technology coding';
+  }
+  if (lowerMessage.includes('programming') || lowerMessage.includes('coding')) {
+    return 'programming coding computer science cs software development';
+  }
+  if (lowerMessage.includes('tech') || lowerMessage.includes('technology')) {
+    return 'technology tech computer science programming software engineering';
+  }
+  if (lowerMessage.includes('software')) {
+    return 'software programming computer science development engineering tech';
+  }
+  if (lowerMessage.includes('engineering')) {
+    return 'engineering technical science computer software';
+  }
+  if (lowerMessage.includes('data science') ||
+      lowerMessage.includes('machine learning') ||
+      lowerMessage.includes('ai')) {
+    return 'data science machine learning ai artificial intelligence computer science programming';
+  }
+  if (lowerMessage.includes('business')) {
+    return 'business commerce management entrepreneurship finance';
+  }
+  if (lowerMessage.includes('arts')) {
+    return 'arts creative culture visual performing';
+  }
+  if (lowerMessage.includes('music')) {
+    return 'music performance band orchestra choir';
+  }
+  if (lowerMessage.includes('sports') || lowerMessage.includes('athletic')) {
+    return 'sports athletic fitness recreation physical';
+  }
+  if (lowerMessage.includes('math') || lowerMessage.includes('mathematics')) {
+    return 'mathematics math statistics calculus algebra';
+  }
+
+  // 5) Final "meaningfulWords" pass — now split the cleaned text, not raw lowerMessage
+  const wordsArr = lowerClean.split(/\s+/);
+  const stopWords = [
+    'what','is','are','the','find','search','for','about','show','me',
+    'at','in','on','can','you','i','want','to','looking','any','some',
+    'that','clubs','focused','around','within','events','upcoming','give',
+    'related','help','please','thanks','thank','other','from'
+  ];
+
+  const meaningfulWords = wordsArr.filter(word =>
+    !stopWords.includes(word) &&
+    word.length > 2 &&
+    !word.match(/^\d+$/)
+  );
+
+  if (meaningfulWords.length === 0) {
+    return '';
+  }
+
+  return meaningfulWords.join(' ');
+}
 
   private extractEventName(message: string): string {
     const cleanMessage = message.toLowerCase()
-      .replace(/where\s+is|what\s+is\s+the\s+location|location\s+of|when\s+does|when\s+is|what\s+time/gi, '')
+      .replace(/where\s+is|what\s+is\s+the\s+location|location\s+of|when\s+does|when\s+is|what\s+time|when\s+will/gi, '')
       .replace(/\?/g, '')
       .trim();
     
