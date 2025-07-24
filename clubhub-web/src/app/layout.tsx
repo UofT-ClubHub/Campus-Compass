@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,8 @@ export default function RootLayout({
           >
             <Header />
             {children}
+            
+            <ChatbotWidget />
           </MantineProvider>
         </ThemeProvider>
       </body>

@@ -25,40 +25,41 @@ let vertexAI: any = null;
 let model: any = null;
 
 // Authentication function
-async function ensureAuthenticated() {
-  // Check if user is already signed in (no anonymous sign-in)
-  if (!auth.currentUser) {
-    throw new Error('User must be signed in to use the chatbot. Please log in first.');
-  }
-  
-  console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
-  
-  if (!vertexAI) {
-    vertexAI = getVertexAI(app);
-    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
-  }
-}
-
-// Test Mode
 // async function ensureAuthenticated() {
-//   // Test mode for development - add this to your .env.local: CHATBOT_TEST_MODE=true
-//   const isTestMode = process.env.CHATBOT_TEST_MODE === 'true';
-  
-//   if (isTestMode) {
-//     console.log('🧪 Running in test mode - bypassing authentication');
-//   } else {
-//     // Check if user is already signed in (no anonymous sign-in)
-//     if (!auth.currentUser) {
-//       throw new Error('User must be signed in to use the chatbot. Please log in first.');
-//     }
-//     console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
+//   // Check if user is already signed in (no anonymous sign-in)
+//   if (!auth.currentUser) {
+//     throw new Error('User must be signed in to use the chatbot. Please log in first.');
 //   }
+  
+//   console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
   
 //   if (!vertexAI) {
 //     vertexAI = getVertexAI(app);
 //     model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
 //   }
 // }
+
+// Test Mode (Just keep using this since we want it to be available to everyone
+// regardless of authentication)
+async function ensureAuthenticated() {
+  // Test mode for development - add this to your .env.local: CHATBOT_TEST_MODE=true
+  const isTestMode = process.env.CHATBOT_TEST_MODE === 'true';
+  
+  if (isTestMode) {
+    console.log('🧪 Running in test mode - bypassing authentication');
+  } else {
+    // Check if user is already signed in (no anonymous sign-in)
+    if (!auth.currentUser) {
+      throw new Error('User must be signed in to use the chatbot. Please log in first.');
+    }
+    console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
+  }
+  
+  if (!vertexAI) {
+    vertexAI = getVertexAI(app);
+    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
+  }
+}
 
 export class VertexChatbotService {
   async processMessage(message: string): Promise<{ message: string; data?: any }> {
@@ -284,7 +285,9 @@ export class VertexChatbotService {
     Please provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
   }
 
-  // Intent detection methods
+  // ...existing code...
+
+  // Intent detection methods - IMPROVED
   private isLocationQuery(message: string): boolean {
     const locationKeywords = [
       'where', 'location', 'venue', 'address', 'room', 'building', 'place'
@@ -301,33 +304,100 @@ export class VertexChatbotService {
   }
 
   private isClubRelated(message: string): boolean {
-    const clubKeywords = ['club', 'clubs', 'organization', 'organizations', 'society', 'societies', 'group', 'groups'];
-    return clubKeywords.some(keyword => message.includes(keyword));
+    const clubKeywords = [
+      'club', 'clubs', 'organization', 'organizations', 'society', 'societies', 
+      'group', 'groups', 'student union', 'association', 'team', 'teams'
+    ];
+    const searchTerms = [
+      'find clubs', 'search clubs', 'looking for clubs', 'clubs that', 'clubs focused',
+      'clubs about', 'computer science', 'programming', 'tech', 'engineering',
+      'business', 'arts', 'science', 'music', 'sports', 'cultural', 'academic'
+    ];
+    
+    return clubKeywords.some(keyword => message.includes(keyword)) ||
+           searchTerms.some(term => message.includes(term));
   }
 
   private isEventRelated(message: string): boolean {
-    const eventKeywords = ['event', 'events', 'happening', 'upcoming', 'activities', 'activity'];
-    return eventKeywords.some(keyword => message.includes(keyword));
+    const eventKeywords = [
+      'event', 'events', 'happening', 'upcoming', 'activities', 'activity',
+      'this week', 'next week', 'today', 'tomorrow', 'weekend', 'soon'
+    ];
+    const eventPhrases = [
+      'events within', 'events in', 'what\'s happening', 'whats happening',
+      'upcoming events', 'events this', 'events next', 'events today'
+    ];
+    
+    return eventKeywords.some(keyword => message.includes(keyword)) ||
+           eventPhrases.some(phrase => message.includes(phrase));
   }
 
   private isPostRelated(message: string): boolean {
-    const postKeywords = ['post', 'posts', 'announcement', 'announcements', 'news', 'update', 'updates', 'hiring', 'job', 'opportunity'];
+    const postKeywords = [
+      'post', 'posts', 'announcement', 'announcements', 'news', 'update', 
+      'updates', 'hiring', 'job', 'opportunity', 'opportunities'
+    ];
     return postKeywords.some(keyword => message.includes(keyword));
   }
 
   private isGeneralInfo(message: string): boolean {
-    const generalKeywords = ['help', 'campus', 'campuses', 'what', 'how', 'categories', 'options', 'about', 'info'];
-    return generalKeywords.some(keyword => message.includes(keyword)) || message.length < 15;
+    const generalKeywords = [
+      'help', 'campus', 'campuses', 'what', 'how', 'categories', 'options', 
+      'about', 'info', 'clubhub', 'getting started', 'start'
+    ];
+    const generalPhrases = [
+      'tell me about', 'what is', 'how do', 'can you help', 'get started'
+    ];
+    
+    return generalKeywords.some(keyword => message.includes(keyword)) ||
+           generalPhrases.some(phrase => message.includes(phrase)) ||
+           message.length < 15;
   }
 
-  // Data extraction methods
+  // Data extraction methods - IMPROVED
   private extractQuery(message: string): string {
-    const words = message.toLowerCase().split(' ');
+    const lowerMessage = message.toLowerCase();
+    
+    // Handle specific patterns for better extraction
+    if (lowerMessage.includes('computer science') || lowerMessage.includes('cs')) {
+      return 'computer science programming tech software';
+    }
+    if (lowerMessage.includes('engineering')) {
+      return 'engineering technical science';
+    }
+    if (lowerMessage.includes('business')) {
+      return 'business commerce management';
+    }
+    if (lowerMessage.includes('arts')) {
+      return 'arts creative culture';
+    }
+    if (lowerMessage.includes('music')) {
+      return 'music performance band orchestra';
+    }
+    if (lowerMessage.includes('sports') || lowerMessage.includes('athletic')) {
+      return 'sports athletic fitness recreation';
+    }
+    
+    // Extract meaningful words
+    const words = lowerMessage.split(' ');
     const stopWords = [
       'what', 'is', 'are', 'the', 'find', 'search', 'for', 'about', 'show', 'me', 
-      'at', 'in', 'on', 'can', 'you', 'i', 'want', 'to', 'looking', 'any', 'some'
+      'at', 'in', 'on', 'can', 'you', 'i', 'want', 'to', 'looking', 'any', 'some',
+      'that', 'clubs', 'focused', 'around', 'within', 'events', 'upcoming'
     ];
-    return words.filter(word => !stopWords.includes(word) && word.length > 2).join(' ');
+    
+    const meaningfulWords = words.filter(word => 
+      !stopWords.includes(word) && 
+      word.length > 2 && 
+      !word.match(/^\d+$/) // Remove pure numbers
+    );
+    
+    // If no meaningful words found, return original query
+    if (meaningfulWords.length === 0) {
+      return lowerMessage;
+    }
+    
+    return meaningfulWords.join(' ');
   }
 
   private extractEventName(message: string): string {
@@ -368,14 +438,28 @@ export class VertexChatbotService {
   }
 
   private extractDaysAhead(message: string): number {
+    // Look for specific time phrases
+    if (message.includes('within the week') || message.includes('this week')) return 7;
+    if (message.includes('within a week')) return 7;
+    if (message.includes('next week')) return 14;
+    if (message.includes('within 2 weeks') || message.includes('within two weeks')) return 14;
+    if (message.includes('this month') || message.includes('within a month')) return 30;
+    
+    // Look for specific number patterns
     const match = message.match(/(\d+)\s*days?/);
     if (match) return parseInt(match[1]);
     
+    const weekMatch = message.match(/(\d+)\s*weeks?/);
+    if (weekMatch) return parseInt(weekMatch[1]) * 7;
+    
+    // Default cases
     if (message.includes('today') || message.includes('tonight')) return 1;
     if (message.includes('tomorrow')) return 2;
-    if (message.includes('week') || message.includes('7 days')) return 7;
-    if (message.includes('month') || message.includes('30 days')) return 30;
+    if (message.includes('weekend')) return 3;
+    if (message.includes('soon')) return 7;
     
     return 7; // Default to 7 days
   }
+
+// ...existing code...
 }
