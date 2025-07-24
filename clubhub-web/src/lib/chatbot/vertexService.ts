@@ -24,21 +24,6 @@ const auth = getAuth(app);
 let vertexAI: any = null;
 let model: any = null;
 
-// Authentication function
-// async function ensureAuthenticated() {
-//   // Check if user is already signed in (no anonymous sign-in)
-//   if (!auth.currentUser) {
-//     throw new Error('User must be signed in to use the chatbot. Please log in first.');
-//   }
-  
-//   console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
-  
-//   if (!vertexAI) {
-//     vertexAI = getVertexAI(app);
-//     model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
-//   }
-// }
-
 // Test Mode (Just keep using this since we want it to be available to everyone
 // regardless of authentication)
 async function ensureAuthenticated() {
@@ -57,7 +42,7 @@ async function ensureAuthenticated() {
   
   if (!vertexAI) {
     vertexAI = getVertexAI(app);
-    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-pro' });
+    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-flash-lite' });
   }
 }
 
@@ -157,7 +142,7 @@ export class VertexChatbotService {
       }
     }
 
-    // 3. Handle general club searches
+    // 3. Handle general club searches - ENHANCED WITH MULTIPLE SEARCH STRATEGIES
     else if (this.isClubRelated(lowerMessage)) {
       const query = this.extractQuery(message);
       const campus = this.extractCampus(message);
@@ -167,86 +152,275 @@ export class VertexChatbotService {
       console.log('  Extracted query:', query);
       console.log('  Extracted campus:', campus);
 
-      const clubs = await searchClubs({ query, campus, limit: 5 });
+      // Try multiple search strategies to find clubs
+      let clubs = await this.performComprehensiveClubSearch(query, campus, lowerMessage);
 
-      console.log('🔍 Club Search Results:');
+      console.log('🔍 Final Club Search Results:');
       console.log('  Found clubs:', clubs);
 
       data.clubs = clubs;
       
       if (Array.isArray(clubs) && clubs.length > 0) {
-        context += `Found ${clubs.length} clubs matching "${query}"${campus ? ` at ${campus}` : ''}:\n`;
-        clubs.forEach((club: any, index: number) => {
+        // Filter and rank results by relevance
+        const rankedClubs = clubs
+          .map((club: any) => ({
+            ...club,
+            relevanceScore: this.calculateRelevanceScore(club, query.toLowerCase())
+          }))
+          .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
+          .slice(0, 6); // Take top 6 most relevant
+
+        context += `Found ${rankedClubs.length} clubs from ClubHub database${campus ? ` at ${campus}` : ''}:\n`;
+        rankedClubs.forEach((club: any, index: number) => {
           context += `${index + 1}. ${club.name} (${club.campus || 'Unknown campus'})\n`;
           context += `   Description: ${club.description || 'No description available'}\n`;
+          
           if (club.instagram) {
             context += `   Instagram: ${club.instagram}\n`;
+          }
+          if (club.email) {
+            context += `   Email: ${club.email}\n`;
           }
           if (club.links) {
             context += `   Links: ${JSON.stringify(club.links)}\n`;
           }
           context += '\n';
         });
+        
+        // Add helpful database-driven suggestions
+        context += `\nTip: For more clubs, try searching for related terms or check different campuses in ClubHub!\n\n`;
+        
       } else {
-        context += `No clubs found matching "${query}"${campus ? ` at ${campus}` : ''}.\n\n`;
+        // Enhanced no-results response with database-first approach
+        context += `No clubs found in ClubHub database matching "${query}"${campus ? ` at ${campus}` : ''}.\n\n`;
+        context += `Suggestions for finding clubs in ClubHub:\n`;
+        context += `• Try broader search terms (e.g., "tech" instead of "software engineering")\n`;
+        context += `• Search without specifying a campus to see all options\n`;
+        context += `• Use different keywords related to your interests\n`;
+        context += `• Check if clubs might be listed under different categories\n\n`;
+        
+        // Suggest related searches
+        if (lowerMessage.includes('computer') || lowerMessage.includes('cs') || lowerMessage.includes('programming')) {
+          context += `Try searching ClubHub for: "tech", "engineering", "science", or "programming"\n\n`;
+        }
       }
     }
 
-    // 4. Handle general upcoming events
+    // 4. Handle general upcoming events - ENHANCED
     else if (this.isEventRelated(lowerMessage)) {
       const campus = this.extractCampus(message);
       const daysAhead = this.extractDaysAhead(message);
+      
+      console.log('🔍 Event Search Debug:');
+      console.log('  Campus:', campus);
+      console.log('  Days ahead:', daysAhead);
+      
       const events = await getUpcomingEvents({ campus, daysAhead });
       data.events = events;
       
       if (Array.isArray(events) && events.length > 0) {
-        context += `Found ${events.length} upcoming events${campus ? ` at ${campus}` : ''} in the next ${daysAhead} days:\n`;
+        context += `Found ${events.length} upcoming events in ClubHub database${campus ? ` at ${campus}` : ''} in the next ${daysAhead} days:\n`;
         events.forEach((event: any, index: number) => {
           context += `${index + 1}. ${event.title || 'Event'}\n`;
           context += `   Date: ${event.date_occuring ? new Date(event.date_occuring).toLocaleDateString() : 'Date TBA'}\n`;
+          context += `   Time: ${event.date_occuring ? new Date(event.date_occuring).toLocaleTimeString() : 'Time TBA'}\n`;
+          context += `   Campus: ${event.campus || 'Unknown'}\n`;
           context += `   Details: ${event.details || 'No details available'}\n`;
-          context += `   Campus: ${event.campus || 'Unknown'}\n\n`;
+          
+          if (event.location) {
+            context += `   Location: ${event.location}\n`;
+          }
+          context += '\n';
         });
+        
+        context += `\nTip: Check ClubHub regularly for new events and updates!\n\n`;
       } else {
-        context += `No upcoming events found${campus ? ` at ${campus}` : ''} in the next ${daysAhead} days.\n\n`;
+        context += `No upcoming events found in ClubHub database${campus ? ` at ${campus}` : ''} in the next ${daysAhead} days.\n\n`;
+        context += `Suggestions:\n`;
+        context += `• Try expanding your search to more days ahead\n`;
+        context += `• Check different campuses (UTSG, UTM, UTSC)\n`;
+        context += `• Look for events in ClubHub's event section\n`;
+        context += `• Follow clubs you're interested in for event notifications\n\n`;
       }
     }
 
-    // 5. Handle post searches
+    // 5. Handle post searches - ENHANCED
     else if (this.isPostRelated(lowerMessage)) {
       const query = this.extractQuery(message);
       const campus = this.extractCampus(message);
       const category = this.extractCategory(message);
       
-      const posts = await searchPosts({ query, campus, category, limit: 5 });
+      console.log('🔍 Post Search Debug:');
+      console.log('  Query:', query);
+      console.log('  Campus:', campus);
+      console.log('  Category:', category);
+      
+      const posts = await searchPosts({ query, campus, category, limit: 8 });
       data.posts = posts;
       
       if (Array.isArray(posts) && posts.length > 0) {
-        context += `Found ${posts.length} posts matching "${query}":\n`;
+        context += `Found ${posts.length} posts in ClubHub database matching "${query}":\n`;
         posts.forEach((post: any, index: number) => {
           context += `${index + 1}. ${post.title || 'Post'}\n`;
           context += `   Category: ${post.category || 'General'}\n`;
           context += `   Campus: ${post.campus || 'Unknown'}\n`;
-          context += `   Details: ${post.details || 'No details available'}\n\n`;
+          context += `   Details: ${post.details || 'No details available'}\n`;
+          
+          if (post.date_created) {
+            context += `   Posted: ${new Date(post.date_created).toLocaleDateString()}\n`;
+          }
+          context += '\n';
         });
+        
+        context += `\nTip: Check ClubHub posts section for the latest updates and opportunities!\n\n`;
       } else {
-        context += `No posts found matching "${query}".\n\n`;
+        context += `No posts found in ClubHub database matching "${query}".\n\n`;
+        context += `Try searching with different keywords or check the ClubHub posts section directly.\n\n`;
       }
     }
 
-    // 6. Handle general info requests
+    // 6. Handle general info requests - ENHANCED WITH DATABASE STATS
     else if (this.isGeneralInfo(lowerMessage)) {
       const campuses = getCampuses();
       const categories = await getCategories();
+      
+      // Get some sample data to show what's available
+      const sampleClubs = await searchClubs({ query: '', limit: 3 });
+      const sampleEvents = await getUpcomingEvents({ daysAhead: 30 });
+      
       data.campuses = campuses;
       data.categories = categories;
+      data.sampleClubs = sampleClubs;
+      data.sampleEvents = sampleEvents;
       
-      context += `ClubHub Information:\n`;
+      context += `ClubHub Platform Information:\n`;
       context += `Available campuses: ${campuses.join(', ')}\n`;
       context += `Available post categories: ${categories.join(', ')}\n\n`;
+      
+      if (sampleClubs && sampleClubs.length > 0) {
+        context += `Currently tracking ${sampleClubs.length}+ clubs across all campuses\n`;
+      }
+      
+      if (sampleEvents && sampleEvents.length > 0) {
+        context += `${sampleEvents.length}+ upcoming events in the next 30 days\n`;
+      }
+      
+      context += `\nWhat you can ask me:\n`;
+      context += `• "Find computer science clubs at UTSG"\n`;
+      context += `• "What events are happening this week?"\n`;
+      context += `• "Show me programming opportunities"\n`;
+      context += `• "Find clubs at UTM"\n\n`;
     }
 
     return { context, data };
+  }
+
+  // NEW: Comprehensive club search method - ENHANCED FOR GENERAL REQUESTS
+  private async performComprehensiveClubSearch(query: string, campus: string | undefined, originalMessage: string): Promise<any[]> {
+    let clubs: any[] = [];
+    
+    // Strategy 1: If query is empty or general request, get clubs directly
+    if (!query || query.trim() === '' || originalMessage.includes('other clubs') || originalMessage.includes('some clubs')) {
+      console.log('🔍 General club search - getting all clubs');
+      clubs = await searchClubs({ query: '', campus, limit: 15 });
+      if (clubs && clubs.length > 0) {
+        console.log(`✅ Found ${clubs.length} clubs with general search`);
+        return clubs;
+      }
+    }
+    
+    // Strategy 2: Direct search with extracted query
+    if (query && query.trim() !== '') {
+      clubs = await searchClubs({ query, campus, limit: 10 });
+      if (clubs && clubs.length > 0) {
+        console.log(`✅ Found clubs with direct search: "${query}"`);
+        return clubs;
+      }
+    }
+    
+    // Strategy 3: Try subject-specific searches for CS-related queries
+    if (originalMessage.includes('computer') || originalMessage.includes('cs') || originalMessage.includes('programming')) {
+      const csQueries = [
+        'computer science',
+        'computer',
+        'cs',
+        'programming',
+        'software',
+        'tech',
+        'technology',
+        'development',
+        'coding',
+        'engineering'
+      ];
+      
+      for (const csQuery of csQueries) {
+        clubs = await searchClubs({ query: csQuery, campus, limit: 10 });
+        if (clubs && clubs.length > 0) {
+          console.log(`✅ Found clubs with CS query: "${csQuery}"`);
+          break;
+        }
+      }
+    }
+    
+    // Strategy 4: Try without campus restriction if still no results
+    if ((!clubs || clubs.length === 0) && campus) {
+      console.log('🔄 Trying search without campus restriction...');
+      clubs = await searchClubs({ query: query || '', limit: 15 });
+    }
+    
+    // Strategy 5: Try very broad search if still no results
+    if (!clubs || clubs.length === 0) {
+      console.log('🔄 Trying broad search...');
+      clubs = await searchClubs({ query: '', limit: 20 }); // Get any clubs
+      
+      // If we have a campus preference, prioritize those clubs
+      if (clubs && clubs.length > 0 && campus) {
+        const campusClubs = clubs.filter((club: any) => 
+          club.campus && club.campus.toLowerCase() === campus.toLowerCase()
+        );
+        const otherClubs = clubs.filter((club: any) => 
+          !club.campus || club.campus.toLowerCase() !== campus.toLowerCase()
+        );
+        clubs = [...campusClubs, ...otherClubs];
+      }
+    }
+    
+    return clubs || [];
+  }
+
+  // Enhanced relevance scoring
+  private calculateRelevanceScore(club: any, query: string): number {
+    let score = 0;
+    const queryWords = query.toLowerCase().split(' ');
+    const clubName = (club.name || '').toLowerCase();
+    const clubDescription = (club.description || '').toLowerCase();
+    const clubText = `${clubName} ${clubDescription}`;
+    
+    // Score based on name matches (highest weight)
+    queryWords.forEach(word => {
+      if (word.length > 2) {
+        if (clubName.includes(word)) score += 15;
+        if (clubDescription.includes(word)) score += 8;
+      }
+    });
+    
+    // Bonus for exact phrase matches
+    if (clubName.includes(query)) score += 25;
+    if (clubDescription.includes(query)) score += 20;
+    
+    // Bonus for CS-specific terms
+    const csTerms = ['computer', 'programming', 'software', 'tech', 'cs', 'development', 'engineering'];
+    csTerms.forEach(term => {
+      if (clubText.includes(term)) score += 10;
+    });
+    
+    // Bonus for subject-specific terms
+    const subjectTerms = ['business', 'arts', 'music', 'sports', 'science', 'math'];
+    subjectTerms.forEach(term => {
+      if (query.includes(term) && clubText.includes(term)) score += 12;
+    });
+    
+    return score;
   }
 
   private isGreeting(message: string): boolean {
@@ -285,8 +459,6 @@ export class VertexChatbotService {
     Please provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
   }
 
-  // ...existing code...
-
   // Intent detection methods - IMPROVED
   private isLocationQuery(message: string): boolean {
     const locationKeywords = [
@@ -303,19 +475,32 @@ export class VertexChatbotService {
     return specificEventPhrases.some(phrase => message.includes(phrase));
   }
 
+  // Enhanced club-related detection
   private isClubRelated(message: string): boolean {
     const clubKeywords = [
       'club', 'clubs', 'organization', 'organizations', 'society', 'societies', 
-      'group', 'groups', 'student union', 'association', 'team', 'teams'
+      'group', 'groups', 'student union', 'association', 'team', 'teams',
+      'union', 'committee', 'council', 'collective', 'network'
     ];
-    const searchTerms = [
+    
+    const subjectKeywords = [
+      'computer science', 'cs', 'programming', 'tech', 'technology', 'software',
+      'engineering', 'business', 'arts', 'science', 'music', 'sports', 'cultural', 
+      'academic', 'math', 'mathematics', 'physics', 'chemistry', 'biology',
+      'psychology', 'sociology', 'economics', 'finance', 'marketing', 'design',
+      'robotics', 'ai', 'artificial intelligence', 'machine learning', 'data science'
+    ];
+    
+    const searchPhrases = [
       'find clubs', 'search clubs', 'looking for clubs', 'clubs that', 'clubs focused',
-      'clubs about', 'computer science', 'programming', 'tech', 'engineering',
-      'business', 'arts', 'science', 'music', 'sports', 'cultural', 'academic'
+      'clubs about', 'clubs related to', 'show me clubs', 'list clubs', 'clubs for',
+      'give me clubs', 'computer science clubs', 'programming clubs', 'tech clubs',
+      'other clubs', 'some clubs', 'any clubs', 'more clubs'  // Added these general phrases
     ];
     
     return clubKeywords.some(keyword => message.includes(keyword)) ||
-           searchTerms.some(term => message.includes(term));
+           subjectKeywords.some(term => message.includes(term)) ||
+           searchPhrases.some(phrase => message.includes(phrase));
   }
 
   private isEventRelated(message: string): boolean {
@@ -354,47 +539,81 @@ export class VertexChatbotService {
            message.length < 15;
   }
 
-  // Data extraction methods - IMPROVED
+  // Enhanced query extraction with better handling of general requests - FIXED
   private extractQuery(message: string): string {
     const lowerMessage = message.toLowerCase();
     
-    // Handle specific patterns for better extraction
-    if (lowerMessage.includes('computer science') || lowerMessage.includes('cs')) {
-      return 'computer science programming tech software';
-    }
-    if (lowerMessage.includes('engineering')) {
-      return 'engineering technical science';
-    }
-    if (lowerMessage.includes('business')) {
-      return 'business commerce management';
-    }
-    if (lowerMessage.includes('arts')) {
-      return 'arts creative culture';
-    }
-    if (lowerMessage.includes('music')) {
-      return 'music performance band orchestra';
-    }
-    if (lowerMessage.includes('sports') || lowerMessage.includes('athletic')) {
-      return 'sports athletic fitness recreation';
+    // Handle general club requests without specific subjects
+    if (lowerMessage.includes('other clubs') || lowerMessage.includes('some clubs') || lowerMessage.includes('any clubs')) {
+      return ''; // Return empty string to get all clubs
     }
     
-    // Extract meaningful words
+    if (lowerMessage.includes('give me clubs') || lowerMessage.includes('show me clubs') || lowerMessage.includes('find clubs')) {
+      // Check if there are specific subject terms after the general request
+      const afterRequest = lowerMessage.split(/give me|show me|find/)[1] || '';
+      if (afterRequest.includes('computer') || afterRequest.includes('cs')) {
+        return 'computer science cs programming software development tech technology coding';
+      }
+      if (afterRequest.includes('tech')) {
+        return 'technology tech computer science programming software engineering';
+      }
+      // If no specific subject, return empty for general search
+      return '';
+    }
+    
+    // Handle specific patterns for better extraction
+    if (lowerMessage.includes('computer science') || lowerMessage.includes('cs')) {
+      return 'computer science cs programming software development tech technology coding';
+    }
+    if (lowerMessage.includes('programming') || lowerMessage.includes('coding')) {
+      return 'programming coding computer science cs software development';
+    }
+    if (lowerMessage.includes('tech') || lowerMessage.includes('technology')) {
+      return 'technology tech computer science programming software engineering';
+    }
+    if (lowerMessage.includes('software')) {
+      return 'software programming computer science development engineering tech';
+    }
+    if (lowerMessage.includes('engineering')) {
+      return 'engineering technical science computer software';
+    }
+    if (lowerMessage.includes('data science') || lowerMessage.includes('machine learning') || lowerMessage.includes('ai')) {
+      return 'data science machine learning ai artificial intelligence computer science programming';
+    }
+    if (lowerMessage.includes('business')) {
+      return 'business commerce management entrepreneurship finance';
+    }
+    if (lowerMessage.includes('arts')) {
+      return 'arts creative culture visual performing';
+    }
+    if (lowerMessage.includes('music')) {
+      return 'music performance band orchestra choir';
+    }
+    if (lowerMessage.includes('sports') || lowerMessage.includes('athletic')) {
+      return 'sports athletic fitness recreation physical';
+    }
+    if (lowerMessage.includes('math') || lowerMessage.includes('mathematics')) {
+      return 'mathematics math statistics calculus algebra';
+    }
+    
+    // Extract meaningful words with better filtering
     const words = lowerMessage.split(' ');
     const stopWords = [
       'what', 'is', 'are', 'the', 'find', 'search', 'for', 'about', 'show', 'me', 
       'at', 'in', 'on', 'can', 'you', 'i', 'want', 'to', 'looking', 'any', 'some',
-      'that', 'clubs', 'focused', 'around', 'within', 'events', 'upcoming'
+      'that', 'clubs', 'focused', 'around', 'within', 'events', 'upcoming', 'give',
+      'related', 'help', 'please', 'thanks', 'thank', 'other', 'from', 'utsg', 'utm', 'utsc'
     ];
     
     const meaningfulWords = words.filter(word => 
       !stopWords.includes(word) && 
       word.length > 2 && 
-      !word.match(/^\d+$/) // Remove pure numbers
+      !word.match(/^\d+$/)
     );
     
-    // If no meaningful words found, return original query
+    // If no meaningful words found, return empty string for general search
     if (meaningfulWords.length === 0) {
-      return lowerMessage;
+      return '';
     }
     
     return meaningfulWords.join(' ');
@@ -460,6 +679,4 @@ export class VertexChatbotService {
     
     return 7; // Default to 7 days
   }
-
-// ...existing code...
 }
