@@ -826,27 +826,11 @@ export class VertexChatbotService {
       return extracted;
     }
     
-    // Handle specific organization mentions with better club name matching
-    if (lowerMessage.includes('cssu') || lowerMessage.includes('computer science student union')) {
-      return 'cssu';
-    }
-    
-    if (lowerMessage.includes('amacss')) {
-      return 'amacss';
-    }
-    
-    if (lowerMessage.includes('data science') || lowerMessage.includes('ds3')) {
-      return 'data science';
-    }
-    
     // Handle "posts from [org]" patterns
     const fromOrgMatch = lowerMessage.match(/posts?\s+from\s+(.+?)(?:\s+page|\s*$)/);
     if (fromOrgMatch) {
       const org = fromOrgMatch[1].trim();
       console.log(`🏫 Extracted organization: "${org}"`);
-      if (org.includes('cssu')) return 'cssu';
-      if (org.includes('amacss')) return 'amacss';
-      if (org.includes('data science') || org.includes('ds3')) return 'data science';
       return org;
     }
     
