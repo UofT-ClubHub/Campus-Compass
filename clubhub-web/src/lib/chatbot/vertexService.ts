@@ -1,73 +1,58 @@
-import { initializeApp } from 'firebase/app';
 import { getVertexAI, getGenerativeModel } from '@firebase/vertexai-preview';
-import { getAuth, signInAnonymously } from 'firebase/auth';
 import { searchClubs, getClubDetails, searchPosts, getUpcomingEvents,
-  getCategories, getCampuses, searchEvents, getEventLocation } from './functions';
-
-// Firebase configuration using your project's config
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: "https://clubhub-10e01-default-rtdb.firebaseio.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: "G-XSZBKS1H6K"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+  getCategories, getCampuses, searchEvents } from './functions';
+import app from '../../model/firebase';
+import { auth as adminAuth } from '@/app/api/firebaseAdmin';
+import { NextRequest } from 'next/server';
 
 // Initialize Vertex AI after authentication
 let vertexAI: any = null;
 let model: any = null;
 
-// Test Mode (Just keep using this since we want it to be available to everyone
-// regardless of authentication)
-async function ensureAuthenticated() {
-  // Test mode for development - add this to your .env.local: CHATBOT_TEST_MODE=true
-  const isTestMode = process.env.CHATBOT_TEST_MODE === 'true';
-  
-  if (isTestMode) {
-    console.log('🧪 Running in test mode - bypassing authentication');
-  } else {
-    // Check if user is already signed in (no anonymous sign-in)
-    if (!auth.currentUser) {
-      throw new Error('User must be signed in to use the chatbot. Please log in first.');
-    }
-    console.log('User authenticated:', auth.currentUser.email || auth.currentUser.uid);
-  }
-  
+// Ensure Vertex AI and model are initialized
+async function ensureVertexModelInitialized() {
   if (!vertexAI) {
     vertexAI = getVertexAI(app);
+  }
+  if (!model) {
     model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-flash-lite' });
   }
 }
 
+// Only allow authenticated users (API route context)
+async function ensureAuthenticated(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('User must be signed in to use the chatbot. Please log in first.');
+  }
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    console.log('User authenticated:', decoded.email || decoded.uid);
+  } catch (e) {
+    throw new Error('User must be signed in to use the chatbot. Please log in first.');
+  }
+}
+
 export class VertexChatbotService {
-  async processMessage(message: string): Promise<{ message: string; data?: any }> {
+  async processMessage(message: string, request?: NextRequest): Promise<{ message: string; data?: any }> {
     try {
-      // Ensure we're authenticated before making AI calls
-      await ensureAuthenticated();
-      
+      if (request) {
+        await ensureAuthenticated(request);
+      }
+      await ensureVertexModelInitialized();
       // Analyze the message and gather relevant data
       const context = await this.gatherContext(message);
-      
       // Create the prompt for AI
       const prompt = this.createPrompt(message, context);
-      
       // Use Firebase Vertex AI (now with authentication)
       const result = await model.generateContent(prompt);
       const response = result.response;
       const responseText = response.text();
-      
       return {
         message: responseText || "Sorry, I couldn't generate a response.",
         data: context.data
       };
-      
     } catch (error) {
       console.error('AI error:', error);
       return {
@@ -87,38 +72,9 @@ export class VertexChatbotService {
       context += `User greeted the bot. Begin with a friendly welcome.\n\n`;
       data.greeting = true;
     }
-
-    // 1. Handle specific event location queries
-    if (this.isLocationQuery(lowerMessage)) {
-      const eventName = this.extractEventName(message);
-      const campus = this.extractCampus(message);
       
-      console.log('🔍 Location Query Debug:');
-      console.log('  Event name:', eventName);
-      console.log('  Campus:', campus);
-      
-      const events = await getEventLocation({ 
-        eventQuery: eventName, 
-        campus 
-      });
-      
-      data.eventLocations = events;
-
-      if (Array.isArray(events) && events.length > 0) {
-        context += `Location information for "${eventName}":\n`;
-        events.forEach((event: any, index: number) => {
-          context += `${index + 1}. ${event.title || 'Event'}\n`;
-          context += `   Date: ${event.date_occuring ? new Date(event.date_occuring).toLocaleDateString() : 'TBA'}\n`;
-          context += `   Location: ${event.location || event.venue || event.address || 'Location TBA'}\n`;
-          context += `   Campus: ${event.campus || 'Unknown'}\n\n`;
-        });
-      } else {
-        context += `No location information found for "${eventName}". Try checking event details or contact organizers.\n\n`;
-      }
-    }
-
-    // 2. Handle specific event date/time queries - ENHANCED FOR DS3 PROJECT SHOWCASE
-    else if (this.isSpecificEventQuery(lowerMessage) || this.isEventRelated(lowerMessage)) {
+    // Handle specific event date/time queries
+    if (this.isSpecificEventQuery(lowerMessage) || this.isEventRelated(lowerMessage)) {
       const eventName = this.extractEventName(message);
       const campus = this.extractCampus(message);
       
@@ -607,11 +563,6 @@ export class VertexChatbotService {
       terms.push(words.slice(-2).join(' '));
     }
     
-    // Handle specific cases
-    if (query.toLowerCase().includes('ds3')) {
-      terms.push('data science', 'ds3', 'project', 'showcase');
-    }
-    
     if (query.toLowerCase().includes('project')) {
       terms.push('project', 'showcase', 'presentation');
     }
@@ -642,18 +593,6 @@ export class VertexChatbotService {
     // Bonus for exact phrase matches
     if (clubName.includes(query)) score += 25;
     if (clubDescription.includes(query)) score += 20;
-    
-    // Bonus for CS-specific terms
-    const csTerms = ['computer', 'programming', 'software', 'tech', 'cs', 'development', 'engineering'];
-    csTerms.forEach(term => {
-      if (clubText.includes(term)) score += 10;
-    });
-    
-    // Bonus for subject-specific terms
-    const subjectTerms = ['business', 'arts', 'music', 'sports', 'science', 'math'];
-    subjectTerms.forEach(term => {
-      if (query.includes(term) && clubText.includes(term)) score += 12;
-    });
     
     return score;
   }

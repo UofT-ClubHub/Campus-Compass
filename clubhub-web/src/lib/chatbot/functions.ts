@@ -380,58 +380,6 @@ export const searchEvents = async ({
   }
 };
 
-// NEW FUNCTION: Get event location information specifically
-export const getEventLocation = async ({
-  eventQuery,
-  campus
-}: {
-  eventQuery: string;
-  campus?: string;
-}) => {
-  // Use the existing searchEvents function but with focus on location
-  const events = await searchEvents({
-    query: eventQuery,
-    campus,
-    includeExpired: false,
-    limit: 3
-  });
-  
-  // Return events with emphasis on location information
-  return events.map((event: any) => ({
-    id: event.id,
-    title: event.title,
-    date_occuring: event.date_occuring,
-    location: event.location || extractLocationFromDetails(event.details),
-    venue: event.venue,
-    address: event.address,
-    campus: event.campus,
-    details: event.details
-  }));
-};
-
-// Helper function to extract location from details if it's embedded in text
-const extractLocationFromDetails = (details: string): string | null => {
-  if (!details) return null;
-  
-  // Look for common location patterns in the details
-  const locationPatterns = [
-    /location:?\s*([^\n\r.]+)/i,
-    /venue:?\s*([^\n\r.]+)/i,
-    /at\s+([A-Z][^\n\r.]+(?:building|hall|room|center|centre))/i,
-    /room\s+(\w+\d+)/i,
-    /address:?\s*([^\n\r.]+)/i
-  ];
-  
-  for (const pattern of locationPatterns) {
-    const match = details.match(pattern);
-    if (match) {
-      return match[1].trim();
-    }
-  }
-  
-  return null;
-};
-
 export const getCampuses = () => {
   return ['UTSG', 'UTM', 'UTSC'];
 };
