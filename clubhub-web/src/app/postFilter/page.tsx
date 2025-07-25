@@ -22,7 +22,6 @@ export default function PostFilterPage() {
   const [hashtagsFilter, setHashtagsFilter] = useState(searchParams.get('hashtags') || "");
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
 
-  const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 9;
@@ -90,13 +89,6 @@ export default function PostFilterPage() {
     if (isNewSearch) {
       setPosts([]);
       setInitialLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
-
-    // Add a small delay to prevent rapid successive calls
-    if (!isNewSearch) {
-      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
     try {
@@ -158,8 +150,6 @@ export default function PostFilterPage() {
     } finally {
       if (isNewSearch) {
         setInitialLoading(false);
-      } else {
-        setLoadingMore(false);
       }
       loadingRef.current = false;
     }
@@ -225,7 +215,6 @@ export default function PostFilterPage() {
         window.innerHeight + document.documentElement.scrollTop <
           document.documentElement.offsetHeight - 300 || // Increased threshold
         !hasMore ||
-        loadingMore ||
         loadingRef.current
       ) {
         return;
@@ -236,7 +225,7 @@ export default function PostFilterPage() {
       
       // Set a longer debounce to prevent rapid calls
       scrollTimeout = setTimeout(() => {
-        if (!loadingRef.current && !loadingMore && hasMore) {
+        if (!loadingRef.current && hasMore) {
           filterPosts();
         }
       }, 300); // Increased debounce time
@@ -251,7 +240,7 @@ export default function PostFilterPage() {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [hasMore, offset, loadingMore]);
+  }, [hasMore, offset]);
 
   // Handle like updates to keep posts in sync
   const handleLikeUpdate = (
@@ -371,16 +360,16 @@ export default function PostFilterPage() {
                 <option value="Survey">Survey</option>
               </select>
 
-              {/* Sort By and Sort Order in one cell, improved layout */}
-              <div className="flex flex-col md:flex-row gap-2 w-full items-end">
+              {/* Sort By and Sort Order in one line, mobile-friendly layout */}
+              <div className="flex flex-row gap-2 w-full items-end">
                 <div className="flex-1">
-                  <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 md:mb-0 md:sr-only">Sort By</label>
+                  <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort By</label>
                   <select
                     id="sort-by"
                     data-testid="sort-by"
                     value={sort_by}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                    className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
                   >
                     <option value="">Sort By</option>
                     <option value="date_posted">Date Posted</option>
@@ -390,13 +379,13 @@ export default function PostFilterPage() {
                 </div>
                 {showSortOrder && (
                   <div className="flex-1">
-                    <label htmlFor="sort-order" className="block text-xs font-medium text-muted-foreground mb-1 md:mb-0 md:sr-only">Sort Order</label>
+                    <label htmlFor="sort-order" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort Order</label>
                     <select
                       id="sort-order"
                       data-testid="sort-order"
                       value={sort_order}
                       onChange={(e) => setSortOrder(e.target.value)}
-                      className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                      className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
                     >
                       <option value="desc">Descending</option>
                       <option value="asc">Ascending</option>
@@ -469,14 +458,6 @@ export default function PostFilterPage() {
                     />
                   ))}
                 </div>
-                
-                {/* Loading more posts indicator */}
-                {loadingMore && (
-                  <div className="mt-8 py-4 flex flex-col items-center">
-                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                    <p className="text-center text-muted-foreground mt-2">Loading more posts...</p>
-                  </div>
-                )}
                 
                 {/* End of results indicator */}
                 {!hasMore && posts.length > 0 && (

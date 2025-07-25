@@ -23,7 +23,6 @@ export default function clubSearchPage() {
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const limit = 4;
   const loadingRef = useRef(false);
@@ -94,13 +93,6 @@ export default function clubSearchPage() {
     if (isNewSearch) {
       setClubs([]);
       setInitialLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
-
-    // Add a small delay to prevent rapid successive calls
-    if (!isNewSearch) {
-      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
     try {
@@ -149,8 +141,6 @@ export default function clubSearchPage() {
     } finally {
       if (isNewSearch) {
         setInitialLoading(false);
-      } else {
-        setLoadingMore(false);
       }
       loadingRef.current = false;
     }
@@ -191,7 +181,6 @@ export default function clubSearchPage() {
         window.innerHeight + document.documentElement.scrollTop <
           document.documentElement.offsetHeight - 300 || // Increased threshold
         !hasMore ||
-        loadingMore ||
         loadingRef.current
       ) {
         return;
@@ -202,7 +191,7 @@ export default function clubSearchPage() {
     
     // Set a longer debounce to prevent rapid calls
     scrollTimeout = setTimeout(() => {
-      if (!loadingRef.current && !loadingMore && hasMore) {
+      if (!loadingRef.current && hasMore) {
         clubSearch();
       }
     }, 300); // Increased debounce time
@@ -217,7 +206,7 @@ export default function clubSearchPage() {
     window.removeEventListener('scroll', handleScroll);
     clearTimeout(scrollTimeout);
   };
-}, [hasMore, offset, loadingMore]);
+}, [hasMore, offset]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -322,14 +311,6 @@ export default function clubSearchPage() {
                       />
                   ))}
                 </div>
-                
-                {/* Loading more clubs indicator */}
-                {loadingMore && (
-                  <div className="mt-8 py-4 flex flex-col items-center">
-                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                    <p className="text-center text-muted-foreground mt-2">Loading more clubs...</p>
-                  </div>
-                )}
                 
                 {/* End of results indicator */}
                 {!hasMore && clubs.length > 0 && (

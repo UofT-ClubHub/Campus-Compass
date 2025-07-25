@@ -93,7 +93,7 @@
   --club-card-bg:            #232346;
   --post-card-bg:            #1a1a3a;
   --expandable-post-card-bg: #252560;
-  --primary:                  #f7bf06;
+  --primary:                  #f78f06;
   --primary-foreground:      #ffffff;
   --secondary:               #8b5cf6;
   --secondary-foreground:    #ffffff;
@@ -161,10 +161,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  background: var(--background);
+  min-height: 100%;
+  overscroll-behavior: none; /* Prevent overscroll effects */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh; /* Ensure body fills viewport */
+  overscroll-behavior: none; /* Prevent overscroll effects */
+  position: relative;
 }
 
 /* Smooth infinite scroll animation with better transitions */

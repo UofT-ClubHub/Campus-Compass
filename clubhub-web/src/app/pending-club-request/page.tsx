@@ -265,32 +265,39 @@ export default function PendingClubRequestPage() {
             ) : pendingClubs.length === 0 ? (
               <div className="text-muted-foreground">No club requests found.</div>
             ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="text-left py-2 text-foreground">Name</th>
-                    <th className="text-left py-2 text-foreground">Campus</th>
-                    <th className="text-left py-2 text-foreground">Status</th>
-                    <th className="text-left py-2 text-foreground">Submitted</th>
-                    <th className="text-left py-2 text-foreground">Message</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingClubs.map((club) => (
-                    <tr key={club.id} className="border-t border-border">
-                      <td className="py-2 text-foreground">{club.club_name}</td>
-                      <td className="py-2 text-foreground">{club.club_campus}</td>
-                      <td className="py-2 capitalize text-foreground">
+              <div className="space-y-4">
+                {pendingClubs.map((club) => (
+                  <div key={club.id} className="border border-border rounded-lg p-4 bg-muted/30">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-foreground">{club.club_name}</h3>
+                      <span className="text-xs bg-muted px-2 py-1 rounded text-foreground">{club.club_campus}</span>
+                    </div>
+                    
+                    <div className="mb-2">
+                      <span className="text-sm text-muted-foreground">Status: </span>
+                      <span className="text-sm capitalize">
                         {club.status === 'pending' && <span className="text-yellow-600">Pending</span>}
                         {club.status === 'approved' && <span className="text-green-600">Approved</span>}
                         {club.status === 'rejected' && <span className="text-red-600">Rejected</span>}
-                      </td>
-                      <td className="py-2 text-foreground">{club.created_at ? new Date(club.created_at).toLocaleString() : ''}</td>
-                      <td className="py-2 text-foreground">{club.message}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </span>
+                    </div>
+                    
+                    <div className="mb-2">
+                      <span className="text-sm text-muted-foreground">Submitted: </span>
+                      <span className="text-sm text-foreground">
+                        {club.created_at ? new Date(club.created_at).toLocaleDateString() : 'Unknown'}
+                      </span>
+                    </div>
+                    
+                    {club.message && (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Message: </span>
+                        <p className="text-sm text-foreground mt-1">{club.message}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}

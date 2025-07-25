@@ -122,7 +122,7 @@ export default function ChatbotWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl"
+          className="group relative rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl touch-none"
           style={{
             background: `linear-gradient(to right, var(--primary), var(--accent))`,
             color: 'var(--primary-foreground)'
@@ -144,7 +144,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="bg-background rounded-2xl shadow-2xl w-full max-w-lg sm:w-[28rem] sm:max-w-xl w-[95vw] h-[80vh] max-h-[700px] flex flex-col border border-border overflow-hidden">
+        <div className="bg-background rounded-2xl shadow-2xl w-[90vw] max-w-sm sm:w-[28rem] sm:max-w-xl h-[75vh] max-h-[600px] sm:max-h-[700px] flex flex-col border border-border overflow-hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 sm:absolute sm:bottom-full sm:right-0 sm:left-auto sm:transform-none sm:translate-x-0 sm:mb-2">
           {/* Header */}
           <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
             <div className="flex items-center space-x-3">
