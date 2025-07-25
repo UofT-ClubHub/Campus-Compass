@@ -19,7 +19,6 @@ export default function PostFilterPage() {
   const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "");
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "");
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "");
-  const [clubFilter, setClubFilter] = useState(searchParams.get('club') || "");
   const [hashtagsFilter, setHashtagsFilter] = useState(searchParams.get('hashtags') || "");
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
 
@@ -30,7 +29,7 @@ export default function PostFilterPage() {
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
   const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
-  const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "");
+  const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
 
   // Clear all filters function
@@ -38,7 +37,6 @@ export default function PostFilterPage() {
     setNameFilter("");
     setCampusFilter("");
     setDescriptionFilter("");
-    setClubFilter("");
     setHashtagsFilter("");
     setCategoryFilter("");
     setSortBy("");
@@ -47,6 +45,10 @@ export default function PostFilterPage() {
 
   useEffect(() => {
     setShowSortOrder(sort_by !== "");
+    // If sort_by is selected and sort_order is empty, default to 'desc'
+    if (sort_by && !sort_order) {
+      setSortOrder('desc');
+    }
   }, [sort_by]);
 
   useEffect(() => {
@@ -63,7 +65,6 @@ export default function PostFilterPage() {
   if (nameFilter) params.set('name', nameFilter);
   if (campusFilter) params.set('campus', campusFilter);   
   if (descriptionFilter) params.set('description', descriptionFilter); 
-  if (clubFilter) params.set('club', clubFilter);         
   if (hashtagsFilter) params.set('hashtags', hashtagsFilter); 
   if (categoryFilter) params.set('category', categoryFilter); 
   if (sort_by) params.set('sort_by', sort_by);
@@ -72,7 +73,7 @@ export default function PostFilterPage() {
   // Update URL without refreshing page
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter, clubFilter, hashtagsFilter, 
+}, [nameFilter, campusFilter, descriptionFilter, hashtagsFilter, 
     categoryFilter, sort_by, sort_order]);
 
   const filterPosts = async (isNewSearch = false) => {
@@ -103,7 +104,6 @@ export default function PostFilterPage() {
 
       nameFilter ? params.append("title", nameFilter) : null;
       campusFilter ? params.append("campus", campusFilter) : null;
-      clubFilter ? params.append("club", clubFilter) : null;
       categoryFilter ? params.append("category", categoryFilter) : null;
       descriptionFilter ? params.append("details", descriptionFilter) : null;
       params.append("sort_by", sort_by);
@@ -200,7 +200,6 @@ export default function PostFilterPage() {
     nameFilter,
     campusFilter,
     descriptionFilter,
-    clubFilter,
     hashtagsFilter,
     categoryFilter,
     sort_by,
@@ -333,31 +332,7 @@ export default function PostFilterPage() {
                 className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
 
-              {/* Campus Filter */}
-              <select
-                value={campusFilter}
-                onChange={(e) => setCampusFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
-              >
-                <option value="">Select Campus</option>
-                <option value="UTSC">UTSC</option>
-                <option value="UTSG">UTSG</option>
-                <option value="UTM">UTM</option>
-              </select>
-            </div>
-
-            {/* Second Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-              {/* Club Name Filter */}
-              <input
-                type="text"
-                placeholder="Club Name"
-                value={clubFilter}
-                onChange={(e) => setClubFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              />
-
-              {/* Hashtags Filter */}
+              {/* Hashtags Filter (moved up) */}
               <input
                 type="text"
                 placeholder="Hashtags (comma separated)"
@@ -365,12 +340,27 @@ export default function PostFilterPage() {
                 onChange={(e) => setHashtagsFilter(e.target.value)}
                 className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
+            </div>
+
+            {/* Second Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 items-end">
+              {/* Campus Filter (moved down) */}
+              <select
+                value={campusFilter}
+                onChange={(e) => setCampusFilter(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+              >
+                <option value="">Select Campus</option>
+                <option value="UTSC">UTSC</option>
+                <option value="UTSG">UTSG</option>
+                <option value="UTM">UTM</option>
+              </select>
 
               {/* Category Filter */}
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
               >
                 <option value="">Select Type of Post</option>
                 <option value="Event">Event</option>
@@ -380,37 +370,42 @@ export default function PostFilterPage() {
                 </option>
                 <option value="Survey">Survey</option>
               </select>
+
+              {/* Sort By and Sort Order in one cell, improved layout */}
+              <div className="flex flex-col md:flex-row gap-2 w-full items-end">
+                <div className="flex-1">
+                  <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 md:mb-0 md:sr-only">Sort By</label>
+                  <select
+                    id="sort-by"
+                    data-testid="sort-by"
+                    value={sort_by}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                  >
+                    <option value="">Sort By</option>
+                    <option value="date_posted">Date Posted</option>
+                    <option value="likes">Likes</option>
+                    <option value="date_occuring">Date Occuring</option>
+                  </select>
+                </div>
+                {showSortOrder && (
+                  <div className="flex-1">
+                    <label htmlFor="sort-order" className="block text-xs font-medium text-muted-foreground mb-1 md:mb-0 md:sr-only">Sort Order</label>
+                    <select
+                      id="sort-order"
+                      data-testid="sort-order"
+                      value={sort_order}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                    >
+                      <option value="desc">Descending</option>
+                      <option value="asc">Ascending</option>
+                    </select>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Third Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-              {/* Sort By */}
-              <select
-                data-testid="sort-by"
-                value={sort_by}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
-              >
-                <option value="">Sort By</option>
-                <option value="date_posted">Date Posted</option>
-                <option value="likes">Likes</option>
-                <option value="date_occuring">Date Occuring</option>
-              </select>
-
-              {/* Sort Order */}
-              {showSortOrder && (
-                <select
-                  data-testid="sort-order"
-                  value={sort_order}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
-                >
-                  <option value="desc">Descending</option>
-                  <option value="asc">Ascending</option>
-                </select>
-              )}
-            </div>
-            
             {/* Clear All Filters Button */}
             <div className="flex justify-center mt-4 pt-3 border-t border-border">
               <button
