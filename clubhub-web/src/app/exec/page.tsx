@@ -465,21 +465,21 @@ export default function ExecPage() {
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       {showEditClubForm === club.id ? "Cancel" : "Edit"}
                     </button>
                     )}
                     <button
                       onClick={() => setShowCreatePostForm(showCreatePostForm === club.id ? null : club.id)}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
                     </button>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       disabled={deletingClubId === club.id}
-                      className="px-3 py-1.5 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                      className="cursor-pointer px-3 py-1.5 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
                     >
                       {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
@@ -558,13 +558,13 @@ export default function ExecPage() {
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                          className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
                         >
                           Add
                         </button>
                         <button
                       onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       Cancel
                     </button>
@@ -633,7 +633,7 @@ export default function ExecPage() {
                       </div>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
                       >
                         Save Changes
                       </button>
@@ -647,7 +647,7 @@ export default function ExecPage() {
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
-                      className="ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       Cancel
                     </button>
