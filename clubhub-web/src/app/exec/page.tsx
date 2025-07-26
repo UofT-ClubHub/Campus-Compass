@@ -26,7 +26,7 @@ export default function ExecPage() {
   const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [deletingClubId, setDeletingClubId] = useState<string | null>(null);
-  
+
   const campusOptions = [
     { value: 'UTSG', label: 'UTSG' },
     { value: 'UTSC', label: 'UTSC' },
@@ -79,8 +79,8 @@ export default function ExecPage() {
           throw new Error(errorData.error);
         }
         const user: User = await response.json();
-        setUserData(user); 
-        
+        setUserData(user);
+
         if (!user.is_executive && !user.is_admin) {
           setError("Access Denied: You are not an exec.");
           setIsLoading(false);
@@ -239,7 +239,7 @@ export default function ExecPage() {
 
       // Refresh the managed clubs data to get updated executive information
       const updatedUser = await updateUserResponse.json();
-      
+
       // Refresh the clubs data to show the new executive
       const clubsDataPromises = managedClubs.map(async (club) => {
         const clubResponse = await fetch(`/api/clubs?id=${club.id}`);
@@ -276,8 +276,10 @@ export default function ExecPage() {
       const idToken = await authUser?.getIdToken();
       const response = await fetch(`/api/clubs?id=${clubId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json",
-                   Authorization: `Bearer ${idToken}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        },
         body: JSON.stringify({ ...editingClub, image: imageUrl }),
       })
 
@@ -304,9 +306,9 @@ export default function ExecPage() {
 
   const handleDeleteClub = async (clubId: string, clubName: string) => {
     const confirmMessage = `Are you sure you want to delete "${clubName}"? Type "DELETE" to confirm:`;
-    
+
     const confirmation = prompt(confirmMessage);
-    
+
     if (confirmation !== "DELETE") {
       return;
     }
@@ -332,12 +334,12 @@ export default function ExecPage() {
 
       // Remove the club from local state
       setManagedClubs(prevClubs => prevClubs.filter(club => club.id !== clubId));
-      
+
       // Clear any open forms for this club
       if (showAddExecForm === clubId) setShowAddExecForm(null);
       if (showEditClubForm === clubId) setShowEditClubForm(null);
       if (showCreatePostForm === clubId) setShowCreatePostForm(null);
-      
+
       setSuccessMessage(`"${clubName}" has been deleted successfully.`);
     } catch (err: any) {
       console.log("Error deleting club:", err);
@@ -446,13 +448,14 @@ export default function ExecPage() {
                   </div>
 
                   <div className="flex-shrink-0 flex flex-wrap gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:ml-auto">
-                    <button
+                    {!showAddExecForm && (<button
                       onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
                     </button>
-                    <button
+                    )}
+                    {!showEditClubForm && (<button
                       onClick={() => {
                         setEditingClub({
                           name: club.name,
@@ -462,20 +465,21 @@ export default function ExecPage() {
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       {showEditClubForm === club.id ? "Cancel" : "Edit"}
                     </button>
+                    )}
                     <button
                       onClick={() => setShowCreatePostForm(showCreatePostForm === club.id ? null : club.id)}
-                      className="px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
                     </button>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       disabled={deletingClubId === club.id}
-                      className="px-3 py-1.5 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                      className="cursor-pointer px-3 py-1.5 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
                     >
                       {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
@@ -554,10 +558,16 @@ export default function ExecPage() {
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                          className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
                         >
                           Add
                         </button>
+                        <button
+                      onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
+                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                    >
+                      Cancel
+                    </button>
                       </div>
                     </form>
                   </div>
@@ -623,10 +633,24 @@ export default function ExecPage() {
                       </div>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
                       >
                         Save Changes
                       </button>
+                      <button
+                      onClick={() => {
+                        setEditingClub({
+                          name: club.name,
+                          description: club.description,
+                          campus: club.campus,
+                          instagram: club.instagram,
+                        })
+                        setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
+                      }}
+                      className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                    >
+                      Cancel
+                    </button>
                     </form>
                   </div>
                 )}
