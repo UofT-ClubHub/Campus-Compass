@@ -58,6 +58,7 @@ export default function ClubPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true)
   const [executives, setExecutives] = useState<User[]>([])
   const [executivesLoading, setExecutivesLoading] = useState(false)
+  const [links, setLinks] = useState<{ [key: string]: string }>({})
   const router = useRouter()
 
   // Initialize component
@@ -72,6 +73,7 @@ export default function ClubPage({ params }: PageProps) {
       setPosts(fetchedPosts)
       setFollowerCount(fetchedClubData?.followers || 0)
       setLoading(false)
+      setLinks(fetchedClubData?.links)
     }
 
     initializeComponent()

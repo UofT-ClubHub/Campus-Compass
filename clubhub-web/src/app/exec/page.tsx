@@ -437,9 +437,9 @@ export default function ExecPage() {
                           <strong>{club.executives.length}</strong> executives
                         </span>
                       )}
-                      {club.links && club.links.length > 0 && (
+                      {club.links && Object.keys(club.links).length > 0 && (
                         <span>
-                          <strong>{club.links.length}</strong> links
+                          <strong>{Object.keys(club.links).length}</strong> links
                         </span>
                       )}
                     </div>
@@ -482,7 +482,7 @@ export default function ExecPage() {
                   </div>
                 </div>
 
-                {(club.executives && club.executives.length > 0) || (club.links && club.links.length > 0) ? (
+                {(club.executives && club.executives.length > 0) || (club.links && Object.keys(club.links).length > 0) ? (
                   <div className="px-4 pb-4 pt-2 border-t border-border">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {club.executives && club.executives.length > 0 && (
@@ -513,11 +513,11 @@ export default function ExecPage() {
                         </div>
                       )}
 
-                      {club.links && club.links.length > 0 && (
+                      {club.links && Object.keys(club.links).length > 0 && (
                         <div>
                           <p className="font-medium text-muted-foreground mb-1">Links:</p>
                           <div className="space-y-1">
-                            {club.links.slice(0, 3).map((link, index) => (
+                            {Object.entries(club.links).slice(0, 3).map(([key, link], index) => (
                               <a
                                 key={index}
                                 href={link}
@@ -528,8 +528,8 @@ export default function ExecPage() {
                                 {link}
                               </a>
                             ))}
-                            {club.links.length > 3 && (
-                              <p className="text-xs text-muted-foreground">+{club.links.length - 3} more links</p>
+                            {Object.keys(club.links).length > 3 && (
+                              <p className="text-xs text-muted-foreground">+{Object.keys(club.links).length - 3} more links</p>
                             )}
                           </div>
                         </div>
