@@ -6,8 +6,8 @@ import json
 from dotenv import load_dotenv
 import llm_utils
 import requests
-import base64
 from io import BytesIO
+from storage import upload_image
 
 load_dotenv()  
 
@@ -23,7 +23,9 @@ if not all(cred_config.values()):
     raise ValueError("One or more Firebase admin environment variables are not set")
 
 cred = credentials.Certificate(cred_config)
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'clubhub-10e01.firebasestorage.app'
+})
 
 db = firestore.client()
 
@@ -101,8 +103,8 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                     doc_data["title"] = llm_utils.get_title(item.get("caption"))
                     doc_data["links"] = [post_url]
                 elif src_key == "displayUrl":
-                    # Convert image URL to base64
-                    doc_data[dst_key] = url_to_base64(val)
+                    # Upload image to Firebase Storage
+                    doc_data[dst_key] = url_to_firebase_storage(val)
                 else:
                     doc_data[dst_key] = val
 
@@ -117,13 +119,27 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
     batch.commit()  
     print(f"\n✅ Uploaded {len(items)} documents to '{collection_name}'")
 
-def url_to_base64(url):
+def url_to_firebase_storage(url):
+    """
+    Download image from URL and upload to Firebase Storage.
+    Returns the Firebase Storage download URL.
+    """
     try:
         response = requests.get(url)
         response.raise_for_status()
-        image_data = BytesIO(response.content)
-        base64_string = base64.b64encode(image_data.getvalue()).decode('utf-8')
-        return f"data:image/{url.split('.')[-1]};base64,{base64_string}"
+        
+        # Get file extension from URL
+        file_extension = url.split('.')[-1].split('?')[0]  # Remove query params
+        if file_extension not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            file_extension = 'jpg'  # Default fallback
+        
+        # Create filename from URL
+        filename = f"instagram_post.{file_extension}"
+        
+        # Upload to Firebase Storage
+        firebase_url = upload_image(response.content, filename, folder="posts")
+        return firebase_url
+        
     except Exception as e:
-        print(f"Error converting image to base64: {e}")
-        return url  # Return original URL if conversion fails
+        print(f"Error uploading image to Firebase Storage: {e}")
+        return url  # Return original URL if upload fails
