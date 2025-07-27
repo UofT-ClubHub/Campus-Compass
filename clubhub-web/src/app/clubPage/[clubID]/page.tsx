@@ -75,7 +75,7 @@ export default function ClubPage({ params }: PageProps) {
       setFollowerCount(fetchedClubData?.followers || 0)
       setLoading(false)
       setIg((fetchedClubData?.instagram || "").replace(/^@/, ""));
-      setLinks(fetchedClubData?.links)
+      setLinks(fetchedClubData?.links || {});
     }
 
     initializeComponent()
