@@ -159,7 +159,6 @@ export default function ExecPage() {
   };
 
   const addLink = () => {
-    console.log("adding linmk");
     setEditingClub(prev => {
       const existingLinks = prev.links || {};
       const newKey = `Link ${Object.keys(existingLinks).length + 1}`;
@@ -193,6 +192,27 @@ export default function ExecPage() {
         [key]: value, 
       },
     }));
+  };
+
+  const updateLinkName = (oldKey: string, newKey: string) => {
+    setEditingClub(prev => {
+      const oldLinks = prev.links || {};
+      const newLinks: { [key: string]: string } = {};
+      
+      // Preserve order by iterating through entries and updating the specific key
+      Object.entries(oldLinks).forEach(([key, value]) => {
+        if (key === oldKey) {
+          newLinks[newKey] = value;
+        } else {
+          newLinks[key] = value; 
+        }
+      });
+      
+      return {
+        ...prev,
+        links: newLinks
+      };
+    });
   };
 
   const uploadImageToBackend = async (file: File, folder: string = 'clubs', clubId: string): Promise<string> => {
@@ -500,6 +520,7 @@ export default function ExecPage() {
                           description: club.description,
                           campus: club.campus,
                           instagram: club.instagram,
+                          links: club.links || {},
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
@@ -567,7 +588,7 @@ export default function ExecPage() {
                                 rel="noopener noreferrer"
                                 className="block text-primary hover:text-primary/80 truncate text-xs"
                               >
-                                {link}
+                                {key}
                               </a>
                             ))}
                             {Object.keys(club.links).length > 3 && (
@@ -674,32 +695,34 @@ export default function ExecPage() {
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <label className="block text-sm font-medium text-muted-foreground mb-1">Related Links:</label>
-                          {/* <button
+                          <button
+                            type="button"
                             onClick={addLink}
                             className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
                           >
                             <Plus className="h-3 w-3" />
                             Add Link
-                          </button> */}
-                          <button
-                            onClick={() => {
-                              console.log(showEditClubForm);
-                              addLink()
-                              console.log("HERE", showEditClubForm);
-                            }}
-                            className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90">hey</button>
+                          </button>
                         </div>
                         <div className="space-y-2">
                           {Object.entries(editingClub.links || {}).map(([key, link], index) => (
                             <div key={index} className="flex gap-2">
+                                                             <input
+                                 type="text"
+                                 value={key}
+                                 onChange={(e) => updateLinkName(key, e.target.value)}
+                                 placeholder="Enter Link Name"
+                                 className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                               />
                               <input
                                 type="url"
                                 value={link}
                                 onChange={(e) => updateLink(key, e.target.value)}
                                 placeholder="Enter URL"
-                                className="flex-1 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                                className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
                               />
                               <button
+                                type="button"
                                 onClick={() => removeLink(index)}
                                 className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
                               >
@@ -710,12 +733,12 @@ export default function ExecPage() {
                         </div>
                       </div>
 
-                      {/* <button
+                      <button
                         type="submit"
                         className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
                       >
                         Save Changes
-                      </button> */}
+                      </button>
                       <button
                         onClick={() => {
                           setEditingClub({
@@ -723,6 +746,7 @@ export default function ExecPage() {
                             description: club.description,
                             campus: club.campus,
                             instagram: club.instagram,
+                            links: club.links || {},
                           })
                           setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                         }}
