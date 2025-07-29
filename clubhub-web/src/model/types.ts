@@ -1,3 +1,5 @@
+import { Hash } from "crypto";
+
 export interface User {
     id: string;
     name: string;
@@ -19,7 +21,7 @@ export interface Club {
     instagram: string;
     followers: number; 
     executives: string[];
-    links: string[];
+    links: { [key: string]: string };
 }
 
 export interface Post {

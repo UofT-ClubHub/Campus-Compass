@@ -7,7 +7,7 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
 import { PostCard } from "@/components/post-card"
-import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff } from "lucide-react"
+import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PageProps {
@@ -59,6 +59,7 @@ export default function ClubPage({ params }: PageProps) {
   const [executives, setExecutives] = useState<User[]>([])
   const [executivesLoading, setExecutivesLoading] = useState(false)
   const [ig, setIg] = useState("");
+  const [links, setLinks] = useState<{ [key: string]: string }>({})
   const router = useRouter()
 
   // Initialize component
@@ -74,6 +75,7 @@ export default function ClubPage({ params }: PageProps) {
       setFollowerCount(fetchedClubData?.followers || 0)
       setLoading(false)
       setIg((fetchedClubData?.instagram || "").replace(/^@/, ""));
+      setLinks(fetchedClubData?.links || {});
     }
 
     initializeComponent()
@@ -304,6 +306,34 @@ export default function ClubPage({ params }: PageProps) {
                  <span className="font-semibold text-lg">{clubData?.campus}</span>
                </div>
              </div>
+
+              {clubData?.links && Object.keys(clubData.links).length > 0 && (
+                <div>
+                  <p className="font-medium text-muted-foreground mb-0 mt-4">External Links:</p>
+                                  <div className="flex flex-wrap justify-center gap-8 pt-2">
+                    {Object.entries(clubData.links as Record<string, string>)
+                      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                      .slice(0, 3)
+                      .map(([key, link], index) => (
+                      <a
+                        key={index}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-white hover:underline hover:text-accent transition text-white"
+                      >
+                        <ExternalLink className="w-5 h-5 text-accent" />
+                        <span className="font-semibold text-lg">{key}</span>
+                      </a>
+                    ))}
+                  {Object.keys(clubData.links).length > 3 && (
+                    <div className="flex items-center gap-3 text-white">
+                      <span className="font-semibold text-lg">+{Object.keys(clubData.links).length - 3} more</span>
+                    </div>
+                  )}
+                </div>
+                </div>
+              )}
 
               {/* Compact Executives Display */}
               {!executivesLoading && executives.length > 0 && (

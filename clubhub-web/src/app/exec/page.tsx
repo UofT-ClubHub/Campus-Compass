@@ -6,6 +6,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
 import { ExpandablePostCard } from "@/components/expandable-post-card";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function ExecPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -155,6 +156,63 @@ export default function ExecPage() {
     if (e.target.files && e.target.files[0]) {
       setPendingImageFile(e.target.files[0]);
     }
+  };
+
+  const addLink = () => {
+    setEditingClub(prev => {
+      const existingLinks = prev.links || {};
+      const newKey = `Link ${Object.keys(existingLinks).length + 1}`;
+      return {
+        ...prev,
+        links: {
+          ...existingLinks,
+          [newKey]: ""
+        }
+      };
+    });
+  };
+
+  const removeLink = (index: number) => {
+    setEditingClub(prev => {
+      const keys = Object.keys(prev.links || {});
+      const newLinks = { ...(prev.links || {}) };
+      delete newLinks[keys[index]];
+      return {
+        ...prev,
+        links: newLinks
+      };
+    });
+  };
+
+  const updateLink = (key: string, value: string) => {
+    setEditingClub(prev => ({
+      ...prev,
+      links: {
+        ...prev.links,
+        [key]: value, 
+      },
+    }));
+  };
+
+  const updateLinkName = (oldKey: string, newKey: string) => {
+    setEditingClub(prev => {
+      const oldLinks = prev.links || {};
+      const newLinks: { [key: string]: string } = {};
+      
+      // Preserve order by iterating through entries and updating the specific key
+      Object.entries(oldLinks).forEach(([key, value]) => {
+        if (key === oldKey) {
+          newLinks[newKey] = value;
+        } else {
+          newLinks[key] = value; 
+        }
+      });
+      
+      return {
+        ...prev,
+        links: newLinks
+      };
+    });
   };
 
   const uploadImageToBackend = async (file: File, folder: string = 'clubs', clubId: string): Promise<string> => {
@@ -439,9 +497,9 @@ export default function ExecPage() {
                           <strong>{club.executives.length}</strong> executives
                         </span>
                       )}
-                      {club.links && club.links.length > 0 && (
+                      {club.links && Object.keys(club.links).length > 0 && (
                         <span>
-                          <strong>{club.links.length}</strong> links
+                          <strong>{Object.keys(club.links).length}</strong> links
                         </span>
                       )}
                     </div>
@@ -462,6 +520,7 @@ export default function ExecPage() {
                           description: club.description,
                           campus: club.campus,
                           instagram: club.instagram,
+                          links: club.links || {},
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
@@ -486,7 +545,7 @@ export default function ExecPage() {
                   </div>
                 </div>
 
-                {(club.executives && club.executives.length > 0) || (club.links && club.links.length > 0) ? (
+                {(club.executives && club.executives.length > 0) || (club.links && Object.keys(club.links).length > 0) ? (
                   <div className="px-4 pb-4 pt-2 border-t border-border">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {club.executives && club.executives.length > 0 && (
@@ -517,11 +576,11 @@ export default function ExecPage() {
                         </div>
                       )}
 
-                      {club.links && club.links.length > 0 && (
+                      {club.links && Object.keys(club.links).length > 0 && (
                         <div>
                           <p className="font-medium text-muted-foreground mb-1">Links:</p>
                           <div className="space-y-1">
-                            {club.links.slice(0, 3).map((link, index) => (
+                            {Object.entries(club.links).slice(0, 3).map(([key, link], index) => (
                               <a
                                 key={index}
                                 href={link}
@@ -529,11 +588,11 @@ export default function ExecPage() {
                                 rel="noopener noreferrer"
                                 className="block text-primary hover:text-primary/80 truncate text-xs"
                               >
-                                {link}
+                                {key}
                               </a>
                             ))}
-                            {club.links.length > 3 && (
-                              <p className="text-xs text-muted-foreground">+{club.links.length - 3} more links</p>
+                            {Object.keys(club.links).length > 3 && (
+                              <p className="text-xs text-muted-foreground">+{Object.keys(club.links).length - 3} more links</p>
                             )}
                           </div>
                         </div>
@@ -563,11 +622,11 @@ export default function ExecPage() {
                           Add
                         </button>
                         <button
-                      onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
-                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
-                    >
-                      Cancel
-                    </button>
+                          onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
+                          className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </form>
                   </div>
@@ -631,6 +690,49 @@ export default function ExecPage() {
                           className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
                         />
                       </div>
+
+                      {/* Links */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-medium text-muted-foreground mb-1">Related Links:</label>
+                          <button
+                            type="button"
+                            onClick={addLink}
+                            className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add Link
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {Object.entries(editingClub.links || {}).map(([key, link], index) => (
+                            <div key={index} className="flex gap-2">
+                                                             <input
+                                 type="text"
+                                 value={key}
+                                 onChange={(e) => updateLinkName(key, e.target.value)}
+                                 placeholder="Enter Link Name"
+                                 className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                               />
+                              <input
+                                type="url"
+                                value={link}
+                                onChange={(e) => updateLink(key, e.target.value)}
+                                placeholder="Enter URL"
+                                className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeLink(index)}
+                                className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                       <button
                         type="submit"
                         className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -638,19 +740,20 @@ export default function ExecPage() {
                         Save Changes
                       </button>
                       <button
-                      onClick={() => {
-                        setEditingClub({
-                          name: club.name,
-                          description: club.description,
-                          campus: club.campus,
-                          instagram: club.instagram,
-                        })
-                        setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
-                      }}
-                      className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
-                    >
-                      Cancel
-                    </button>
+                        onClick={() => {
+                          setEditingClub({
+                            name: club.name,
+                            description: club.description,
+                            campus: club.campus,
+                            instagram: club.instagram,
+                            links: club.links || {},
+                          })
+                          setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
+                        }}
+                        className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      >
+                        Cancel
+                      </button>
                     </form>
                   </div>
                 )}

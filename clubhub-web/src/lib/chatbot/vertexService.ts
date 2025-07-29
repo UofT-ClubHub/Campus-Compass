@@ -272,8 +272,8 @@ export class VertexChatbotService {
           if (club.email) {
             context += `   Email: ${club.email}\n`;
           }
-          if (club.links) {
-            context += `   Links: ${JSON.stringify(club.links)}\n`;
+          if (Object.values(club.links)) {
+            context += `   Links: ${JSON.stringify(Object.values(club.links))}\n`;
           }
           context += '\n';
         });
