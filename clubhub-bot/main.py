@@ -31,6 +31,8 @@ run_input = {
 # Run the Actor and wait for it to finish
 run = client.actor("RB9HEZitC8hIUXAha").call(run_input=run_input)
 items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+items = [item for item in items if "error" not in item]
+    
 
 # Save results to a JSON file
 with open("output.json", "w", encoding="utf-8") as f:
