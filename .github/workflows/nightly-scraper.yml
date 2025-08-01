@@ -23,12 +23,10 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
-    - name: Navigate to clubhub-bot directory
-      run: cd clubhub-bot
       
     - name: Make execute.sh executable
       run: chmod +x execute.sh
+      working-directory: ./clubhub-bot
       
     - name: Run execute.sh script
       env:
