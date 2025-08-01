@@ -1,6 +1,6 @@
 services:
   frontend:
-    container_name: frontend
+    container_name: clubhub-web_frontend
     build:
       context: ./clubhub-web
       dockerfile: Dockerfile
