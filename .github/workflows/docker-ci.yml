@@ -52,7 +52,7 @@ jobs:
           # Delete all version images except latest
           docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep -v "latest" | grep -v "TAG" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
           # Tag and push new version
-          docker tag clubhub-web_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}
+          docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}
           docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}
 
       - name: Tear Down Docker Containers
