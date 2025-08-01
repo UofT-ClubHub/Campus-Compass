@@ -14,7 +14,7 @@ load_dotenv()
 cred_config = {
     "type": "service_account",
     "project_id": os.getenv("ADMIN_FIREBASE_PROJECT_ID"),
-    "private_key": os.getenv("ADMIN_FIREBASE_PRIVATE_KEY").replace('\n', '\n'),
+    "private_key": os.getenv("ADMIN_FIREBASE_PRIVATE_KEY").replace('\\n', '\n'),
     "client_email": os.getenv("ADMIN_FIREBASE_CLIENT_EMAIL"),
     "token_uri": "https://oauth2.googleapis.com/token",
 }
