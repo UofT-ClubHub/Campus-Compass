@@ -10,27 +10,8 @@ on:
     branches: [ scraper, main, develop ]  # Run on PR to these branches
 
 jobs:
-  setup-branch:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Create scraper branch if it doesn't exist
-      run: |
-        if ! git show-ref --verify --quiet refs/remotes/origin/scraper; then
-          git checkout -b scraper
-          git push -u origin scraper
-        else
-          git checkout scraper
-          git pull origin scraper
-        fi
-
   run-bot:
     runs-on: ubuntu-latest
-    needs: setup-branch
     
     steps:
     - name: Checkout repository
