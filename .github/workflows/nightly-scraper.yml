@@ -1,0 +1,65 @@
+name: Nightly Instagram Scraper
+
+on:
+  schedule:
+    - cron: '5 5 * * *'  # 12:00 AM EST every day
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  setup-branch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Create scraper branch if it doesn't exist
+      run: |
+        if ! git show-ref --verify --quiet refs/remotes/origin/scraper; then
+          git checkout -b scraper
+          git push -u origin scraper
+        else
+          git checkout scraper
+          git pull origin scraper
+        fi
+
+  run-bot:
+    runs-on: ubuntu-latest
+    needs: setup-branch
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: scraper
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Navigate to clubhub-bot directory
+      run: cd clubhub-bot
+      
+    - name: Make execute.sh executable
+      run: chmod +x execute.sh
+      
+    - name: Run execute.sh script
+      env:
+        APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        ADMIN_FIREBASE_PROJECT_ID: ${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
+        ADMIN_FIREBASE_PRIVATE_KEY: ${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
+        ADMIN_FIREBASE_CLIENT_EMAIL: ${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
+      run: ./execute.sh
+      working-directory: ./clubhub-bot
+      
+    - name: Upload output artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: bot-output-${{ github.run_number }}
+        path: clubhub-bot/output.json
+        retention-days: 7 
+        
