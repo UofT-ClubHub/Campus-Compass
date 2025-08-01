@@ -39,7 +39,7 @@ jobs:
           EOF
 
       - name: Run Docker Compose (Detached)
-        run: docker compose up
+        run: docker compose up -d
 
       - name: "Mock: Run E2E Tests"
         run: |
