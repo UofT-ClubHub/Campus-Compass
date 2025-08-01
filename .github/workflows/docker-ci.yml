@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
@@ -62,12 +64,38 @@ jobs:
       - name: Tear Down Docker Containers
         run: docker compose down
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Push Current Branch to Remote
+        run: |
+          # Get the current branch name (the branch you were working on locally)
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch: $CURRENT_BRANCH"
+          
+          # Push the current branch to remote with the same name
+          git push origin $CURRENT_BRANCH
+
       - name: Create and Auto-Merge PR into Develop
         uses: peter-evans/create-pull-request@v7
         with:
           base: develop
-          branch: release/${{ github.ref_name }}
+          branch: ${{ github.ref_name }}
           title: "Release ${{ github.ref_name }} → develop"
-          body: "Auto-generated PR after successful Docker image deployment."
+          body: |
+            ## Release ${{ github.ref_name }}
+            
+            This PR contains the release changes for version ${{ github.ref_name }}.
+            
+            ### Changes:
+            - Docker image tagged and pushed: `${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}`
+            - E2E tests passed
+            - Build completed successfully
+            - Local development changes merged into develop
+            
+            ### Branch: ${{ github.ref_name }}
+            This release includes all changes from the local development branch.
           delete-branch: true
           merge: true
