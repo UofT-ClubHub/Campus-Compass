@@ -1,0 +1,2528 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\playwright.config.ts",
+    "rootDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "C:/Users/Dibya/term-group-project-c01s25-project-clubhub/clubhub-web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 8,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth\\authentication.spec.ts",
+      "file": "auth/authentication.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Flow",
+          "file": "auth/authentication.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display auth page correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2000,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.042Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-97b588289d2bf1a13c1c",
+              "file": "auth/authentication.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should switch between login and signup modes",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 2563,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.050Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-ee24bc8f9bfb049ffb21",
+              "file": "auth/authentication.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 2988,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.085Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-71220a57726649639184",
+              "file": "auth/authentication.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 2521,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.046Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-a8512cfd58f85efaf26e",
+              "file": "auth/authentication.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should signup new user",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 2808,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.042Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-6bdfa76c85ec2a9783d9",
+              "file": "auth/authentication.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "should show error for password mismatch in signup",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 2303,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.060Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-46c2020e82f145ee0ef9",
+              "file": "auth/authentication.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "should logout user",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 2135,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.068Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authentication-Flow-should-logout-user-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authentication-Flow-should-logout-user-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-30b5844a6376f8c2a21f",
+              "file": "auth/authentication.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should persist login after page reload",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 2516,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:43.092Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-b32862ca87e7039736bf",
+              "file": "auth/authentication.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "should handle Google OAuth login",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 775,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.783Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-2b612decd31fe56cf230",
+              "file": "auth/authentication.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "should handle password reset",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 883,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.784Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-7654db71a7fe6a810c67",
+              "file": "auth/authentication.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "should redirect authenticated users away from auth page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 892,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+                        "stack": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "<anonymous>",
+                          "column": 16,
+                          "line": 293
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "<anonymous>",
+                            "column": 16,
+                            "line": 293
+                          },
+                          "message": "Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at UtilityScript.evaluate (<anonymous>:293:16)\u001b[22m\n\u001b[2m    at UtilityScript.<anonymous> (<anonymous>:1:44)\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.809Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "<anonymous>",
+                        "column": 16,
+                        "line": 293
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-fbcd74eb6913f4f56f57",
+              "file": "auth/authentication.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should display auth page correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 3590,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.801Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-9094db7816c62faf0282",
+              "file": "auth/authentication.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should switch between login and signup modes",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 4462,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.885Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-809d4d6511613e3f3b03",
+              "file": "auth/authentication.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 16222,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        },
+                        {
+                          "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-48MlP4 -juggler-pipe -silent\n<launched> pid=9940\n[pid=9940][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=9940][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=9940][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=9940][out] \n[pid=9940][out] Juggler listening to the pipe\n[pid=9940][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=9940][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]\n[pid=9940][out] console.error: SearchEngineSelector: \"Received empty search configuration!\"\n[pid=9940][out] console.error: \"Received empty top sites configuration!\"\n[pid=9940][out] console.error: SearchEngineSelector: \"Received empty search configuration!\"\n[pid=9940][out] console.error: SearchService: \"#init: failure initializing search:\" [Exception... \"Failed to get engine data from Remote Settings\"  nsresult: \"0x8000ffff (NS_ERROR_UNEXPECTED)\"  location: \"JS frame :: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs :: getEngineConfiguration :: line 105\"  data: no]\n[pid=9940][out] console.error: WebExtensions: \n[pid=9940][out]   Message: [Exception... \"Failed to get engine data from Remote Settings\"  nsresult: \"0x8000ffff (NS_ERROR_UNEXPECTED)\"  location: \"JS frame :: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs :: getEngineConfiguration :: line 105\"  data: no]\n[pid=9940][out]   Stack:\n[pid=9940][out]     getEngineConfiguration@moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs:105:24\n[pid=9940][out] \n[pid=9940][out] console.error: \"Received empty top sites configuration!\"\n[pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings\n[pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings\n[pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings\n[pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.948Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-firefox\\test-failed-1.png"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-8e4df4d42e903fab5bc9",
+              "file": "auth/authentication.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 4,
+                      "status": "interrupted",
+                      "duration": 11272,
+                      "error": {
+                        "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-nuxxRM -juggler-pipe -silent\n<launched> pid=17532\n[pid=17532][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=17532][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=17532][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=17532][out] \n[pid=17532][out] Juggler listening to the pipe\n[pid=17532][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=17532][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]",
+                        "stack": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-nuxxRM -juggler-pipe -silent\n<launched> pid=17532\n[pid=17532][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=17532][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=17532][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=17532][out] \n[pid=17532][out] Juggler listening to the pipe\n[pid=17532][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=17532][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-nuxxRM -juggler-pipe -silent\n<launched> pid=17532\n[pid=17532][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=17532][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=17532][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=17532][out] \n[pid=17532][out] Juggler listening to the pipe\n[pid=17532][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=17532][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                        },
+                        {
+                          "message": "Error: browserContext.newPage: Test ended."
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:48.990Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-278555ff09097733198f",
+              "file": "auth/authentication.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should signup new user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 2,
+                      "status": "interrupted",
+                      "duration": 11580,
+                      "error": {
+                        "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-spjFaK -juggler-pipe -silent\n<launched> pid=3864\n[pid=3864][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=3864][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=3864][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=3864][out] \n[pid=3864][out] Juggler listening to the pipe\n[pid=3864][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=3864][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]",
+                        "stack": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-spjFaK -juggler-pipe -silent\n<launched> pid=3864\n[pid=3864][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=3864][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=3864][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=3864][out] \n[pid=3864][out] Juggler listening to the pipe\n[pid=3864][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=3864][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-spjFaK -juggler-pipe -silent\n<launched> pid=3864\n[pid=3864][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=3864][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=3864][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=3864][out] \n[pid=3864][out] Juggler listening to the pipe\n[pid=3864][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=3864][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                        },
+                        {
+                          "message": "Error: browserContext.newPage: Test ended."
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:49.026Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-5c6fddd6dfc6de3e42f4",
+              "file": "auth/authentication.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "should show error for password mismatch in signup",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5548,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:51.451Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-a5fc100ae19d6be77a62",
+              "file": "auth/authentication.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "should logout user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 6,
+                      "status": "interrupted",
+                      "duration": 11380,
+                      "error": {
+                        "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-gUsX7k -juggler-pipe -silent\n<launched> pid=8972\n[pid=8972][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=8972][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=8972][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=8972][out] \n[pid=8972][out] Juggler listening to the pipe\n[pid=8972][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=8972][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]",
+                        "stack": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-gUsX7k -juggler-pipe -silent\n<launched> pid=8972\n[pid=8972][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=8972][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=8972][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=8972][out] \n[pid=8972][out] Juggler listening to the pipe\n[pid=8972][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=8972][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserContext._wrapApiCall: Test ended.\nBrowser logs:\n\n<launching> C:\\Users\\Dibya\\AppData\\Local\\ms-playwright\\firefox-1489\\firefox\\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\\Users\\Dibya\\AppData\\Local\\Temp\\playwright_firefoxdev_profile-gUsX7k -juggler-pipe -silent\n<launched> pid=8972\n[pid=8972][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement\n[pid=8972][out] console.warn: services.settings: Ignoring preference override of remote settings server\n[pid=8972][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment\n[pid=8972][out] \n[pid=8972][out] Juggler listening to the pipe\n[pid=8972][out] console.error: \"Warning: unrecognized command line flag\" \"-foreground\"\n[pid=8972][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]"
+                        },
+                        {
+                          "message": "Error: browserContext.newPage: Test ended."
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:51.501Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-d745c2851fe9f5a1ea84",
+              "file": "auth/authentication.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should persist login after page reload",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6390,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:51.649Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-9254597847a289382963",
+              "file": "auth/authentication.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "should handle Google OAuth login",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 2312,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:33:58.341Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-8263f02f3f1390cbc71a",
+              "file": "auth/authentication.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "should handle password reset",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 3440,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:01.245Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-d7b72b68031187c63e9f",
+              "file": "auth/authentication.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "should redirect authenticated users away from auth page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2938,
+                      "error": {
+                        "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n",
+                        "stack": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n    at @debugger eval code line 291 > eval:1:7\n    at evaluate@debugger eval code:293:16\n    at @debugger eval code:1:44\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "@debugger eval code line 291 > eval",
+                          "column": 7,
+                          "line": 1
+                        }
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "@debugger eval code line 291 > eval",
+                            "column": 7,
+                            "line": 1
+                          },
+                          "message": "Error: page.evaluate: The operation is insecure.\n@debugger eval code line 291 > eval:1:7\nevaluate@debugger eval code:293:16\n@debugger eval code:1:44\n\n\u001b[2m    at @debugger eval code line 291 > eval:1:7\u001b[22m\n\u001b[2m    at evaluate@debugger eval code:293:16\u001b[22m\n\u001b[2m    at @debugger eval code:1:44\u001b[22m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:01.333Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "@debugger eval code line 291 > eval",
+                        "column": 7,
+                        "line": 1
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-5f159f598aeb6bd94ef5",
+              "file": "auth/authentication.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should display auth page correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 1274,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: The operation is insecure.",
+                        "stack": "Error: page.evaluate: SecurityError: The operation is insecure.\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                          "column": 16,
+                          "line": 9
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.evaluate: SecurityError: The operation is insecure.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:01.590Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-39153-display-auth-page-correctly-webkit\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                        "column": 16,
+                        "line": 9
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-520e62b5be1f97f3a1af",
+              "file": "auth/authentication.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should switch between login and signup modes",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 23,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 979,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: The operation is insecure.",
+                        "stack": "Error: page.evaluate: SecurityError: The operation is insecure.\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                          "column": 16,
+                          "line": 9
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.evaluate: SecurityError: The operation is insecure.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:04.847Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                        "column": 16,
+                        "line": 9
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-07ffc3908faa3443ede1",
+              "file": "auth/authentication.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 953,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: The operation is insecure.",
+                        "stack": "Error: page.evaluate: SecurityError: The operation is insecure.\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                          "column": 16,
+                          "line": 9
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.evaluate: SecurityError: The operation is insecure.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:05.013Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                        "column": 16,
+                        "line": 9
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-65fa236d9d19d1c3cdae",
+              "file": "auth/authentication.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 25,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 977,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: The operation is insecure.",
+                        "stack": "Error: page.evaluate: SecurityError: The operation is insecure.\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                          "column": 16,
+                          "line": 9
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.evaluate: SecurityError: The operation is insecure.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:07.247Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                        "column": 16,
+                        "line": 9
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-18bfdaeef02e66b2b6ad",
+              "file": "auth/authentication.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should signup new user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 26,
+                      "parallelIndex": 7,
+                      "status": "interrupted",
+                      "duration": 1039,
+                      "error": {
+                        "message": "Error: page.evaluate: SecurityError: The operation is insecure.",
+                        "stack": "Error: page.evaluate: SecurityError: The operation is insecure.\n    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16",
+                        "location": {
+                          "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                          "column": 16,
+                          "line": 9
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                            "column": 16,
+                            "line": 9
+                          },
+                          "message": "Error: page.evaluate: SecurityError: The operation is insecure.\n\n\u001b[0m \u001b[90m  7 |\u001b[39m     \u001b[90m// Clear any existing auth state\u001b[39m\n \u001b[90m  8 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39mclearCookies()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(() \u001b[33m=>\u001b[39m localStorage\u001b[33m.\u001b[39mclear())\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m\n \u001b[90m 12 |\u001b[39m   test(\u001b[32m'should display auth page correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts:9:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:07.330Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f1301-Flow-should-signup-new-user-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\test-results\\auth-authentication-Authen-f1301-Flow-should-signup-new-user-webkit\\video.webm"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Dibya\\term-group-project-c01s25-project-clubhub\\clubhub-web\\e2e\\auth\\authentication.spec.ts",
+                        "column": 16,
+                        "line": 9
+                      }
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-b1072152dbe92a34f0ec",
+              "file": "auth/authentication.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "should show error for password mismatch in signup",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 27,
+                      "parallelIndex": 1,
+                      "status": "interrupted",
+                      "duration": 413,
+                      "error": {
+                        "message": "Error: browserContext.newPage: Test ended.",
+                        "stack": "Error: browserContext.newPage: Test ended."
+                      },
+                      "errors": [
+                        {
+                          "message": "Error: browserContext.newPage: Test ended."
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:07.655Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-7f735c308f48c90f4a8b",
+              "file": "auth/authentication.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "should logout user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 28,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-01T22:34:08.775Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-d6092f35c9229f129b30",
+              "file": "auth/authentication.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should persist login after page reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-c83bc6b13aa59455bbff",
+              "file": "auth/authentication.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "should handle Google OAuth login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-63a99d4833640df000ea",
+              "file": "auth/authentication.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "should handle password reset",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-8d83d861a38b13ee29ef",
+              "file": "auth/authentication.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "should redirect authenticated users away from auth page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-46f523840e3781b4ff61",
+              "file": "auth/authentication.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should display auth page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-0a46150857293c4b81c0",
+              "file": "auth/authentication.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should switch between login and signup modes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-bc0d6125520fd97d9773",
+              "file": "auth/authentication.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-4539e6d74e0699e99144",
+              "file": "auth/authentication.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-61ae4614dae5c7bd8053",
+              "file": "auth/authentication.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should signup new user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-660b183b638d06d6da6b",
+              "file": "auth/authentication.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "should show error for password mismatch in signup",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-66fca9a8e2e6f4cfd0b6",
+              "file": "auth/authentication.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "should logout user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-1a2ea0591e5338aa21b5",
+              "file": "auth/authentication.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should persist login after page reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-ce263b41886ec69b036a",
+              "file": "auth/authentication.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "should handle Google OAuth login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-3eedafcf54d97bda6020",
+              "file": "auth/authentication.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "should handle password reset",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-9149953e9a61f2c38867",
+              "file": "auth/authentication.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "should redirect authenticated users away from auth page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-50c2d4a42b073d4df816",
+              "file": "auth/authentication.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "should display auth page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-e8f0880b67d1f25b4c78",
+              "file": "auth/authentication.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should switch between login and signup modes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-c892dbdf0bc81776e201",
+              "file": "auth/authentication.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-9b9c571ac83129a828f0",
+              "file": "auth/authentication.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-65d25ab179b52614e78a",
+              "file": "auth/authentication.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should signup new user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-0d649b2d63fc4b16f6e2",
+              "file": "auth/authentication.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "should show error for password mismatch in signup",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-1ced0a26bf3a2adb8b50",
+              "file": "auth/authentication.spec.ts",
+              "line": 83,
+              "column": 7
+            },
+            {
+              "title": "should logout user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-9aed5f8edc008407de4f",
+              "file": "auth/authentication.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should persist login after page reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-0b16980990b712912c38",
+              "file": "auth/authentication.spec.ts",
+              "line": 112,
+              "column": 7
+            },
+            {
+              "title": "should handle Google OAuth login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-84eeae7a02dc643299b0",
+              "file": "auth/authentication.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "should handle password reset",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-c9bc2c4d97f73a1b4015",
+              "file": "auth/authentication.spec.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "should redirect authenticated users away from auth page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "62b8d4dbcee4331d62dc-8722652f5ee141921324",
+              "file": "auth/authentication.spec.ts",
+              "line": 150,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-01T22:33:41.427Z",
+    "duration": 27371.761,
+    "expected": 0,
+    "skipped": 32,
+    "unexpected": 23,
+    "flaky": 0
+  }
+}

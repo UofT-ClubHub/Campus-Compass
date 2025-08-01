@@ -1,0 +1,845 @@
+<testsuites id="" name="" tests="55" failures="23" skipped="32" errors="0" time="27.371761">
+<testsuite name="auth\authentication.spec.ts" timestamp="2025-08-01T22:33:41.938Z" hostname="chromium" tests="11" failures="11" skipped="0" time="22.384" errors="0">
+<testcase name="Authentication Flow › should display auth page correctly" classname="auth\authentication.spec.ts" time="2">
+<failure message="authentication.spec.ts:12:7 should display auth page correctly" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:12:7 › Authentication Flow › should display auth page correctly 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should switch between login and signup modes" classname="auth\authentication.spec.ts" time="2.563">
+<failure message="authentication.spec.ts:25:7 should switch between login and signup modes" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:25:7 › Authentication Flow › should switch between login and signup modes 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should login with valid credentials" classname="auth\authentication.spec.ts" time="2.988">
+<failure message="authentication.spec.ts:39:7 should login with valid credentials" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:39:7 › Authentication Flow › should login with valid credentials 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-f25fd-ogin-with-valid-credentials-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth\authentication.spec.ts" time="2.521">
+<failure message="authentication.spec.ts:52:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:52:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-376d7-ror-for-invalid-credentials-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should signup new user" classname="auth\authentication.spec.ts" time="2.808">
+<failure message="authentication.spec.ts:67:7 should signup new user" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:67:7 › Authentication Flow › should signup new user ─────
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-f1301-Flow-should-signup-new-user-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for password mismatch in signup" classname="auth\authentication.spec.ts" time="2.303">
+<failure message="authentication.spec.ts:83:7 should show error for password mismatch in signup" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:83:7 › Authentication Flow › should show error for password mismatch in signup 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-85177-password-mismatch-in-signup-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should logout user" classname="auth\authentication.spec.ts" time="2.135">
+<failure message="authentication.spec.ts:98:7 should logout user" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:98:7 › Authentication Flow › should logout user ─────────
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authentication-Flow-should-logout-user-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authentication-Flow-should-logout-user-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authentication-Flow-should-logout-user-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authentication-Flow-should-logout-user-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should persist login after page reload" classname="auth\authentication.spec.ts" time="2.516">
+<failure message="authentication.spec.ts:112:7 should persist login after page reload" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:112:7 › Authentication Flow › should persist login after page reload 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-818f4-ist-login-after-page-reload-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should handle Google OAuth login" classname="auth\authentication.spec.ts" time="0.775">
+<failure message="authentication.spec.ts:123:7 should handle Google OAuth login" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:123:7 › Authentication Flow › should handle Google OAuth login 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset" classname="auth\authentication.spec.ts" time="0.883">
+<failure message="authentication.spec.ts:133:7 should handle password reset" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:133:7 › Authentication Flow › should handle password reset 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-55e16-hould-handle-password-reset-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should redirect authenticated users away from auth page" classname="auth\authentication.spec.ts" time="0.892">
+<failure message="authentication.spec.ts:150:7 should redirect authenticated users away from auth page" type="FAILURE">
+<![CDATA[  [chromium] › auth\authentication.spec.ts:150:7 › Authentication Flow › should redirect authenticated users away from auth page 
+
+    Error: page.evaluate: SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at UtilityScript.evaluate (<anonymous>:293:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-925bb-d-users-away-from-auth-page-chromium\video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth\authentication.spec.ts" timestamp="2025-08-01T22:33:41.938Z" hostname="firefox" tests="11" failures="8" skipped="3" time="79.134" errors="0">
+<testcase name="Authentication Flow › should display auth page correctly" classname="auth\authentication.spec.ts" time="3.59">
+<failure message="authentication.spec.ts:12:7 should display auth page correctly" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:12:7 › Authentication Flow › should display auth page correctly 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should switch between login and signup modes" classname="auth\authentication.spec.ts" time="4.462">
+<failure message="authentication.spec.ts:25:7 should switch between login and signup modes" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:25:7 › Authentication Flow › should switch between login and signup modes 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should login with valid credentials" classname="auth\authentication.spec.ts" time="16.222">
+<failure message="authentication.spec.ts:39:7 should login with valid credentials" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:39:7 › Authentication Flow › should login with valid credentials 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    Error: browserContext._wrapApiCall: Test ended.
+    Browser logs:
+
+    <launching> C:\Users\Dibya\AppData\Local\ms-playwright\firefox-1489\firefox\firefox.exe -no-remote -wait-for-browser -foreground -profile C:\Users\Dibya\AppData\Local\Temp\playwright_firefoxdev_profile-48MlP4 -juggler-pipe -silent
+    <launched> pid=9940
+    [pid=9940][err] JavaScript warning: resource://services-settings/Utils.sys.mjs, line 116: unreachable code after return statement
+    [pid=9940][out] console.warn: services.settings: Ignoring preference override of remote settings server
+    [pid=9940][out] console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+    [pid=9940][out] 
+    [pid=9940][out] Juggler listening to the pipe
+    [pid=9940][out] console.error: "Warning: unrecognized command line flag" "-foreground"
+    [pid=9940][err] JavaScript error: chrome://juggler/content/Helper.js, line 82: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIWebProgress.removeProgressListener]
+    [pid=9940][out] console.error: SearchEngineSelector: "Received empty search configuration!"
+    [pid=9940][out] console.error: "Received empty top sites configuration!"
+    [pid=9940][out] console.error: SearchEngineSelector: "Received empty search configuration!"
+    [pid=9940][out] console.error: SearchService: "#init: failure initializing search:" [Exception... "Failed to get engine data from Remote Settings"  nsresult: "0x8000ffff (NS_ERROR_UNEXPECTED)"  location: "JS frame :: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs :: getEngineConfiguration :: line 105"  data: no]
+    [pid=9940][out] console.error: WebExtensions: 
+    [pid=9940][out]   Message: [Exception... "Failed to get engine data from Remote Settings"  nsresult: "0x8000ffff (NS_ERROR_UNEXPECTED)"  location: "JS frame :: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs :: getEngineConfiguration :: line 105"  data: no]
+    [pid=9940][out]   Stack:
+    [pid=9940][out]     getEngineConfiguration@moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs:105:24
+    [pid=9940][out] 
+    [pid=9940][out] console.error: "Received empty top sites configuration!"
+    [pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings
+    [pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings
+    [pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings
+    [pid=9940][err] JavaScript error: moz-src:///toolkit/components/search/SearchEngineSelector.sys.mjs, line 105: NS_ERROR_UNEXPECTED: Failed to get engine data from Remote Settings
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-f25fd-ogin-with-valid-credentials-firefox\test-failed-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth\authentication.spec.ts" time="11.272">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should signup new user" classname="auth\authentication.spec.ts" time="11.58">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for password mismatch in signup" classname="auth\authentication.spec.ts" time="5.548">
+<failure message="authentication.spec.ts:83:7 should show error for password mismatch in signup" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:83:7 › Authentication Flow › should show error for password mismatch in signup 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-85177-password-mismatch-in-signup-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should logout user" classname="auth\authentication.spec.ts" time="11.38">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should persist login after page reload" classname="auth\authentication.spec.ts" time="6.39">
+<failure message="authentication.spec.ts:112:7 should persist login after page reload" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:112:7 › Authentication Flow › should persist login after page reload 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-818f4-ist-login-after-page-reload-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should handle Google OAuth login" classname="auth\authentication.spec.ts" time="2.312">
+<failure message="authentication.spec.ts:123:7 should handle Google OAuth login" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:123:7 › Authentication Flow › should handle Google OAuth login 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-b2c95-d-handle-Google-OAuth-login-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset" classname="auth\authentication.spec.ts" time="3.44">
+<failure message="authentication.spec.ts:133:7 should handle password reset" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:133:7 › Authentication Flow › should handle password reset 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-55e16-hould-handle-password-reset-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should redirect authenticated users away from auth page" classname="auth\authentication.spec.ts" time="2.938">
+<failure message="authentication.spec.ts:150:7 should redirect authenticated users away from auth page" type="FAILURE">
+<![CDATA[  [firefox] › auth\authentication.spec.ts:150:7 › Authentication Flow › should redirect authenticated users away from auth page 
+
+    Error: page.evaluate: The operation is insecure.
+    @debugger eval code line 291 > eval:1:7
+    evaluate@debugger eval code:293:16
+    @debugger eval code:1:44
+
+        at @debugger eval code line 291 > eval:1:7
+        at evaluate@debugger eval code:293:16
+        at @debugger eval code:1:44
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-925bb-d-users-away-from-auth-page-firefox\video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth\authentication.spec.ts" timestamp="2025-08-01T22:33:41.938Z" hostname="webkit" tests="11" failures="4" skipped="7" time="5.635" errors="0">
+<testcase name="Authentication Flow › should display auth page correctly" classname="auth\authentication.spec.ts" time="1.274">
+<failure message="authentication.spec.ts:12:7 should display auth page correctly" type="FAILURE">
+<![CDATA[  [webkit] › auth\authentication.spec.ts:12:7 › Authentication Flow › should display auth page correctly 
+
+    Error: page.evaluate: SecurityError: The operation is insecure.
+
+       7 |     // Clear any existing auth state
+       8 |     await page.context().clearCookies();
+    >  9 |     await page.evaluate(() => localStorage.clear());
+         |                ^
+      10 |   });
+      11 |
+      12 |   test('should display auth page correctly', async ({ page }) => {
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-39153-display-auth-page-correctly-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-39153-display-auth-page-correctly-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should switch between login and signup modes" classname="auth\authentication.spec.ts" time="0.979">
+<failure message="authentication.spec.ts:25:7 should switch between login and signup modes" type="FAILURE">
+<![CDATA[  [webkit] › auth\authentication.spec.ts:25:7 › Authentication Flow › should switch between login and signup modes 
+
+    Error: page.evaluate: SecurityError: The operation is insecure.
+
+       7 |     // Clear any existing auth state
+       8 |     await page.context().clearCookies();
+    >  9 |     await page.evaluate(() => localStorage.clear());
+         |                ^
+      10 |   });
+      11 |
+      12 |   test('should display auth page correctly', async ({ page }) => {
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-4cf9a-ween-login-and-signup-modes-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should login with valid credentials" classname="auth\authentication.spec.ts" time="0.953">
+<failure message="authentication.spec.ts:39:7 should login with valid credentials" type="FAILURE">
+<![CDATA[  [webkit] › auth\authentication.spec.ts:39:7 › Authentication Flow › should login with valid credentials 
+
+    Error: page.evaluate: SecurityError: The operation is insecure.
+
+       7 |     // Clear any existing auth state
+       8 |     await page.context().clearCookies();
+    >  9 |     await page.evaluate(() => localStorage.clear());
+         |                ^
+      10 |   });
+      11 |
+      12 |   test('should display auth page correctly', async ({ page }) => {
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-f25fd-ogin-with-valid-credentials-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth\authentication.spec.ts" time="0.977">
+<failure message="authentication.spec.ts:52:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [webkit] › auth\authentication.spec.ts:52:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: page.evaluate: SecurityError: The operation is insecure.
+
+       7 |     // Clear any existing auth state
+       8 |     await page.context().clearCookies();
+    >  9 |     await page.evaluate(() => localStorage.clear());
+         |                ^
+      10 |   });
+      11 |
+      12 |   test('should display auth page correctly', async ({ page }) => {
+        at C:\Users\Dibya\term-group-project-c01s25-project-clubhub\clubhub-web\e2e\auth\authentication.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|auth-authentication-Authen-376d7-ror-for-invalid-credentials-webkit\video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should signup new user" classname="auth\authentication.spec.ts" time="1.039">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for password mismatch in signup" classname="auth\authentication.spec.ts" time="0.413">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should logout user" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should persist login after page reload" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle Google OAuth login" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should redirect authenticated users away from auth page" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth\authentication.spec.ts" timestamp="2025-08-01T22:33:41.938Z" hostname="Mobile Chrome" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="Authentication Flow › should display auth page correctly" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should switch between login and signup modes" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should login with valid credentials" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should signup new user" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for password mismatch in signup" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should logout user" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should persist login after page reload" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle Google OAuth login" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should redirect authenticated users away from auth page" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth\authentication.spec.ts" timestamp="2025-08-01T22:33:41.938Z" hostname="Mobile Safari" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="Authentication Flow › should display auth page correctly" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should switch between login and signup modes" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should login with valid credentials" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should signup new user" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should show error for password mismatch in signup" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should logout user" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should persist login after page reload" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle Google OAuth login" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should handle password reset" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow › should redirect authenticated users away from auth page" classname="auth\authentication.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>
