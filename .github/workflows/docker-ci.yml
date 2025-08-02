@@ -71,18 +71,21 @@ jobs:
 
       - name: Push Current Branch to Remote
         run: |
-          # Get the current branch name (the branch you were working on locally)
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          echo "Current branch: $CURRENT_BRANCH"
+          # Create a release branch from the current tag
+          RELEASE_BRANCH="release-${{ github.ref_name }}"
+          echo "Creating release branch: $RELEASE_BRANCH"
           
-          # Push the current branch to remote with the same name
-          git push origin $CURRENT_BRANCH
+          # Create a new branch from the current commit
+          git checkout -b $RELEASE_BRANCH
+          
+          # Push the release branch to remote
+          git push origin $RELEASE_BRANCH
 
       - name: Create and Auto-Merge PR into Develop
         uses: peter-evans/create-pull-request@v7
         with:
           base: develop
-          branch: ${{ github.ref_name }}
+          branch: release-${{ github.ref_name }}
           title: "Release ${{ github.ref_name }} → develop"
           body: |
             ## Release ${{ github.ref_name }}
@@ -95,7 +98,7 @@ jobs:
             - Build completed successfully
             - Local development changes merged into develop
             
-            ### Branch: ${{ github.ref_name }}
+            ### Branch: release-${{ github.ref_name }}
             This release includes all changes from the local development branch.
           delete-branch: true
           merge: true
