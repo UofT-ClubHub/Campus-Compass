@@ -49,7 +49,7 @@ jobs:
       - name: Run Docker Compose (Detached)
         run: docker compose up -d
         env:
-          DOCKER_DEFAULT_PLATFORM: linux/arm64
+          DOCKER_DEFAULT_PLATFORM: linux/arm64, linux/amd64
 
       - name: "Mock: Run E2E Tests"
         run: |
