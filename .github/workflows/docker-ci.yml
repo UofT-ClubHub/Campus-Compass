@@ -1,17 +1,13 @@
 name: Build and Deploy Docker Image
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - develop
-      - main
-      - feat/dockerSetup
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main, develop, feat/dockerSetup ]  # Run on push to these branches
 
 jobs:
   build-push-deploy:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
 
     steps:
       - name: Checkout Code
@@ -56,7 +52,6 @@ jobs:
           echo "Running E2E tests..."
           sleep 3
           echo "Tests passed!"
-
       - name: Tag and Push Docker Image
         run: |
           # Extract version from commit message (format: vx.x.x)

@@ -1,0 +1,37 @@
+name: Nightly Instagram Scraper
+
+on:
+  schedule:
+    - cron: '5 5 * * *'  # 12:00 AM EST every day
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main, develop ]  # Run on push to these branches
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13.5'
+      
+    - name: Make execute.sh executable
+      run: chmod +x execute.sh
+      working-directory: ./clubhub-bot
+      
+    - name: Run execute.sh script
+      env:
+        APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        ADMIN_FIREBASE_PROJECT_ID: ${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
+        ADMIN_FIREBASE_PRIVATE_KEY: ${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
+        ADMIN_FIREBASE_CLIENT_EMAIL: ${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
+      run: ./execute.sh
+      working-directory: ./clubhub-bot

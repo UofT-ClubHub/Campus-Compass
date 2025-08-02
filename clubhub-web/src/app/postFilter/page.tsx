@@ -1,5 +1,6 @@
 "use client";
 
+import { Search, X, Hash, FileText, Filter, CalendarDays } from "lucide-react"
 import { useState, useEffect, useRef } from "react";
 import { Post, User } from "@/model/types";
 import { PostCard } from "@/components/post-card";
@@ -30,6 +31,8 @@ export default function PostFilterPage() {
   const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
+
+  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by;
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -294,75 +297,105 @@ export default function PostFilterPage() {
 
   return (
     <div className="min-h-screen bg-background">
+
       {/* Header and Search Section */}
-      <div className="w-full bg-background pt-6 pb-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-primary text-center mb-6">
-            Post Search
-          </h1>
+      <div className="max-w-4xl mx-auto pt-8 pb-8">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <CalendarDays className="w-6 h-6 text-primary" />
+            <h1 className="text-3xl font-bold text-primary text-center ">Post Search</h1>
+          </div>
+          <p className="text-muted-foreground">Find events, hiring opportunities, announcements, and surveys from student organizations</p>
+        </div>
 
-          {/* Compact Search Filters */}
-          <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Post Name Filter */}
-              <input
-                type="text"
-                placeholder="Post Name"
-                value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              />
+        <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Post Name</label>
+              <div className="relative">
+                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                 <input
+                  type="text"
+                  placeholder="Search by post title..."
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+                 />
+               </div>
+            </div>
 
-              {/* Description Filter */}
-              <input
-                type="text"
-                placeholder="Description"
-                value={descriptionFilter}
-                onChange={(e) => setDescriptionFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              />
-
-              {/* Hashtags Filter (moved up) */}
-              <input
+            {/* Description Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Description</label>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  value={descriptionFilter}
+                  onChange={(e) => setDescriptionFilter(e.target.value)}
+                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+                />
+               </div>
+             </div>
+          
+            {/* Hashtags Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Hashtags</label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <input
                 type="text"
                 placeholder="Hashtags (comma separated)"
                 value={hashtagsFilter}
                 onChange={(e) => setHashtagsFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+                className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Campus Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Campus</label>
+              <div className="relative">
+                <select
+                  value={campusFilter}
+                  onChange={(e) => setCampusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
+                >
+                  <option value="">Select Campus</option>
+                  <option value="UTSC">UTSC</option>
+                  <option value="UTSG">UTSG</option>
+                  <option value="UTM">UTM</option>
+                </select>
+              </div>
             </div>
 
-            {/* Second Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 items-end">
-              {/* Campus Filter (moved down) */}
-              <select
-                value={campusFilter}
-                onChange={(e) => setCampusFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
-              >
-                <option value="">Select Campus</option>
-                <option value="UTSC">UTSC</option>
-                <option value="UTSG">UTSG</option>
-                <option value="UTM">UTM</option>
-              </select>
+            {/* Category Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Post Type</label>
+              <div className="relative">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                >
+                  <option value="">Select Type of Post</option>
+                  <option value="Event">Event</option>
+                  <option value="Hiring Opportunity">Hiring Opportunity</option>
+                  <option value="General Announcement">General Announcement</option>
+                  <option value="Survey">Survey</option>
+                </select>
+              </div>
+            </div>
 
-              {/* Category Filter */}
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
-              >
-                <option value="">Select Type of Post</option>
-                <option value="Event">Event</option>
-                <option value="Hiring Opportunity">Hiring Opportunity</option>
-                <option value="General Announcement">
-                  General Announcement
-                </option>
-                <option value="Survey">Survey</option>
-              </select>
-
-              {/* Sort By and Sort Order in one line, mobile-friendly layout */}
-              <div className="flex flex-row gap-2 w-full items-end">
+            {/* Sort By Filter */}
+             <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Sort By</label>
+              <div className="relative">
+                <div className="flex flex-row gap-2 w-full items-end">
                 <div className="flex-1">
                   <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort By</label>
                   <select
@@ -394,18 +427,19 @@ export default function PostFilterPage() {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
+             </div>
+          </div>
 
-            {/* Clear All Filters Button */}
-            <div className="flex justify-center mt-4 pt-3 border-t border-border">
-              <button
-                onClick={clearAllFilters}
-                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
-              >
+          { /* Clear All Filters Button */}
+          {hasFilters && (
+            <div className="flex justify-center mt-4">
+              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
                 Clear All Filters
               </button>
-            </div>
-          </div>
+            </div>  
+          )}
+
         </div>
       </div>
 
