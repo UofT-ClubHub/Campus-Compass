@@ -59,15 +59,19 @@ jobs:
 
       - name: Tag and Push Docker Image
         run: |
-          # Get version from PR title or use timestamp
-          VERSION="v$(date +%Y.%m.%d-%H%M%S)"
+          # Extract version from commit message (format: vx.x.x)
+          VERSION=$(git log -1 --pretty=%B | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "No version found in commit message, using timestamp"
+            VERSION="v$(date +%Y.%m.%d-%H%M%S)"
+          fi
           echo "Version: $VERSION"
           
-          # Delete all images tagged with v.* format from Docker Hub
-          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]" | xargs -I {} docker hub rm ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
+          # Delete all images tagged with v.x.x.x format from Docker Hub
+          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | xargs -I {} docker hub rm ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
           
-          # Delete all images tagged with v.* format from local cache
-          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
+          # Delete all images tagged with v.x.x.x format from local cache
+          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
           
           # Tag and push new version
           docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
