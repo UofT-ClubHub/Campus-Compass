@@ -2,8 +2,8 @@ name: Build and Deploy Docker Image
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - 'release/*'
 
 jobs:
   build-push-deploy:
@@ -55,11 +55,15 @@ jobs:
 
       - name: Tag and Push Docker Image
         run: |
+          # Extract version from branch name (e.g., release/v1.1.4 -> v1.1.4)
+          VERSION=${GITHUB_REF#refs/heads/release/}
+          echo "Version: $VERSION"
+          
           # Delete all version images except latest
           docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep -v "latest" | grep -v "TAG" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
           # Tag and push new version
-          docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}
+          docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
 
       - name: Tear Down Docker Containers
         run: docker compose down
@@ -69,23 +73,11 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-      - name: Push Current Branch to Remote
-        run: |
-          # Create a release branch from the current tag
-          RELEASE_BRANCH="release-${{ github.ref_name }}"
-          echo "Creating release branch: $RELEASE_BRANCH"
-          
-          # Create a new branch from the current commit
-          git checkout -b $RELEASE_BRANCH
-          
-          # Push the release branch to remote
-          git push origin $RELEASE_BRANCH
-
       - name: Create and Auto-Merge PR into Develop
         uses: peter-evans/create-pull-request@v7
         with:
           base: develop
-          branch: release-${{ github.ref_name }}
+          branch: ${{ github.ref_name }}
           title: "Release ${{ github.ref_name }} → develop"
           body: |
             ## Release ${{ github.ref_name }}
@@ -93,12 +85,11 @@ jobs:
             This PR contains the release changes for version ${{ github.ref_name }}.
             
             ### Changes:
-            - Docker image tagged and pushed: `${{ secrets.DOCKER_USERNAME }}/clubhub:${{ github.ref_name }}`
+            - Docker image tagged and pushed: `${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION`
             - E2E tests passed
             - Build completed successfully
-            - Local development changes merged into develop
+            - All changes from release branch merged into develop
             
-            ### Branch: release-${{ github.ref_name }}
-            This release includes all changes from the local development branch.
+            ### Branch: ${{ github.ref_name }}
+            This release includes all changes from the release branch.
           delete-branch: true
-          merge: true
