@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
         const titleFilter = searchParams.get('title');
         const detailsFilter = searchParams.get('details');
         const campusFilter = searchParams.get('campus');
-        const clubFilter = searchParams.get('club');
         const categoryFilter = searchParams.get('category');
         const limit = parseInt(searchParams.get("limit") || "10");
         const offset = parseInt(searchParams.get("offset") || "0");
@@ -65,41 +64,27 @@ export async function GET(request: NextRequest) {
 
         // Handle pagination - Firestore doesn't support offset directly, so we need to handle it
         let posts: Post[] = [];
-        
-        if (offset === 0) {
-            // First page - use limit directly
-            query = query.limit(limit);
+        let allPosts: Post[] = [];
+
+        if (usingClubsFilter) {
             const snapshot = await query.get();
-            posts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
+            allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
         } else {
-            // Subsequent pages - fetch offset + limit and slice
-            query = query.limit(offset + limit);
-            const snapshot = await query.get();
-            const allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
-            posts = allPosts.slice(offset, offset + limit);
-        }
-
-        // Get club IDs for club name filtering (only if needed)
-        let clubIds: string[] = [];
-
-        if (clubFilter) {
-            const clubsCollection = firestore.collection('Clubs');
-            const clubsSnapshot = await clubsCollection.get();
-            const clubs: Club[] = clubsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Club));
-            const matchingClubs = clubs.filter(club => club.name && club.name.toLowerCase().includes(clubFilter.toLowerCase()));
-            clubIds = matchingClubs.map(club => club.id);
-        }
-
-        // If clubsFilter exists and is valid, filter posts in memory as well (in case Firestore 'in' is not used, e.g. >10 ids)
-        if (clubsFilter.length > 10) {
-            posts = posts.filter(post => post.club && clubsFilter.includes(post.club));
+            if (offset === 0) {
+                query = query.limit(limit + offset);
+                const snapshot = await query.get();
+                allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
+            } else {
+                query = query.limit(offset + limit);
+                const snapshot = await query.get();
+                allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
+            }
         }
 
         // Apply text-based filters in memory (these can't use Firestore indexes efficiently)
-        posts = posts.filter(post =>
+        allPosts = allPosts.filter(post =>
             (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
             (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
-            (!clubFilter || (post.club && clubIds.includes(post.club))) &&
             (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
             )))
@@ -109,7 +94,7 @@ export async function GET(request: NextRequest) {
         if (!sortBy || !['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {
             if (sortBy && ['likes', 'date_occuring', 'date_posted'].includes(sortBy)) {
                 const order = sortOrder === 'asc' ? 1 : -1;
-                posts.sort((a, b) => {
+                allPosts.sort((a, b) => {
                     const aVal = a[sortBy as keyof Post];
                     const bVal = b[sortBy as keyof Post];
                     if (aVal == null || bVal == null) return 0;
@@ -118,6 +103,9 @@ export async function GET(request: NextRequest) {
                 });
             }
         }
+
+        // Now apply pagination to the fully filtered and sorted posts
+        posts = allPosts.slice(offset, offset + limit);
 
         return NextResponse.json(posts, { status: 200 });
 

@@ -1,9 +1,10 @@
+import { Hash } from "crypto";
+
 export interface User {
     id: string;
     name: string;
     email: string;
     campus: string;
-    bio: string;
     followed_clubs: string[];
     liked_posts: string[];
     is_admin: boolean;
@@ -20,7 +21,7 @@ export interface Club {
     instagram: string;
     followers: number; 
     executives: string[];
-    links: string[];
+    links: { [key: string]: string };
 }
 
 export interface Post {
@@ -47,4 +48,6 @@ export interface PendingClub {
     created_at: string;
     club_image: string;
     club_instagram: string;
+    status: 'pending' | 'approved' | 'rejected';
+    message?: string;
 }

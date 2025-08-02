@@ -44,12 +44,13 @@ describe('PendingClubRequestPage', () => {
   });
 
   describe('Rendering', () => {
-    it('renders the page title', () => {
+    it('renders the navigation buttons', () => {
       render(<PendingClubRequestPage />);
-      expect(screen.getByText('Request a New Club')).toBeInTheDocument();
+      expect(screen.getByText('New Request')).toBeInTheDocument();
+      expect(screen.getByText('My Requests')).toBeInTheDocument();
     });
 
-    it('renders all form fields', () => {
+    it('renders all form fields in New Request section', () => {
       render(<PendingClubRequestPage />);
       
       expect(screen.getByLabelText('Club Name *')).toBeInTheDocument();
@@ -367,6 +368,149 @@ describe('PendingClubRequestPage', () => {
           expect(screen.getByLabelText('Club Description *')).toHaveValue('');
           expect(screen.getByLabelText('Club Instagram')).toHaveValue('');
         });
+      });
+    });
+
+    describe('My Requests Section', () => {
+      it('switches to My Requests view when button is clicked', async () => {
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        // Form should not be visible
+        expect(screen.queryByLabelText('Club Name *')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Submit Request' })).not.toBeInTheDocument();
+      });
+
+      it('shows loading state when fetching pending clubs', async () => {
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        // Should show loading state initially
+        expect(screen.getByText('Loading...')).toBeInTheDocument();
+      });
+
+      it('displays pending clubs when data is loaded', async () => {
+        const mockPendingClubs = [
+          {
+            id: '1',
+            club_name: 'Test Club 1',
+            club_campus: 'UTSG',
+            club_description: 'Test description 1',
+            status: 'pending',
+            created_at: '2024-01-01T00:00:00Z'
+          },
+          {
+            id: '2',
+            club_name: 'Test Club 2',
+            club_campus: 'UTSC',
+            club_description: 'Test description 2',
+            status: 'pending',
+            created_at: '2024-01-02T00:00:00Z'
+          }
+        ];
+
+        // Mock the fetch for pending clubs
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockPendingClubs
+        });
+
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        // Wait for the data to load
+        await waitFor(() => {
+          expect(screen.getByText('Test Club 1')).toBeInTheDocument();
+          expect(screen.getByText('Test Club 2')).toBeInTheDocument();
+        });
+      });
+
+      it('shows empty state when no pending clubs exist', async () => {
+        // Mock empty response
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => []
+        });
+
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        await waitFor(() => {
+          expect(screen.getByText('No club requests found.')).toBeInTheDocument();
+        });
+      });
+
+      it('handles error when fetching pending clubs fails', async () => {
+        // Mock error response
+        (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Failed to fetch'));
+
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        await waitFor(() => {
+          expect(screen.getByText('No club requests found.')).toBeInTheDocument();
+        });
+      });
+
+      it('displays club details correctly', async () => {
+        const mockPendingClub = {
+          id: '1',
+          club_name: 'Computer Science Club',
+          club_campus: 'UTSG',
+          club_description: 'A club for computer science enthusiasts',
+          club_instagram: '@csclub',
+          status: 'pending',
+          created_at: '2024-01-01T00:00:00Z'
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => [mockPendingClub]
+        });
+
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        await waitFor(() => {
+          expect(screen.getByText('Computer Science Club')).toBeInTheDocument();
+          expect(screen.getByText('UTSG')).toBeInTheDocument();
+          expect(screen.getByText('Pending')).toBeInTheDocument();
+        });
+      });
+
+      it('switches back to New Request view when button is clicked', async () => {
+        const user = userEvent.setup();
+        render(<PendingClubRequestPage />);
+        
+        // First switch to My Requests
+        const myRequestsButton = screen.getByText('My Requests');
+        await user.click(myRequestsButton);
+        
+        // Then switch back to New Request
+        const newRequestButton = screen.getByText('New Request');
+        await user.click(newRequestButton);
+        
+        // Form should be visible again
+        expect(screen.getByLabelText('Club Name *')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Submit Request' })).toBeInTheDocument();
       });
     });
   });
