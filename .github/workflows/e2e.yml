@@ -5,6 +5,8 @@ on:
     types: [opened, synchronize]
     branches:
       - feat/dockerSetup
+      - main
+      - develop
 
 jobs:
   e2e-test:
