@@ -14,27 +14,20 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Accept build arguments for PUBLIC Firebase configuration only
-# These are safe to bake in since they're public anyway
-ARG NEXT_PUBLIC_FIREBASE_API_KEY
-ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-ARG NEXT_PUBLIC_FIREBASE_DATABASE_URL
-ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
-ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-ARG NEXT_PUBLIC_FIREBASE_APP_ID
+# Create a minimal .env file for build
+RUN echo "NEXT_PUBLIC_FIREBASE_API_KEY=build_placeholder" > .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=build_placeholder" >> .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_DATABASE_URL=build_placeholder" >> .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=build_placeholder" >> .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=build_placeholder" >> .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=build_placeholder" >> .env.local && \
+    echo "NEXT_PUBLIC_FIREBASE_APP_ID=build_placeholder" >> .env.local
 
-# Set ONLY public environment variables (these get bundled into client code anyway)
-ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
-ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-ENV NEXT_PUBLIC_FIREBASE_DATABASE_URL=$NEXT_PUBLIC_FIREBASE_DATABASE_URL
-ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID
-ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
-
-# Build the application
+# Build the application with placeholder values
 RUN npm run build
+
+# Remove the placeholder .env file
+RUN rm .env.local
 
 # Clean up devDependencies after build to reduce image size
 RUN npm prune --production
