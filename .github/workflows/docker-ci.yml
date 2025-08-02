@@ -6,6 +6,7 @@ on:
     branches:
       - develop
       - main
+      - feat/dockerSetup
 
 jobs:
   build-push-deploy:
@@ -62,8 +63,12 @@ jobs:
           VERSION="v$(date +%Y.%m.%d-%H%M%S)"
           echo "Version: $VERSION"
           
-          # Delete all version images except latest
-          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep -v "latest" | grep -v "TAG" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
+          # Delete all images tagged with v.* format from Docker Hub
+          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]" | xargs -I {} docker hub rm ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
+          
+          # Delete all images tagged with v.* format from local cache
+          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
+          
           # Tag and push new version
           docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
           docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
