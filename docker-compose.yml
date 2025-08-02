@@ -1,0 +1,12 @@
+services:
+  frontend:
+    container_name: frontend
+    image: clubhub_frontend
+    build:
+      context: ./clubhub-web
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    restart: always
+    env_file:
+      - ./clubhub-web/.env
