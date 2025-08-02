@@ -145,25 +145,3 @@ def url_to_firebase_storage(url):
         print(f"Error uploading image to Firebase Storage: {e}")
         return url  # Return original URL if upload fails
     
-# File to store last scraped timestamp
-LAST_SCRAPED_FILE = "last_scraped.txt"
-
-def get_last_scraped_date():
-    """Read last scraped date from file"""
-    if os.path.exists(LAST_SCRAPED_FILE):
-        try:
-            with open(LAST_SCRAPED_FILE, "r") as f:
-                timestamp_str = f.read().strip()
-                # Handle both Z and +00:00 formats
-                if timestamp_str.endswith('Z'):
-                    timestamp_str = timestamp_str.replace('Z', '+00:00')
-                return datetime.fromisoformat(timestamp_str)
-        except (ValueError, IOError) as e:
-            print(f"Error parsing last scraped date: {e}")
-            return None
-    return None
-
-def update_last_scraped_date(timestamp_str):
-    """Write last scraped date to file"""
-    with open(LAST_SCRAPED_FILE, "w") as f:
-        f.write(timestamp_str)
