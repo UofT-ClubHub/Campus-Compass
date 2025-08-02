@@ -5,9 +5,9 @@ on:
     - cron: '5 5 * * *'  # 12:00 AM EST every day
   workflow_dispatch: # Allow manual triggering
   push:
-    branches: [ scraper, main, develop ]  # Run on push to these branches
+    branches: [ main, develop ]  # Run on push to these branches
   pull_request:
-    branches: [ scraper, main, develop ]  # Run on PR to these branches
+    branches: [ main, develop ]  # Run on PR to these branches
 
 jobs:
   run-bot:
@@ -37,12 +37,3 @@ jobs:
         ADMIN_FIREBASE_CLIENT_EMAIL: ${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
       run: ./execute.sh
       working-directory: ./clubhub-bot
-      
-    - name: Upload output artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: bot-output-${{ github.run_number }}
-        path: clubhub-bot/output.json
-        retention-days: 7 
-        
