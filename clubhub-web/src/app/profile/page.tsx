@@ -6,7 +6,6 @@ import { use, useEffect, useState } from 'react';
 import { Mail, MapPin, Users, Heart, Star, Settings } from 'lucide-react';
 import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
-import Link from 'next/link';
 
 export default function ProfilePage() {
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -103,18 +102,25 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-background pt-20">
-            <div className="container mx-auto px-6 py-8">
+            <div className="container mx-auto px-6 py-8">                
                 <div className="mb-6 bg-card border-2 border-border rounded-lg shadow-sm p-8">
-                    <div className="flex items-start gap-8">
-                        <div className="flex-1 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-6">
+                        <div className="flex-1 space-y-4 w-full">
                             
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                                 <h1 className="text-3xl font-bold text-foreground">
-                                    {userData ? userData.name : "No Name Provided"}
+                                     {userData ? userData.name : "No Name Provided"}
                                 </h1>
+                                {/* Settings button for mobile - inline with name */}
+                                <button 
+                                    onClick={handleSettingsClick}
+                                    className="sm:hidden self-start p-2 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
+                                >
+                                    <Settings size={18} className="text-foreground" /> 
+                                </button>
                             </div>
                             
-                            <div className="flex gap-6 text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-muted-foreground">
                                 <div className="flex items-center gap-2">
                                     <Mail size={16} />
                                     <span className="text-sm">{userData?.email?.trim() || "No Email Provided"}</span>
@@ -125,28 +131,31 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-6 mt-6">
+                            <p className="text-sm text-muted-foreground max-w-2xl">{userData?.bio?.trim() || "No Bio Provided"}</p>
+
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-6">
                                 <div className="flex items-center gap-2">
-                                    <Users size={16} className="text-muted-foreground" />
+                                    <Users size={16} className="text-blue-500" />
                                     <span className="text-sm font-medium text-foreground">{userData ? userData.followed_clubs.length : "0"} Clubs Following</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Heart size={16} className="text-muted-foreground" />
+                                    <Heart size={16} className="text-red-500" />
                                     <span className="text-sm font-medium text-foreground">{userData ? userData.liked_posts.length : "0"} Posts Liked</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Star size={16} className="text-muted-foreground" />
+                                    <Star size={16} className="text-yellow-500" />
                                     <span className="text-sm font-medium text-foreground">{userData ? userData.managed_clubs.length : "0"} Clubs Managed</span>
                                 </div>
                             </div>
                         
                         </div>
 
+                        {/* Settings button for desktop - positioned to the right */}
                         <button 
                             onClick={handleSettingsClick}
-                            className="p-3 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
+                            className="hidden sm:block p-3 border-2 border-border hover:bg-accent transition-colors rounded-lg cursor-pointer"
                         >
                             <Settings size={20} className="text-foreground" /> 
                         </button>
@@ -162,26 +171,15 @@ export default function ProfilePage() {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {followedClubs.map((club) => (
-                            <Link
-                                key={club.id}
-                                href={`/clubPage/${club.id}`}
-                                className="flex gap-3 p-4 border-2 border-border bg-club-card-bg rounded-lg hover:bg-club-card-bg/30 transition-colors cursor-pointer"
-                            >
-                                <div className="flex gap-3">
-                                    <img 
-                                        src={club.image || '/default-club-image.png'} 
-                                        alt={club.name}
-                                        className="w-25 h-25 rounded-lg object-cover flex-shrink-0"
-                                    />
-                                    <div className="space-y-3 flex-1">
-                                        <h3 className="font-medium text-foreground">{club.name}</h3>
-                                        <p className="text-sm text-muted-foreground line-clamp-2">{club.description}</p>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-xs text-muted-foreground">{club.followers} followers</span>
-                                        </div>
+                            <div key={club.id} className="h-full bg-card border-2 border-border rounded-lg shadow-sm p-4">
+                                <div className="space-y-3">
+                                    <h3 className="font-medium text-foreground">{club.name}</h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">{club.description}</p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-muted-foreground">{club.followers} followers</span>
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
 

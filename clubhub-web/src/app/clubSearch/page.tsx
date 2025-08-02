@@ -1,6 +1,5 @@
 "use client"
 
-import { Users, Search, Filter } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import type { Club, User } from "@/model/types"
 import { ClubCard } from "@/components/club-card"
@@ -24,11 +23,10 @@ export default function clubSearchPage() {
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const limit = 4;
   const loadingRef = useRef(false);
-
-  const hasFilters = nameFilter || descriptionFilter || campusFilter || sortOrder
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -96,6 +94,13 @@ export default function clubSearchPage() {
     if (isNewSearch) {
       setClubs([]);
       setInitialLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    // Add a small delay to prevent rapid successive calls
+    if (!isNewSearch) {
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
     try {
@@ -144,6 +149,8 @@ export default function clubSearchPage() {
     } finally {
       if (isNewSearch) {
         setInitialLoading(false);
+      } else {
+        setLoadingMore(false);
       }
       loadingRef.current = false;
     }
@@ -184,6 +191,7 @@ export default function clubSearchPage() {
         window.innerHeight + document.documentElement.scrollTop <
           document.documentElement.offsetHeight - 300 || // Increased threshold
         !hasMore ||
+        loadingMore ||
         loadingRef.current
       ) {
         return;
@@ -194,7 +202,7 @@ export default function clubSearchPage() {
     
     // Set a longer debounce to prevent rapid calls
     scrollTimeout = setTimeout(() => {
-      if (!loadingRef.current && hasMore) {
+      if (!loadingRef.current && !loadingMore && hasMore) {
         clubSearch();
       }
     }, 300); // Increased debounce time
@@ -209,101 +217,71 @@ export default function clubSearchPage() {
     window.removeEventListener('scroll', handleScroll);
     clearTimeout(scrollTimeout);
   };
-}, [hasMore, offset]);
+}, [hasMore, offset, loadingMore]);
 
   return (
     <div className="min-h-screen bg-background">
-
       {/* Header and Search Section */}
-      <div className="max-w-4xl mx-auto pt-8 pb-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Users className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold text-primary text-center ">Club Search</h1>
-          </div>
-          <p className="text-muted-foreground">Discover and connect with student organizations</p>
-        </div>
+      <div className="w-full bg-background pt-6 pb-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <h1 className="text-4xl font-bold text-primary text-center mb-6">Club Search</h1>
 
-         {/* Compact Search Filters */}
-         <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {/* Club Name Filter */}
-             <div className="space-y-2">
-               <label className="text-lg font-medium text-primary">Club Name</label>
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                 <input
-                  type="text"
-                  placeholder="Search by club name..."
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-                 />
-               </div>
-             </div>
-
-             {/* Description Filter */}
-             <div className="space-y-2">
-               <label className="text-lg font-medium text-primary">Description</label>
-               <div className="relative">
-                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                 <input
-                   type="text"
-                   placeholder="Description"
-                   value={descriptionFilter}
-                   onChange={(e) => setDescriptionFilter(e.target.value)}
-                   className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+          {/* Compact Search Filters */}
+          <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {/* Club Name Filter */}
+              <input
+                type="text"
+                placeholder="Club Name"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
               />
-               </div>
-             </div>
-           </div>
 
-           <div className="pt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-             {/* Campus Filter */}
-             <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Campus</label>
-              <div className="relative">
-                <select
+              {/* Description Filter */}
+              <input
+                type="text"
+                placeholder="Description"
+                value={descriptionFilter}
+                onChange={(e) => setDescriptionFilter(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+              />
+
+              {/* Campus Filter */}
+              <select
                 value={campusFilter}
                 onChange={(e) => setCampusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
               >
                 <option value="">Select Campus</option>
                 <option value="UTSC">UTSC</option>
                 <option value="UTSG">UTSG</option>
                 <option value="UTM">UTM</option>
               </select>
-              </div>
-             </div>
 
-             {/* Sort By Filter */}
-             <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Sort By</label>
-              <div className="relative">
-                <select
+              {/* Sort By Followers */}
+              <select
                 value={sortOrder}
                 onChange={(e) => setsortOrder(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+                className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input"
               >
                 <option value="desc">Follows (Descending)</option>
                 <option value="asc">Follows (Ascending)</option>
               </select>
-              </div>
-             </div>
-           </div>
-
-          { /* Clear All Filters Button */}
-          {hasFilters && (
-            <div className="flex justify-center mt-4">
-              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
+            </div>
+            
+            {/* Clear All Filters Button */}
+            <div className="flex justify-center mt-4 pt-3 border-t border-border">
+              <button
+                onClick={clearAllFilters}
+                className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium"
+              >
                 Clear All Filters
               </button>
-            </div>  
-          )}
-
-         </div>
-      </div> 
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Results Section */}
       <div className="w-full bg-background pb-12">
@@ -344,6 +322,14 @@ export default function clubSearchPage() {
                       />
                   ))}
                 </div>
+                
+                {/* Loading more clubs indicator */}
+                {loadingMore && (
+                  <div className="mt-8 py-4 flex flex-col items-center">
+                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                    <p className="text-center text-muted-foreground mt-2">Loading more clubs...</p>
+                  </div>
+                )}
                 
                 {/* End of results indicator */}
                 {!hasMore && clubs.length > 0 && (

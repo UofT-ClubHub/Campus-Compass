@@ -17,11 +17,10 @@ const config: Config = {
 
   // Optional: ignore build output and node_modules
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
-  transformIgnorePatterns: ['/node_modules/(?!(react-markdown)/)',],
 
   // Optional: transform handling
   transform: {
-  '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel-jest.config.js' }],
+    '^.+\\.(ts|tsx)$': ['babel-jest', { configFile: './babel-jest.config.js' }],
   },
 };
 

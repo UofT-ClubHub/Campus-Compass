@@ -172,13 +172,11 @@ export default function HomePage() {
     }
   }, [loading, currentUser?.followed_clubs])
 
-  // Handle initial load when user loads in
+  // Handle initial load when user first logs in
   useEffect(() => {
     if (!loading && currentUser && followedClubsRef.current.length === 0) {
       const currentFollowedClubs = currentUser.followed_clubs || []
       followedClubsRef.current = currentFollowedClubs
-      fetchPosts()
-    } else if (!loading && !currentUser) {
       fetchPosts()
     }
   }, [loading, currentUser])
