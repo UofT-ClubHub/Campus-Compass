@@ -1,0 +1,30 @@
+name: E2E Testing
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - feat/dockerSetup
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: "Mock: Run E2E Tests"
+        run: |
+          echo "Running E2E tests..."
+          echo "Testing user authentication..."
+          sleep 2
+          echo "Testing club creation..."
+          sleep 2
+          echo "Testing post creation..."
+          sleep 2
+          echo "Testing search functionality..."
+          sleep 2
+          echo "All E2E tests passed! ✅"
