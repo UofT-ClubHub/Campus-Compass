@@ -1,13 +1,27 @@
-FROM node:latest
+FROM node:22-alpine
 
 WORKDIR /app
 
+# Update packages for security
+RUN apk update && apk upgrade
+
+# Copy package files
 COPY package*.json ./
 
-RUN npm install
+# Install all dependencies
+RUN npm ci
 
+# Copy source code
 COPY . .
 
-#EXPOSE 3000
+# Build the application
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+# Clean up devDependencies after build to reduce image size
+RUN npm prune --production
+
+# Expose port
+EXPOSE 3000
+
+# Start the application in production mode
+CMD ["npm", "start"]

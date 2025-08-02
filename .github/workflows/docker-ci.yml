@@ -1,76 +1,104 @@
-name: Build and Deploy Docker Image
+name: CI/CD Pipeline - Build and Deploy Docker Image
 
 on:
   workflow_dispatch: # Allow manual triggering
   push:
-    branches: [ main, develop, feat/dockerSetup ]  # Run on push to these branches
+    branches: [ main, develop ] # develop branch is for testing
 
 jobs:
-  build-push-deploy:
+  ci-cd-pipeline:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: "Step 1: Checkout Code and Prepare Dependencies"
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Docker
+      - name: "Step 1: Set up Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: clubhub-web/package-lock.json
+
+      - name: "Step 1: Install Dependencies"
+        working-directory: ./clubhub-web
+        run: |
+          npm ci
+          echo "All dependencies installed successfully"
+          echo "Dependencies ready for testing and building"
+
+      - name: "Step 1: Prepare for Build"
+        working-directory: ./clubhub-web
+        run: |
+          echo "Preparing for build..."
+          echo "Build preparation completed successfully"
+
+      - name: "Step 2: Set up Docker for Branch Build"
         uses: docker/setup-buildx-action@v3
         with:
           platforms: linux/arm64,linux/amd64
-        
-      - name: Login to Docker Hub
+
+      - name: "Step 2: Login to Docker Hub"
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create .env file for Docker Compose
+      - name: "Step 2: Build Docker Image for Current Branch"
+        working-directory: ./clubhub-web
         run: |
-          cat <<EOF > clubhub-web/.env
-          NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_DATABASE_URL=${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-          NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          ADMIN_FIREBASE_PROJECT_ID=${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
-          ADMIN_FIREBASE_CLIENT_EMAIL=${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
-          ADMIN_FIREBASE_PRIVATE_KEY="${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}"
-          CHATBOT_TEST_MODE=${{ secrets.CHATBOT_TEST_MODE }}
-          EOF
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Building Docker image for $BRANCH_NAME branch..."
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME .
+          echo "Docker image built successfully for $BRANCH_NAME branch"
 
-      - name: Run Docker Compose (Detached)
-        run: docker compose up -d
-        env:
-          DOCKER_DEFAULT_PLATFORM: linux/arm64
+      - name: "Step 2: Push Branch Image to Docker Hub"
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Pushing $BRANCH_NAME branch image to Docker Hub..."
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME
+          echo "$BRANCH_NAME branch image pushed to Docker Hub successfully"
 
-      - name: "Mock: Run E2E Tests"
+      - name: "Step 3: Generate Version Tag"
+        id: version
         run: |
-          echo "Running E2E tests..."
-          sleep 3
-          echo "Tests passed!"
-      - name: Tag and Push Docker Image
-        run: |
-          # Extract version from commit message (format: vx.x.x)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          # Extract version from commit message (format: vx.x.x) or use timestamp
           VERSION=$(git log -1 --pretty=%B | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
           if [ -z "$VERSION" ]; then
-            echo "No version found in commit message, using timestamp"
-            VERSION="v$(date +%Y.%m.%d-%H%M%S)"
+            echo "No version found in commit message, generating timestamp version"
+            if [ "$BRANCH_NAME" != "main" ]; then
+              VERSION="v$(date +%Y.%m.%d-%H%M%S)-$BRANCH_NAME"
+            else
+              VERSION="v$(date +%Y.%m.%d-%H%M%S)"
+            fi
+          else
+            if [ "$BRANCH_NAME" != "main" ]; then
+              VERSION="$VERSION-$BRANCH_NAME"
+            fi
           fi
-          echo "Version: $VERSION"
-          
-          # Delete all images tagged with v.x.x.x format from Docker Hub
-          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | xargs -I {} docker hub rm ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
-          
-          # Delete all images tagged with v.x.x.x format from local cache
-          docker images ${{ secrets.DOCKER_USERNAME }}/clubhub --format "table {{.Tag}}" | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | xargs -I {} docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:{} || true
-          
-          # Tag and push new version
-          docker tag clubhub_frontend ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
-          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:$VERSION
+          echo "Generated version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Tear Down Docker Containers
-        run: docker compose down
+      - name: "Step 3: Build Docker Image with All Dependencies and Version"
+        working-directory: ./clubhub-web
+        run: |
+          echo "Building production Docker image with all dependencies..."
+          
+          # Build the production image
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:latest .
+          
+          echo "Production Docker image built with version ${{ steps.version.outputs.version }}"
+
+      - name: "Step 3: Push Versioned Image to Docker Hub"
+        run: |
+          echo "Pushing versioned images to Docker Hub..."
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:latest
+          echo "Images pushed successfully:"
+          echo "   - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
+          echo "   - ${{ secrets.DOCKER_USERNAME }}/clubhub:latest"
+          

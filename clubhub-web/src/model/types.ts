@@ -5,6 +5,7 @@ export interface User {
     name: string;
     email: string;
     campus: string;
+    bio?: string;
     followed_clubs: string[];
     liked_posts: string[];
     is_admin: boolean;
