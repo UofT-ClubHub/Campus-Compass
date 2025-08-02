@@ -51,7 +51,19 @@ jobs:
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           echo "Building Docker image for $BRANCH_NAME branch..."
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME .
+          # Use BuildKit secret mounting for secure build
+          docker build \
+            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
+            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
+            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
+            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME .
           echo "Docker image built successfully for $BRANCH_NAME branch"
 
       - name: "Step 2: Push Branch Image to Docker Hub"
@@ -87,9 +99,32 @@ jobs:
         run: |
           echo "Building production Docker image with all dependencies..."
           
-          # Build the production image (no sensitive data in build process)
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} .
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/clubhub:latest .
+          # Build production images using BuildKit secret mounting
+          docker build \
+            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
+            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
+            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
+            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} .
+          
+          docker build \
+            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
+            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
+            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
+            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:latest .
           
           echo "Production Docker image built with version ${{ steps.version.outputs.version }}"
 
