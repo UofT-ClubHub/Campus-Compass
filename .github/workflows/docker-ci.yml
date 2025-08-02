@@ -1,11 +1,9 @@
 name: Build and Deploy Docker Image
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - develop
-      - main
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main, develop ]  # Run on push to these branches
 
 jobs:
   build-push-deploy:
@@ -55,7 +53,6 @@ jobs:
           echo "Running E2E tests..."
           sleep 3
           echo "Tests passed!"
-
       - name: Tag and Push Docker Image
         run: |
           # Get version from PR title or use timestamp
