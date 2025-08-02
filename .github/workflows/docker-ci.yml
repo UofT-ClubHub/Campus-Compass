@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - [develop, main]
+      - develop
+      - main
 
 jobs:
   build-push-deploy:
