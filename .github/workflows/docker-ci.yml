@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - feat/dockerSetup
+      - develop
+      - main
 
 jobs:
   build-push-deploy:
@@ -20,7 +21,7 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
         with:
-          platforms: linux/arm64
+          platforms: linux/arm64,linux/amd64
         
       - name: Login to Docker Hub
         uses: docker/login-action@v3
