@@ -38,7 +38,7 @@ jobs:
       - name: "Step 2: Set up Docker for Branch Build"
         uses: docker/setup-buildx-action@v3
         with:
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/amd64
 
       - name: "Step 2: Login to Docker Hub"
         uses: docker/login-action@v3
@@ -46,34 +46,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: "Step 2: Build Docker Image for Current Branch"
-        working-directory: ./clubhub-web
-        run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          echo "Building Docker image for $BRANCH_NAME branch..."
-          # Use BuildKit secret mounting for secure build
-          docker build \
-            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
-            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
-            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
-            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
-            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME .
-          echo "Docker image built successfully for $BRANCH_NAME branch"
-
-      - name: "Step 2: Push Branch Image to Docker Hub"
-        run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          echo "Pushing $BRANCH_NAME branch image to Docker Hub..."
-          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:$BRANCH_NAME
-          echo "$BRANCH_NAME branch image pushed to Docker Hub successfully"
-
-      - name: "Step 3: Generate Version Tag"
+      - name: "Step 2: Generate Version Tag"
         id: version
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
@@ -93,13 +66,14 @@ jobs:
           fi
           echo "Generated version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
-      - name: "Step 3: Build Docker Image with All Dependencies and Version"
+      - name: "Step 3: Build Docker Image with Branch and Version Tags"
         working-directory: ./clubhub-web
         run: |
-          echo "Building production Docker image with all dependencies..."
+          echo "Building Docker image with branch and version tags..."
           
-          # Build production images using BuildKit secret mounting
+          # Build once with branch and version tags only
           docker build \
             --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
             --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
@@ -111,29 +85,21 @@ jobs:
             --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
             --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
             --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
-            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} .
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} \
+            --platform linux/amd64 \
+            .
           
-          docker build \
-            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
-            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
-            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
-            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
-            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
-            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:latest .
-          
-          echo "Production Docker image built with version ${{ steps.version.outputs.version }}"
+          echo "Docker image built with tags:"
+          echo "  - ${{ steps.version.outputs.branch }}"
+          echo "  - ${{ steps.version.outputs.version }}"
 
-      - name: "Step 3: Push Versioned Image to Docker Hub"
+      - name: "Step 3: Push Branch and Version Tags to Docker Hub"
         run: |
-          echo "Pushing versioned images to Docker Hub..."
+          echo "Pushing branch and version tagged images to Docker Hub..."
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}
           docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:latest
           echo "Images pushed successfully:"
-          echo "   - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
-          echo "   - ${{ secrets.DOCKER_USERNAME }}/clubhub:latest"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
           

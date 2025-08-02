@@ -4,8 +4,8 @@ on:
   schedule:
     - cron: '5 5 * * *'  # 12:00 AM EST every day
   workflow_dispatch: # Allow manual triggering
-  push:
-    branches: [ main, develop ]  # Run on push to these branches
+  # push:
+  #   branches: [ main, develop ]  # Run on push to these branches
 
 jobs:
   run-bot:
