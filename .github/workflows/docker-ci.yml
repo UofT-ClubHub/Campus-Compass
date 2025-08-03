@@ -195,10 +195,13 @@ jobs:
           
           # Run E2E tests against the test container
           echo "Running E2E tests against the test container1..."
-          # npx playwright test --base-url=http://3.16.162.15:3001 --test-dir=e2e || {
-          #   echo "E2E tests failed! Need to clean up test container manually."
-          #   exit 1
-          # }
+          npx playwright test --base-url=http://3.16.162.15:3001 --test-dir=e2e || {
+            echo "E2E tests failed! Need to clean up test container manually."
+            sudo docker stop clubhub-test || true
+            sudo docker rm clubhub-test || true
+            sudo docker image prune -f || true  
+            exit 1
+          }
           
           echo "E2E tests passed! Deploying to production..."
 
