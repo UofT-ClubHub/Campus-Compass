@@ -247,6 +247,9 @@ jobs:
             # Tag the image as production
             sudo docker tag ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} ${{ secrets.DOCKER_USERNAME }}/clubhub:production
             
+            # Remove the original branch image after retagging
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
+            
             # Start production container on port 80
             sudo docker run -d \
               --name clubhub \
