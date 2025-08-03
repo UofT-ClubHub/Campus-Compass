@@ -143,102 +143,75 @@ jobs:
           
           # Execute deployment commands on server
           ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << 'EOF'
-            echo "Connecting to server and starting nginx-based blue-green deployment..."
+            echo "Connecting to server and starting simple blue-green deployment..."
             
             # Login to Docker Hub
             echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
-            # Install nginx if not already installed
-            sudo apt-get update -y
-            sudo apt-get install -y nginx
+            # Stop and remove test container if it exists
+            sudo docker stop clubhub-test || true
+            sudo docker rm clubhub-test || true
             
-            # Stop and remove new container if it exists (from previous failed deployment)
-            sudo docker stop clubhub-new || true
-            sudo docker rm clubhub-new || true
-            
-            # Pull the latest image
+            # Pull the latest image using branch name
+            echo "Pulling latest image: ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}"
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
             
-            # Deploy new container on internal port (blue environment)
+            # Create test container on port 3001
             sudo docker run -d \
-              --name clubhub-new \
+              --name clubhub-test \
               -p 3001:3000 \
               --env-file ~/my_env \
               --restart=unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
             
-            # Wait for new container to be ready
-            echo "Waiting for new container to be ready..."
+            # Wait for test container to be ready
+            echo "Waiting for test container to be ready..."
             sleep 30
             
-            # Verify new container is running
-            echo "New container status:"
-            sudo docker ps | grep clubhub-new
+            # Verify test container is running
+            echo "Test container status:"
+            sudo docker ps | grep clubhub-test
             
-            # Show new container logs for verification
-            echo "New container logs (last 20 lines):"
-            sudo docker logs --tail 20 clubhub-new
-            
-            # Run E2E tests against new deployment (internal port 3001)
-            echo "Running E2E tests against new deployment on port 3001..."
+            # Run E2E tests against test container
+            echo "Running E2E tests against test container on port 3001..."
             
             # Install and run Playwright tests
             cd /tmp
             npm install -g playwright
             npx playwright install --with-deps
             
-            # Run E2E tests against the new deployment
-            npx playwright test --base-url=http://localhost:3001 || {
-              echo "E2E tests failed! Rolling back new deployment..."
-              sudo docker stop clubhub-new
-              sudo docker rm clubhub-new
+            # Run E2E tests against the test container
+            npx playwright test --base-url=http://3.16.162.15:3001 || {
+              echo "E2E tests failed! Rolling back test deployment..."
+              sudo docker stop clubhub-test
+              sudo docker rm clubhub-test
               echo "Keeping old deployment active"
               exit 1
             }
             
-            echo "E2E tests passed! Switching traffic to new deployment..."
+            echo "E2E tests passed! Switching to new deployment..."
             
-            # Stop old container (green environment)
+            # Stop old container
             sudo docker stop clubhub || true
             sudo docker rm clubhub || true
             
-            # Deploy new container on the main port
+            # Start new container on port 80
             sudo docker run -d \
               --name clubhub \
-              -p 3000:3000 \
+              -p 80:3000 \
               --env-file ~/my_env \
               --restart=unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
             
-            # Update nginx configuration to point to new container
-            sudo tee /etc/nginx/sites-available/clubhub << 'NGINX_CONFIG'
-            server {
-                listen 80;
-                server_name _;
-                
-                location / {
-                    proxy_pass http://localhost:3000;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-            }
-            NGINX_CONFIG
-            
-            # Enable the site and reload nginx (zero downtime)
-            sudo ln -sf /etc/nginx/sites-available/clubhub /etc/nginx/sites-enabled/
-            sudo nginx -t && sudo systemctl reload nginx
-            
             # Clean up test container
-            sudo docker stop clubhub-new
-            sudo docker rm clubhub-new
+            sudo docker stop clubhub-test
+            sudo docker rm clubhub-test
             
             # Verify final deployment
             echo "Final container status:"
             sudo docker ps
             
-            echo "Nginx-based blue-green deployment completed successfully with zero downtime!"
+            echo "Blue-green deployment completed successfully!"
           EOF
           
           # Clean up local files
