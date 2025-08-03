@@ -151,9 +151,10 @@ jobs:
             # Login to Docker Hub
             echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
-            # Stop and remove test container if it exists
+            # Stop and remove test container and image if they exist
             sudo docker stop clubhub-test || true
             sudo docker rm clubhub-test || true
+            sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} || true
             
             # Pull the latest image using branch name
             echo "Pulling latest image: ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}"
@@ -239,12 +240,14 @@ jobs:
             sudo docker rm clubhub || true
             sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:production || true
             
-            # Rename test container to production
+            # Stop test container and create production container
             sudo docker stop clubhub-test
-            sudo docker rename clubhub-test clubhub
-            sudo docker tag clubhub ${{ secrets.DOCKER_USERNAME }}/clubhub:production
+            sudo docker rm clubhub-test
             
-            # Start container on port 80
+            # Tag the image as production
+            sudo docker tag ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} ${{ secrets.DOCKER_USERNAME }}/clubhub:production
+            
+            # Start production container on port 80
             sudo docker run -d \
               --name clubhub \
               -p 80:3000 \
