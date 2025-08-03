@@ -108,7 +108,7 @@ test.describe('Club Search Component', () => {
     await page.goto('/clubSearch', { waitUntil: 'networkidle', timeout: 30000 });
     
     // Should show club search interface
-    await expect(page.locator('input[placeholder*="Club Name"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('input[placeholder*="Search by club name"]')).toBeVisible({ timeout: 15000 });
     
     // Should show campus filter
     const campusFilter = page.locator('select').first();
@@ -134,7 +134,7 @@ test.describe('Club Search Component', () => {
     await page.goto('/clubSearch', { waitUntil: 'networkidle', timeout: 30000 });
     
     // Search for computer science
-    const searchInput = page.locator('input[placeholder*="Club Name"]');
+    const searchInput = page.locator('input[placeholder*="Search by club name"]');
     await searchInput.waitFor({ timeout: 15000 });
     await searchInput.fill('Computer Science');
     await searchInput.press('Enter');
