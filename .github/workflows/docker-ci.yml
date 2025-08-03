@@ -199,7 +199,7 @@ jobs:
             echo "E2E tests failed! Need to clean up test container manually."
             sudo docker stop clubhub-test || true
             sudo docker rm clubhub-test || true
-            sudo docker image prune -f || true  
+            sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} || true
             exit 1
           }
           
@@ -220,7 +220,7 @@ jobs:
             # Stop old container
             sudo docker stop clubhub || true
             sudo docker rm clubhub || true
-            sudo docker image prune -f || true
+            sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:production || true
             
             # Rename test container to production
             sudo docker stop clubhub-test
