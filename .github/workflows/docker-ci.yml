@@ -204,14 +204,14 @@ jobs:
             echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
             chmod 600 deploy_key.pem
             
-            # Clean up on server (exactly like you did manually)
+            # Clean up on server
             ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << EOF
               echo "Stopping and removing test container..."
               sudo docker stop clubhub-test || true
               sudo docker rm clubhub-test || true
               sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} || true
               echo "Cleanup completed"
-EOF
+            EOF
             
             rm -f deploy_key.pem
             exit 1
