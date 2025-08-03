@@ -184,49 +184,43 @@ jobs:
       - name: "Step 5: Run E2E Tests Against Deployed Container"
         working-directory: clubhub-web
         run: |
-          set -e  # Exit on any error
-          
-          # Define cleanup function that runs on any error
+          set -euo pipefail
+
           cleanup_on_error() {
             echo "Error occurred! Cleaning up test container on server..."
-            
-            # Create SSH key for cleanup
             echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
             chmod 600 deploy_key.pem
-            
-            # Set variables for SSH session
+
+            # Use the same branch name and docker username that were in scope
             DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
             BRANCH_NAME="${{ steps.branch.outputs.branch }}"
-            
-            # Clean up on server
-            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << EOF
-              echo "Stopping and removing test container..."
+
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 <<EOF
+              echo "Starting cleanup..."
               sudo docker stop clubhub-test || true
               sudo docker rm clubhub-test || true
-              sudo docker rmi -f "\$DOCKER_USERNAME/clubhub:\$BRANCH_NAME" || true
+              sudo docker rmi -f \$DOCKER_USERNAME/clubhub:\$BRANCH_NAME || true
               echo "Cleanup completed"
             EOF
-            
+
             rm -f deploy_key.pem
             exit 1
           }
-          
-          # Set trap to run cleanup on any error
+
           trap cleanup_on_error ERR
-  
+
           echo "Running E2E tests against deployed test container..."
           sleep 10
-          
+
           # Install Playwright
           npm ci
           npx playwright install --with-deps
-          
+
           # Run E2E tests against the test container
-          echo "Running E2E tests against the test container..."
           export PLAYWRIGHT_BASE_URL=http://3.16.162.15:3001
           export CI=true
           npx playwright test --config=playwright.config.ts --project=chromium
-          
+
           echo "E2E tests passed! Deploying to production..."
 
       - name: "Step 6: Deploy to Production"
