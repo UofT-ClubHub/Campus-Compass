@@ -194,6 +194,7 @@ jobs:
           npx playwright install --with-deps
           
           # Run E2E tests against the test container
+          echo "Running E2E tests against the test container1..."
           npx playwright test --base-url=http://3.16.162.15:3001 || {
             echo "E2E tests failed! Rolling back deployment..."
             # SSH back to server to clean up test container
@@ -247,4 +248,4 @@ jobs:
           
           # Clean up local files
           rm -f deploy_key.pem
-          
+                    EOF
