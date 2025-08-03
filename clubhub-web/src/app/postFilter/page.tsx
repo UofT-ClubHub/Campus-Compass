@@ -299,7 +299,7 @@ function PostFilterContent() {
     <div className="min-h-screen bg-background">
 
       {/* Header and Search Section */}
-      <div className="max-w-4xl mx-auto pt-8 pb-8">
+      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CalendarDays className="w-6 h-6 text-primary" />
@@ -514,7 +514,7 @@ function PostFilterContent() {
 function PostFilterLoading() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto pt-8 pb-8">
+      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CalendarDays className="w-6 h-6 text-primary" />

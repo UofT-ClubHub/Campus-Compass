@@ -7,6 +7,7 @@ import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
 import { ExpandablePostCard } from "@/components/expandable-post-card";
 import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 export default function ExecPage() {
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -467,14 +468,18 @@ export default function ExecPage() {
                 <div className="flex flex-col md:flex-row md:items-center p-2 md:p-4 gap-2 md:gap-4">
                   <div className="flex-shrink-0">
                     {club.image ? (
-                      <img
-                        src={club.image}
-                        alt={`${club.name} image`}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      <Link href={`/clubPage/${club.id}`} className="block">
+                        <img
+                          src={club.image}
+                          alt={`${club.name} image`}
+                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                        />
+                      </Link>
                     ) : (
-                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                      </div>
+                      <Link href={`/clubPage/${club.id}`} className="block">
+                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors">
+                        </div>
+                      </Link>
                     )}
                   </div>
 
