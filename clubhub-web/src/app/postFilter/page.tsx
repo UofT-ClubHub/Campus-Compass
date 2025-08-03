@@ -147,7 +147,6 @@ function PostFilterContent() {
       }
 
       console.log("Filtered posts:", data);
-      console.log("hey test");
     } catch (error) {
       console.error("Error fetching posts:", error);
       // Reset loading states on error
@@ -304,7 +303,7 @@ function PostFilterContent() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CalendarDays className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold text-primary text-center ">Postssssss Search</h1>
+            <h1 className="text-3xl font-bold text-primary text-center ">Post Search</h1>
           </div>
           <p className="text-muted-foreground">Find events, hiring opportunities, announcements, and surveys from student organizations</p>
         </div>
