@@ -147,7 +147,6 @@ function PostFilterContent() {
       }
 
       console.log("Filtered posts:", data);
-      console.log("hey test");
     } catch (error) {
       console.error("Error fetching posts:", error);
       // Reset loading states on error
