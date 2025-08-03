@@ -217,7 +217,7 @@ jobs:
             # Stop old container
             sudo docker stop clubhub || true
             sudo docker rm clubhub || true
-            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} || true
+            sudo docker image prune -f || true
             
             # Rename test container to production
             sudo docker stop clubhub-test
