@@ -205,7 +205,7 @@ jobs:
               sudo docker rm clubhub-test || true
               sudo docker rmi -f "\$DOCKER_USERNAME/clubhub:\$BRANCH_NAME" || true
               echo "Cleanup completed"
-EOF
+            EOF
             
             rm -f deploy_key.pem
             exit 1
