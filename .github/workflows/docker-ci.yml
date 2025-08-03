@@ -172,40 +172,68 @@ jobs:
             echo "Test container status:"
             sudo docker ps | grep clubhub-test
             
-            # Run E2E tests against test container
-            echo "Running E2E tests against test container on port 3001..."
-            
-            # Install and run Playwright tests
-            cd /tmp
-            npm install -g playwright
-            npx playwright install --with-deps
-            
-            # Run E2E tests against the test container
-            npx playwright test --base-url=http://3.16.162.15:3001 || {
-              echo "E2E tests failed! Rolling back test deployment..."
+            echo "Test container is ready for E2E testing on port 3001"
+          EOF
+          
+          # Clean up local files
+          rm -f deploy_key.pem my_env
+
+      - name: "Step 5: Run E2E Tests Against Deployed Container"
+        run: |
+          echo "Running E2E tests against deployed test container..."
+          
+          # Wait for container to be fully ready
+          sleep 10
+          
+          # Install Playwright
+          cd clubhub-web
+          npm install -g playwright
+          npx playwright install --with-deps
+          
+          # Run E2E tests against the test container
+          npx playwright test --base-url=http://3.16.162.15:3001 || {
+            echo "E2E tests failed! Rolling back deployment..."
+            # SSH back to server to clean up test container
+            echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+            chmod 600 deploy_key.pem
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << 'EOF'
               sudo docker stop clubhub-test
               sudo docker rm clubhub-test
-              echo "Keeping old deployment active"
-              exit 1
-            }
-            
-            echo "E2E tests passed! Switching to new deployment..."
+              echo "Test container removed, keeping old deployment"
+            EOF
+            rm -f deploy_key.pem
+            exit 1
+          }
+          
+          echo "E2E tests passed! Deploying to production..."
+
+      - name: "Step 6: Deploy to Production"
+        run: |
+          echo "Deploying tested container to production..."
+          
+          # Create SSH key file
+          echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          
+          # Execute production deployment
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << 'EOF'
+            echo "Switching test container to production..."
             
             # Stop old container
             sudo docker stop clubhub || true
             sudo docker rm clubhub || true
             
-            # Start new container on port 80
+            # Rename test container to production
+            sudo docker stop clubhub-test
+            sudo docker rename clubhub-test clubhub
+            
+            # Start container on port 80
             sudo docker run -d \
               --name clubhub \
               -p 80:3000 \
               --env-file ~/my_env \
               --restart=unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
-            
-            # Clean up test container
-            sudo docker stop clubhub-test
-            sudo docker rm clubhub-test
             
             # Verify final deployment
             echo "Final container status:"
@@ -215,5 +243,5 @@ jobs:
           EOF
           
           # Clean up local files
-          rm -f deploy_key.pem my_env
+          rm -f deploy_key.pem
           
