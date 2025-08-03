@@ -195,13 +195,12 @@ jobs:
             DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
             BRANCH_NAME="${{ steps.branch.outputs.branch }}"
 
-            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 <<EOF
-              echo "Starting cleanup..."
-              sudo docker stop clubhub-test || true
-              sudo docker rm clubhub-test || true
-              sudo docker rmi -f \$DOCKER_USERNAME/clubhub:\$BRANCH_NAME || true
-              echo "Cleanup completed"
-            EOF
+            # Execute cleanup commands individually to avoid heredoc issues
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Starting cleanup...'"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker stop clubhub-test || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rm clubhub-test || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rmi -f $DOCKER_USERNAME/clubhub:$BRANCH_NAME || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Cleanup completed'"
 
             rm -f deploy_key.pem
             exit 1
