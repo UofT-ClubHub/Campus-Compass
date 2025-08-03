@@ -165,7 +165,7 @@ jobs:
               -p 3001:3000 \
               --env-file ~/my_env \
               --restart=unless-stopped \
-              ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
+              ${{ secrets.DOCKER_USERNAME }}/clubhub:test
             
             # Wait for test container to be ready
             echo "Waiting for test container to be ready..."
@@ -222,6 +222,7 @@ jobs:
             # Rename test container to production
             sudo docker stop clubhub-test
             sudo docker rename clubhub-test clubhub
+            sudo docker tag clubhub ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
             
             # Start container on port 80
             sudo docker run -d \
