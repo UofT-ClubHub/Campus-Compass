@@ -259,7 +259,7 @@ export default function PendingClubRequestPage() {
           </div>
         ) : (
           <div className="bg-card rounded-lg shadow-sm p-6 border-2 border-border">
-            <h2 className="text-lg font-semibold mb-4 text-primary">My Club Requests (Last 5)</h2>
+            <h2 className="text-lg font-semibold mb-4 text-primary">My Past Club Requests</h2>
             {loadingPending ? (
               <div>Loading...</div>
             ) : pendingClubs.length === 0 ? (

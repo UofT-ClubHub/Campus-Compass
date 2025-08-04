@@ -118,6 +118,33 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Check for missing fields and show warnings
+    const missingFields: string[] = []
+    
+    if (!editedPost.title?.trim()) {
+      missingFields.push("Title")
+    }
+    if (!editedPost.details?.trim()) {
+      missingFields.push("Description")
+    }
+    if (!editedPost.category?.trim()) {
+      missingFields.push("Category")
+    }
+    if (!editedPost.campus?.trim()) {
+      missingFields.push("Campus")
+    }
+    if (!editedPost.date_occuring?.trim()) {
+      missingFields.push("Event Date")
+    }
+    
+    // Show warning for missing fields but don't prevent save
+    if (missingFields.length > 0) {
+      if (onSaveError) {
+        onSaveError(`Warning: The following fields are empty: ${missingFields.join(", ")}. The post will be saved with these fields empty.`)
+      }
+    }
+    
     setIsSaving(true);
 
     try {
@@ -148,7 +175,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         } else {
           const errorData = await response.json();
           if (onSaveError) {
-            onSaveError(errorData);
+            onSaveError(errorData.error || errorData.message || 'An error occurred while saving');
           }
         }
       } else {
@@ -405,7 +432,7 @@ END:VCALENDAR`.trim();
           {!isCreating && (
           <button
             onClick={handleExportToCalendar}
-            disabled={!currentUser || isLiking}
+            disabled={isLiking}
             className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full border-2 border-white/70 flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Calendar />

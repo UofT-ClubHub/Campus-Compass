@@ -101,7 +101,7 @@ export default function ExecPage() {
           setManagedClubs(clubsResults.filter((club) => club !== null) as Club[]);
         }
       } catch (err: any) {
-        setError(err.successMessage);
+        setError(err.message || 'An error occurred while loading user data');
       } finally {
         setIsLoading(false);
       }
@@ -359,7 +359,7 @@ export default function ExecPage() {
       setSuccessMessage("Club information updated successfully!")
     } catch (err: any) {
       console.log("Error editing club info:", err)
-      setSuccessMessage(`Error: ${err.successMessage}`)
+      setError(`Error: ${err.message || 'An error occurred while updating club information'}`)
     }
   }
 
