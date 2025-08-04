@@ -2,7 +2,6 @@ import { getVertexAI, getGenerativeModel } from '@firebase/vertexai-preview';
 import { searchClubs, getClubDetails, searchPosts, getUpcomingEvents,
   getCategories, getCampuses, searchEvents } from './functions';
 import app from '../../model/firebase';
-import { auth as adminAuth } from '@/app/api/firebaseAdmin';
 import { NextRequest } from 'next/server';
 
 // Initialize Vertex AI after authentication
@@ -27,7 +26,9 @@ async function ensureAuthenticated(request: NextRequest) {
   }
   const idToken = authHeader.split('Bearer ')[1];
   try {
-    const decoded = await adminAuth.verifyIdToken(idToken);
+    // Dynamic import to avoid loading Firebase Admin during build time
+    const { auth } = await import('@/app/api/firebaseAdmin');
+    const decoded = await auth.verifyIdToken(idToken);
     console.log('User authenticated:', decoded.email || decoded.uid);
   } catch (e) {
     throw new Error('User must be signed in to use the chatbot. Please log in first.');

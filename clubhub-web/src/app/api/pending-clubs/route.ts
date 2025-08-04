@@ -159,7 +159,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
         instagram: pendingClubData.club_instagram || '',
         followers: 0,
         executives: [],
-        links: [],
+        links: {},
       };
 
       // Create the club
