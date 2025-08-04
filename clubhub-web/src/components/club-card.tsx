@@ -29,7 +29,7 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
     >
       <div className="relative h-40 bg-muted">
         <img
-          src={club.image || "placeholder.jpg"}
+          src={club.image || "/placeholder.jpg"}
           alt={club.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />

@@ -235,8 +235,28 @@ export default function ClubPage({ params }: PageProps) {
      });
    };
 
-   // Check if current user is a club executive
-   const isClubExecutive = currentUser?.managed_clubs?.includes(clubID) || false
+     // Check if current user is a club executive
+  const isClubExecutive = currentUser?.managed_clubs?.includes(clubID) || false
+
+  // Handle post edit
+  const handlePostEdit = (updatedPost: Post) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
+  };
+
+  // Handle post deletion
+  const handlePostDelete = (postId: string) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  };
+
+  // Handle post refresh
+  const handlePostRefresh = async () => {
+    const { posts: refreshedPosts } = await getClubPosts(clubID);
+    setPosts(refreshedPosts);
+  };
 
   if (loading) {
     return (
@@ -431,6 +451,8 @@ export default function ClubPage({ params }: PageProps) {
                      post={post} 
                      currentUser={currentUser}
                      onLikeUpdate={handleLikeUpdate}
+                     onDelete={handlePostDelete}
+                     onRefresh={handlePostRefresh}
                    />
                  ))}
                </div>
