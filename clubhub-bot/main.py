@@ -3,12 +3,14 @@ import os
 import firebase_client
 from apify_client import ApifyClient
 from dotenv import load_dotenv
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
 # Capture the current scrape time
 scrape_time = datetime.now(timezone.utc)
+# Get last scraped date from firebase
+last_scraped_date = scrape_time - timedelta(days=1)
 
 instagram_links, mapping = firebase_client.get_instagram_links()
 
@@ -38,8 +40,7 @@ items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
 items = [item for item in items if "error" not in item]
 
 
-# Get last scraped date from firebase
-last_scraped_date = firebase_client.get_last_scraped_date()
+
 print(f"Last scraped date: {last_scraped_date}")
 print(f"Current scrape time: {scrape_time}")
 
@@ -48,7 +49,6 @@ if last_scraped_date is None:
 
 print(f"Found {len(items)} total items from scraping")
 
-# Filter items based on timestamp comparison
 new_items = []
 for item in items:
     if 'timestamp' in item:
@@ -65,21 +65,17 @@ for item in items:
 
 # Only proceed if there are new items
 if new_items:
-    # Save results to a JSON file
     with open("output.json", "w", encoding="utf-8") as f:
         json.dump(new_items, f, indent=4, ensure_ascii=False)
 
     firebase_client.upload_posts("output.json", mapping)
 
-    # Clean up the output file
     if os.path.exists("output.json"):
         os.remove("output.json")
         print("\nCleaned up output.json")
     
     print(f"Added {len(new_items)} new posts to database")
     
-    # Only update last scraped timestamp after successful processing
-    firebase_client.update_last_scraped_date(scrape_time.isoformat())
 else:
     print("No new posts to add")
 

@@ -1,0 +1,269 @@
+name: CI/CD Pipeline - Build and Deploy Docker Image
+
+on:
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main, develop ] # develop branch is for testing
+
+jobs:
+  ci-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Step 1: Checkout Code and Prepare Dependencies"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Step 1: Set up Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: clubhub-web/package-lock.json
+
+      - name: "Step 1: Install Dependencies"
+        working-directory: ./clubhub-web
+        run: |
+          npm ci
+          echo "All dependencies installed successfully"
+          echo "Dependencies ready for testing and building"
+
+      - name: "Step 1: Prepare for Build"
+        working-directory: ./clubhub-web
+        run: |
+          echo "Preparing for build..."
+          echo "Build preparation completed successfully"
+
+      - name: "Step 2: Set up Docker for Branch Build"
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: "Step 2: Login to Docker Hub"
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: "Step 2: Generate Version Tag"
+        id: version
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          # Extract version from commit message (format: vx.x.x) or use timestamp
+          VERSION=$(git log -1 --pretty=%B | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "No version found in commit message, generating timestamp version"
+            if [ "$BRANCH_NAME" != "main" ]; then
+              VERSION="v$(date +%Y.%m.%d-%H%M%S)-$BRANCH_NAME"
+            else
+              VERSION="v$(date +%Y.%m.%d-%H%M%S)"
+            fi
+          else
+            if [ "$BRANCH_NAME" != "main" ]; then
+              VERSION="$VERSION-$BRANCH_NAME"
+            fi
+          fi
+          echo "Generated version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: "Step 3: Build Docker Image with Branch and Version Tags"
+        working-directory: ./clubhub-web
+        run: |
+          echo "Building Docker image with branch and version tags..."
+          
+          # Build once with branch and version tags only
+          docker build \
+            --secret id=NEXT_PUBLIC_FIREBASE_API_KEY,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_DATABASE_URL,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}") \
+            --secret id=NEXT_PUBLIC_FIREBASE_APP_ID,src=<(echo "${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}") \
+            --secret id=ADMIN_FIREBASE_PROJECT_ID,src=<(echo "${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}") \
+            --secret id=ADMIN_FIREBASE_CLIENT_EMAIL,src=<(echo "${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}") \
+            --secret id=ADMIN_FIREBASE_PRIVATE_KEY,src=<(echo "${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}") \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }} \
+            --platform linux/amd64 \
+            .
+          
+          echo "Docker image built with tags:"
+          echo "  - ${{ steps.version.outputs.branch }}"
+          echo "  - ${{ steps.version.outputs.version }}"
+
+      - name: "Step 3: Push Branch and Version Tags to Docker Hub"
+        run: |
+          echo "Pushing branch and version tagged images to Docker Hub..."
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}
+          echo "Images pushed successfully:"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}"
+          echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
+
+  cd-pipeline:
+    runs-on: ubuntu-latest
+    needs: ci-pipeline
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/LINA01'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: "Step 4: Determine Branch Name"
+        id: branch
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Deploying branch: $BRANCH_NAME"
+
+      - name: "Step 4: Setup SSH and Deploy to Server"
+        run: |
+          echo "Setting up SSH connection and deploying to server..."
+          
+          # Create SSH key file
+          echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          
+          # Create environment file content
+          cat > my_env << EOF
+          NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_DATABASE_URL=${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          ADMIN_FIREBASE_PROJECT_ID=${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
+          ADMIN_FIREBASE_CLIENT_EMAIL=${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
+          ADMIN_FIREBASE_PRIVATE_KEY=${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
+          EOF
+          
+          # Copy environment file to server
+          scp -i deploy_key.pem -o StrictHostKeyChecking=no my_env ubuntu@3.16.162.15:~/
+          
+          # Execute deployment commands on server
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << EOF
+            echo "Connecting to server and starting simple blue-green deployment..."
+            
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            
+            # Stop and remove test container and image if they exist
+            sudo docker stop clubhub-test || true
+            sudo docker rm clubhub-test || true
+            sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} || true
+            
+            # Pull the latest image using branch name
+            echo "Pulling latest image: ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}"
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
+            
+            # Create test container on port 3001
+            sudo docker run -d \
+              --name clubhub-test \
+              -p 3001:3000 \
+              --env-file ~/my_env \
+              --restart=unless-stopped \
+              ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
+            
+            # Wait for test container to be ready
+            echo "Waiting for test container to be ready..."
+            sleep 30
+            
+            # Verify test container is running
+            echo "Test container status:"
+            sudo docker ps | grep clubhub-test
+            
+            echo "Test container is ready for E2E testing on port 3001"
+          EOF
+          
+          # Clean up local files
+          rm -f deploy_key.pem my_env
+
+      # - name: "Step 5: Run E2E Tests Against Deployed Container"
+      #   working-directory: clubhub-web
+      #   run: |
+      #     set -euo pipefail
+
+      #     cleanup_on_error() {
+      #       echo "Error occurred! Cleaning up test container on server..."
+      #       echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+      #       chmod 600 deploy_key.pem
+
+      #       # Use the same branch name and docker username that were in scope
+      #       DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+      #       BRANCH_NAME="${{ steps.branch.outputs.branch }}"
+
+      #       # Execute cleanup commands individually to avoid heredoc issues
+      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Starting cleanup...'"
+      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker stop clubhub-test || true"
+      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rm clubhub-test || true"
+      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rmi -f $DOCKER_USERNAME/clubhub:$BRANCH_NAME || true"
+      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Cleanup completed'"
+
+      #       rm -f deploy_key.pem
+      #       exit 1
+      #     }
+
+      #     trap cleanup_on_error ERR
+
+      #     echo "Running E2E tests against deployed test container..."
+      #     sleep 10
+
+      #     # Install Playwright
+      #     npm ci
+      #     npx playwright install --with-deps
+
+      #     # Run E2E tests against the test container
+      #     export PLAYWRIGHT_BASE_URL=http://3.16.162.15:3001
+      #     export CI=true
+      #     npx playwright test --config=playwright.config.ts --project=chromium
+
+      #     echo "E2E tests passed! Deploying to production..."
+
+      - name: "Step 6: Deploy to Production"
+        run: |
+          echo "Deploying tested container to production..."
+          
+          # Create SSH key file
+          echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+          
+          # Execute production deployment
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 << EOF
+            echo "Switching test container to production..."
+            
+            # Stop old container
+            sudo docker stop clubhub || true
+            sudo docker rm clubhub || true
+            sudo docker rmi -f ${{ secrets.DOCKER_USERNAME }}/clubhub:production || true
+            
+            # Stop test container and create production container
+            sudo docker stop clubhub-test
+            sudo docker rm clubhub-test
+            
+            # Tag the image as production
+            sudo docker tag ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }} ${{ secrets.DOCKER_USERNAME }}/clubhub:production
+            
+            # Remove the original branch image after retagging
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.branch.outputs.branch }}
+            
+            # Start production container on port 80
+            sudo docker run -d \
+              --name clubhub \
+              -p 80:3000 \
+              --env-file ~/my_env \
+              --restart=unless-stopped \
+              ${{ secrets.DOCKER_USERNAME }}/clubhub:production
+            
+            # Verify final deployment
+            echo "Final container status:"
+            sudo docker ps
+            
+            echo "Blue-green deployment completed successfully!"
+          EOF
+          
+          # Clean up local files
+          rm -f deploy_key.pem

@@ -388,11 +388,20 @@ export default function AdminPage() {
                                 <div
                                     key={user.id}
                                     onClick={() => handleSelectUser(user)}
-                                    className="p-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted transition-colors"
+                                    className={`p-3 border-b border-border last:border-b-0 cursor-pointer transition-colors ${
+                                        selectedUser?.id === user.id 
+                                            ? 'bg-primary/10 border-primary/20 ring-1 ring-primary/20' 
+                                            : 'hover:bg-muted'
+                                    }`}
                                 >
                                     <span className="font-medium text-foreground">{user.name || ""}</span>
                                     <span className="text-muted-foreground"> ({user.email})</span>
                                     <span className="text-muted-foreground"> - Campus: {user.campus || ""}</span>
+                                    {selectedUser?.id === user.id && (
+                                        <span className="ml-2 inline-block bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                                            Selected
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>

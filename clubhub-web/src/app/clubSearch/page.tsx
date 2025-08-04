@@ -1,15 +1,15 @@
 "use client"
 
 import { Users, Search, Filter } from "lucide-react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import type { Club, User } from "@/model/types"
 import { ClubCard } from "@/components/club-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-
-export default function clubSearchPage() {
+// Separate component that uses useSearchParams
+function ClubSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -215,7 +215,7 @@ export default function clubSearchPage() {
     <div className="min-h-screen bg-background">
 
       {/* Header and Search Section */}
-      <div className="max-w-4xl mx-auto pt-8 pb-8">
+      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
@@ -360,4 +360,33 @@ export default function clubSearchPage() {
       <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
+}
+
+// Loading fallback component
+function ClubSearchLoading() {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Users className="w-6 h-6 text-primary" />
+            <h1 className="text-3xl font-bold text-primary text-center">Club Search</h1>
+          </div>
+          <p className="text-muted-foreground">Discover and connect with student organizations</p>
+        </div>
+        <div className="flex justify-center items-center py-12">
+          <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main exported component with Suspense boundary
+export default function ClubSearchPage() {
+  return (
+    <Suspense fallback={<ClubSearchLoading />}>
+      <ClubSearchContent />
+    </Suspense>
+  );
 }
