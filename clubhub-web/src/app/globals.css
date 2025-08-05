@@ -227,3 +227,35 @@ body {
 :root {
   scrollbar-color: var(--primary) var(--muted); 
 }
+
+/* Datetime-local input calendar icon styling */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Light themes - blue calendar icon */
+[data-theme="light"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3) sepia(1) saturate(5) hue-rotate(200deg);
+}
+
+/* Warm light theme - orange calendar icon */
+[data-theme="warm-light"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4) sepia(1) saturate(5) hue-rotate(30deg);
+}
+
+/* Dark themes - blue calendar icon */
+[data-theme="deep-dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6) sepia(1) saturate(5) hue-rotate(200deg);
+}
+
+/* Vibrant dark theme - orange calendar icon */
+[data-theme="vibrant-dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) sepia(1) saturate(5) hue-rotate(30deg);
+}
