@@ -2,10 +2,10 @@ name: CI/CD Pipeline - Build and Deploy Docker Image
 
 on:
   workflow_dispatch: # Allow manual triggering
-  push:
-    branches: [ main ]
   # push:
-  #   branches: [ main, develop ] # develop branch is for testing
+  #   branches: [ main ]
+  push:
+    branches: [ main, develop ] # develop branch is for testing
 
 jobs:
   ci-pipeline:
@@ -184,46 +184,46 @@ jobs:
           # Clean up local files
           rm -f deploy_key.pem my_env
 
-      # - name: "Step 5: Run E2E Tests Against Deployed Container"
-      #   working-directory: clubhub-web
-      #   run: |
-      #     set -euo pipefail
+      - name: "Step 5: Run E2E Tests Against Deployed Container"
+        working-directory: clubhub-web
+        run: |
+          set -euo pipefail
 
-      #     cleanup_on_error() {
-      #       echo "Error occurred! Cleaning up test container on server..."
-      #       echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
-      #       chmod 600 deploy_key.pem
+          cleanup_on_error() {
+            echo "Error occurred! Cleaning up test container on server..."
+            echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+            chmod 600 deploy_key.pem
 
-      #       # Use the same branch name and docker username that were in scope
-      #       DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
-      #       BRANCH_NAME="${{ steps.branch.outputs.branch }}"
+            # Use the same branch name and docker username that were in scope
+            DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+            BRANCH_NAME="${{ steps.branch.outputs.branch }}"
 
-      #       # Execute cleanup commands individually to avoid heredoc issues
-      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Starting cleanup...'"
-      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker stop clubhub-test || true"
-      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rm clubhub-test || true"
-      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rmi -f $DOCKER_USERNAME/clubhub:$BRANCH_NAME || true"
-      #       ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Cleanup completed'"
+            # Execute cleanup commands individually to avoid heredoc issues
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Starting cleanup...'"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker stop clubhub-test || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rm clubhub-test || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "sudo docker rmi -f $DOCKER_USERNAME/clubhub:$BRANCH_NAME || true"
+            ssh -i deploy_key.pem -o StrictHostKeyChecking=no ubuntu@3.16.162.15 "echo 'Cleanup completed'"
 
-      #       rm -f deploy_key.pem
-      #       exit 1
-      #     }
+            rm -f deploy_key.pem
+            exit 1
+          }
 
-      #     trap cleanup_on_error ERR
+          trap cleanup_on_error ERR
 
-      #     echo "Running E2E tests against deployed test container..."
-      #     sleep 10
+          echo "Running E2E tests against deployed test container..."
+          sleep 10
 
-      #     # Install Playwright
-      #     npm ci
-      #     npx playwright install --with-deps
+          # Install Playwright
+          npm ci
+          npx playwright install --with-deps
 
-      #     # Run E2E tests against the test container
-      #     export PLAYWRIGHT_BASE_URL=http://3.16.162.15:3001
-      #     export CI=true
-      #     npx playwright test --config=playwright.config.ts --project=chromium
+          # Run E2E tests against the test container
+          export PLAYWRIGHT_BASE_URL=http://3.16.162.15:3001
+          export CI=true
+          npx playwright test --config=playwright.config.ts --project=chromium
 
-      #     echo "E2E tests passed! Deploying to production..."
+          echo "E2E tests passed! Deploying to production..."
 
       - name: "Step 6: Deploy to Production"
         run: |
