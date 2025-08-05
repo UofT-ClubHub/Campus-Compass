@@ -27,9 +27,9 @@ jobs:
       - name: "Step 1: Install Dependencies"
         working-directory: ./clubhub-web
         run: |
-          npm ci
-          echo "All dependencies installed successfully"
-          echo "Dependencies ready for testing and building"
+          npm ci --only=production
+          echo "Production dependencies installed successfully"
+          echo "Dependencies ready for Docker build"
 
       - name: "Step 1: Prepare for Build"
         working-directory: ./clubhub-web
@@ -186,6 +186,17 @@ jobs:
 
       - name: "Step 5: Run E2E Tests Against Deployed Container"
         working-directory: clubhub-web
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_DATABASE_URL: ${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          ADMIN_FIREBASE_PROJECT_ID: ${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
+          ADMIN_FIREBASE_CLIENT_EMAIL: ${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
+          ADMIN_FIREBASE_PRIVATE_KEY: ${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
 
@@ -214,9 +225,9 @@ jobs:
           echo "Running E2E tests against deployed test container..."
           sleep 10
 
-          # Install Playwright
-          npm ci
-          npx playwright install --with-deps
+          # Install only Playwright dependencies
+          npm ci --only=dev
+          npx playwright install chromium
 
           # Run E2E tests against the test container
           export PLAYWRIGHT_BASE_URL=http://3.16.162.15:3001
