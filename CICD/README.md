@@ -2,11 +2,19 @@
 
 ## 🔄 Main CI/CD Workflow (`docker-ci.yml`)
 
-### Trigger Conditions
+### GitHub Actions Trigger Conditions
 
-The integration and deployment workflow is triggered by:
+The GitHub Actions integration and deployment workflow is triggered by:
 - **Manual trigger**: `workflow_dispatch` for on-demand deployments
 - **Push events**: Automatic triggering on pushes/merges to `main` branch
+
+**GitHub Actions Trigger Configuration:**
+```yaml
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+```
 
 ### Pipeline Stages
 
@@ -30,14 +38,17 @@ The integration and deployment workflow is triggered by:
 - Generate intelligent version tags based on commit messages and branches
 
 **Version Tagging Strategy:**
-- Extracts semantic versions from commit messages
-- Falls back to timestamp-based versions if no semantic version found
-- Example: `v1.2.3` or `v2025.01.01-123456` for main branch
+- Extracts semantic versions from commit messages for version tagging
+- If no semantic version is found, falls back to a timestamp-based version tag
+- For every build on the `main` branch, two tags are pushed to Docker Hub:
+  - A version tag (e.g., `v1.2.3` or `v2025.01.01-123456`)
+  - A branch tag (`main`)
+- The `main` branch tag is the one that is pulled during the CD stage
 
 #### Step 3: Docker Image Build and Push
 - Build Docker image with secure secret mounting
-- Apply both branch and version tags simultaneously
-- Push tagged images to Docker Hub registry
+- Tag the image with both the version tag and the `main` branch tag
+- Push both tags to the Docker Hub registry
 
 **Security Features:**
 - Uses Docker secrets for sensitive environment variables during build
@@ -64,7 +75,9 @@ The integration and deployment workflow is triggered by:
 #### Step 5: Test Environment Deployment
 - Transfer environment variables to EC2 server securely via SCP
 - Pull latest Docker image using branch tag
-- Deploy test container with health checks on EC2
+- Deploy test container on EC2
+- Set up E2E test dependencies on EC2
+- Run E2E tests (explained below)
 
 **EC2 Server Configuration:**
 - Target server: `ubuntu@3.16.162.15` (AWS EC2 instance)
@@ -75,9 +88,10 @@ The integration and deployment workflow is triggered by:
 
 #### Step 6: Production Deployment
 - Stop and remove previous production container
-- Promote test container to production
+- Promote test container to production (if tests pass)
 - Retag image as production version
 - Verify final deployment status
+- **If tests fail:** the old production container remains running, and the test container is deleted
 
 **Container Management:**
 - Graceful container shutdown with `|| true` fallbacks

@@ -10,6 +10,7 @@ import React from "react";
 interface ExpandablePostCardProps {
   post: Post;
   currentUser?: any;
+  isCreating?: boolean;
   onClose: () => void;
   onEdit?: (post: Post) => void;
   onSave?: (post: Post) => void;
@@ -17,7 +18,6 @@ interface ExpandablePostCardProps {
   onLikeUpdate?: (postId: string, newLikes: number, isLiked: boolean) => void;
   onDelete?: (postId: string) => void;
   onRefresh?: () => void;
-  isCreating?: boolean;
 }
 
 export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave, onSaveError, onLikeUpdate, onDelete, onRefresh, isCreating = false }: ExpandablePostCardProps) {
@@ -530,13 +530,25 @@ END:VCALENDAR`.trim();
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Event Date <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="datetime-local"
-                  value={editedPost.date_occuring ? new Date(editedPost.date_occuring).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => handleInputChange('date_occuring', e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
-                  required
-                />
+                  <input
+                    type="datetime-local"
+                    value={editedPost.date_occuring ? (() => {
+                      const date = new Date(editedPost.date_occuring);
+                      if (isNaN(date.getTime())) return '';
+                      
+                      // Format as YYYY-MM-DDTHH:MM in local timezone
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const hours = String(date.getHours()).padStart(2, '0');
+                      const minutes = String(date.getMinutes()).padStart(2, '0');
+                      
+                      return `${year}-${month}-${day}T${hours}:${minutes}`;
+                    })() : ''}
+                    onChange={(e) => handleInputChange('date_occuring', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                    required
+                  />
               </div>
 
               {/* Image Upload */}
