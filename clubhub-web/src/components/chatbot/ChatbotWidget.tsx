@@ -40,6 +40,23 @@ export default function ChatbotWidget() {
     return () => unsubscribe();
   }, []);
 
+  // Handle escape key to close chatbot
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen]);
+
   // Initialize with welcome message for everyone
   useEffect(() => {
     if (messages.length === 0) {

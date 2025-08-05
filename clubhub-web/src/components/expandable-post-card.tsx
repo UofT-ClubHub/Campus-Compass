@@ -433,7 +433,7 @@ END:VCALENDAR`.trim();
           <button
             onClick={handleExportToCalendar}
             disabled={isLiking}
-            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full border-2 border-white/70 flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded-full border-2 border-primary/20 flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Calendar />
           </button>
