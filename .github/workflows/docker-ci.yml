@@ -2,10 +2,10 @@ name: CI/CD Pipeline - Build and Deploy Docker Image
 
 on:
   workflow_dispatch: # Allow manual triggering
-  # push:
-  #   branches: [ main ]
   push:
-    branches: [ main, develop ] # develop branch is for testing
+    branches: [ main ]
+  # push:
+  #   branches: [ main, develop ] # develop branch is for testing
 
 jobs:
   ci-pipeline:
