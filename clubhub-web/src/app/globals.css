@@ -133,6 +133,15 @@
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
 }
 
+/* Card Glow Effect - matches header glow exactly */
+[data-theme="deep-dark"] .card-glow {
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2), 0 4px 40px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="vibrant-dark"] .card-glow {
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 4px 40px rgba(139, 92, 246, 0.2);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
