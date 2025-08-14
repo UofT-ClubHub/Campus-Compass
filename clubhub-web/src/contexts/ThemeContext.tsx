@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Sun, Moon, Palette, Sparkles } from 'lucide-react';
 
-type Theme = 'light' | 'warm-light' | 'deep-dark' | 'vibrant-dark';
+type Theme = 'light' | 'deep-dark';
+// Commented out for now: 'warm-light' | 'vibrant-dark'
 
 interface ThemeContextType {
   theme: Theme;
@@ -22,21 +23,23 @@ const THEMES: { value: Theme; name: string; icon: React.ReactNode }[] = [
     name: 'Clean Light', 
     icon: <Sun size={16} />
   },
-  { 
-    value: 'warm-light', 
-    name: 'Warm Light', 
-    icon: <Palette size={16} />
-  },
+  // Commented out for now:
+  // { 
+  //   value: 'warm-light', 
+  //   name: 'Warm Light', 
+  //   icon: <Palette size={16} />
+  // },
   { 
     value: 'deep-dark', 
     name: 'Deep Dark', 
     icon: <Moon size={16} />
   },
-  { 
-    value: 'vibrant-dark', 
-    name: 'Vibrant Dark', 
-    icon: <Sparkles size={16} />
-  }
+  // Commented out for now:
+  // { 
+  //   value: 'vibrant-dark', 
+  //   name: 'Vibrant Dark', 
+  //   icon: <Sparkles size={16} />
+  // }
 ];
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

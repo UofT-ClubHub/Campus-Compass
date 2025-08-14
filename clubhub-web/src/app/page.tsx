@@ -311,9 +311,15 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative min-h-[500px] overflow-hidden">
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      {/* Animated background elements */}
+      {Array.from({ length: 12 }, (_, i) => (
+        <div key={i} className={`element-${i + 1}`}></div>
+      ))}
+      
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <section className="relative min-h-[500px] overflow-hidden">
         {/* Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br z-10 ${
           isLightTheme
@@ -408,7 +414,7 @@ export default function HomePage() {
 
       {/* Clubs Section */}
       {clubs.length <= 4 && (
-        <section className="py-12 bg-background relative">
+        <section className="py-12 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -481,7 +487,7 @@ export default function HomePage() {
       )}
 
       {clubs.length > 4 && (
-        <section className="py-12 bg-background relative">
+        <section className="py-12 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -579,7 +585,7 @@ export default function HomePage() {
 
       {/* General Events Section - Only show for non-logged-in users */}
       {posts.length <= 4 && !currentUser && (
-        <section className="py-12 bg-background relative">
+        <section className="py-12 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -656,7 +662,7 @@ export default function HomePage() {
 
       {/* Fading Line Separator */}
       {!currentUser && (
-        <div className="py-8 bg-background">
+        <div className="py-8">
           <div className="container mx-auto px-6">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
@@ -667,7 +673,7 @@ export default function HomePage() {
 
       {/* Auto-scrolling General Events Section - Only show for non-logged-in users */}
       {posts.length > 4 && !currentUser && (
-        <section className="py-12 bg-background relative">
+        <section className="py-12 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -768,7 +774,7 @@ export default function HomePage() {
 
       {/* Simple Line Divider */}
       {currentUser && (
-        <div className="py-8 bg-background">
+        <div className="py-8">
           <div className="container mx-auto px-6">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
@@ -779,7 +785,7 @@ export default function HomePage() {
 
       {/* User Events Section */}
       {posts.length <= 4 && currentUser && (
-        <section className="py-8 bg-background relative">
+        <section className="py-8 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -855,7 +861,7 @@ export default function HomePage() {
       )}
 
       {posts.length > 4 && currentUser && (
-        <section className="py-8 bg-background relative">
+        <section className="py-8 relative">
           <div className="container mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-10">
@@ -953,6 +959,7 @@ export default function HomePage() {
           </div>
         </section>
       )}
+      </div>
     </div>
   )
 }
