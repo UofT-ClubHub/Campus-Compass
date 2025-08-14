@@ -437,7 +437,7 @@ export default function ExecPage() {
         <p className="text-muted-foreground text-lg mb-2">
           Welcome, <span className="text-primary font-semibold">{userData?.name || "User"}</span>
         </p>
-        <div className="inline-block bg-muted px-4 py-1 rounded-full text-sm font-medium text-muted-foreground">
+        <div className="inline-block bg-primary/20 text-primary px-4 py-1 rounded-full text-sm font-medium border border-primary/20 backdrop-blur-sm shadow-sm">
           Managing {managedClubs.length} {managedClubs.length === 1 ? "Club" : "Clubs"}
         </div>
       </div>
@@ -463,7 +463,7 @@ export default function ExecPage() {
             {managedClubs.map((club: Club) => (
               <div
                 key={club.id}
-                className="bg-card rounded-lg shadow-lg border border-border overflow-hidden form-glow"
+                className="bg-card  bg-primary/10 rounded-lg shadow-lg border border-border overflow-hidden form-glow"
               >
                 <div className="flex flex-col md:flex-row md:items-center p-2 md:p-4 gap-2 md:gap-4">
                   <div className="flex-shrink-0">
@@ -484,9 +484,9 @@ export default function ExecPage() {
                   </div>
 
                   <div className="flex-grow min-w-0 w-full md:w-auto">
-                    <div className="flex items-start justify-between mb-1">
+                    <div className="flex items-start gap-3 mb-1">
                       <h3 className="text-lg font-bold text-foreground truncate">{club.name}</h3>
-                      <span className="ml-2 inline-block bg-muted text-muted-foreground text-xs px-2 py-1 rounded shrink-0">
+                      <span className="inline-block bg-primary/55 text-white text-xs px-2 py-1 rounded-md font-medium shrink-0 border border-primary/30">
                         {club.campus}
                       </span>
                     </div>
@@ -513,7 +513,7 @@ export default function ExecPage() {
                   <div className="flex-shrink-0 flex flex-wrap gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:ml-auto">
                     {!showAddExecForm && (<button
                       onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
-                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
                     </button>
@@ -529,21 +529,21 @@ export default function ExecPage() {
                         })
                         setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
                       }}
-                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       {showEditClubForm === club.id ? "Cancel" : "Edit"}
                     </button>
                     )}
                     <button
                       onClick={() => setShowCreatePostForm(showCreatePostForm === club.id ? null : club.id)}
-                      className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
                     </button>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       disabled={deletingClubId === club.id}
-                      className="cursor-pointer px-3 py-1.5 bg-red-500 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-destructive hover:bg-destructive/90 disabled:bg-destructive/60 text-destructive-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
                     >
                       {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
@@ -551,11 +551,26 @@ export default function ExecPage() {
                 </div>
 
                 {(club.executives && club.executives.length > 0) || (club.links && Object.keys(club.links).length > 0) ? (
-                  <div className="px-4 pb-4 pt-2 border-t border-border">
+                  <div className="px-4 pb-4 pt-2 border-t border-border bg-background">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {club.executives && club.executives.length > 0 && (
                         <div>
-                          <p className="font-medium text-muted-foreground mb-1">Executives:</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <svg
+                              className="w-4 h-4 text-slate-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                              />
+                            </svg>
+                            <p className="font-medium text-muted-foreground">Executives:</p>
+                          </div>
                           <div className="flex flex-wrap gap-2">
                             {executiveDetailsMap.get(club.id)
                               ? executiveDetailsMap.get(club.id)!.map((execUser, index) => (
@@ -583,7 +598,22 @@ export default function ExecPage() {
 
                       {club.links && Object.keys(club.links).length > 0 && (
                         <div>
-                          <p className="font-medium text-muted-foreground mb-1">Links:</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <svg
+                              className="w-4 h-4 text-slate-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                              />
+                            </svg>
+                            <p className="font-medium text-muted-foreground">Links:</p>
+                          </div>
                           <div className="space-y-1">
                             {Object.entries(club.links).slice(0, 3).map(([key, link], index) => (
                               <a
