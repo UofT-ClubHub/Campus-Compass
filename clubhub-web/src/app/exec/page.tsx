@@ -8,8 +8,10 @@ import { useRouter } from "next/navigation";
 import { ExpandablePostCard } from "@/components/expandable-post-card";
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ExecPage() {
+  const { theme } = useTheme();
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
@@ -431,12 +433,18 @@ export default function ExecPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-5xl mx-auto">        <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Executive Dashboard</h1>
-        <p className="text-muted-foreground text-lg mb-2">
-          Welcome, <span className="text-primary font-semibold">{userData?.name || "User"}</span>
-        </p>
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      {/* Animated background elements */}
+      {Array.from({ length: 12 }, (_, i) => (
+          <div key={i} className={`element-${i + 1}`}></div>
+        ))}
+      
+      <div className="relative z-10 p-4 md:p-6">
+        <div className="max-w-5xl mx-auto">        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Executive Dashboard</h1>
+          <p className="text-muted-foreground text-lg mb-2">
+            Welcome, <span className="text-primary font-semibold">{userData?.name || "User"}</span>
+          </p>
         <div className="inline-block bg-primary/20 text-primary px-4 py-1 rounded-full text-sm font-medium border border-primary/20 backdrop-blur-sm shadow-sm">
           Managing {managedClubs.length} {managedClubs.length === 1 ? "Club" : "Clubs"}
         </div>
@@ -463,7 +471,7 @@ export default function ExecPage() {
             {managedClubs.map((club: Club) => (
               <div
                 key={club.id}
-                className="bg-card  bg-primary/10 rounded-lg shadow-lg border border-border overflow-hidden form-glow"
+                className="bg-card/60 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 overflow-hidden form-glow"
               >
                 <div className="flex flex-col md:flex-row md:items-center p-2 md:p-4 gap-2 md:gap-4">
                   <div className="flex-shrink-0">
@@ -638,7 +646,7 @@ export default function ExecPage() {
 
                 {/* Add executive form */}
                 {showAddExecForm === club.id && (
-                  <div className="border-t border-border p-4 bg-muted/30">
+                  <div className="border-t border-border p-4 bg-muted/50">
                     <form onSubmit={(e) => handleAddExecutive(e, club.id)} className="max-w-md">
                       <h4 className="font-medium mb-2 text-foreground">Add New Executive</h4>
                       <div className="flex gap-2">
@@ -669,7 +677,7 @@ export default function ExecPage() {
 
                 {/* Edit club form */}
                 {showEditClubForm === club.id && (
-                  <div className="border-t border-border p-4 bg-muted/30">
+                  <div className="border-t border-border p-4 bg-muted/50">
                     <form onSubmit={(e) => handleEditClubInfo(e, club.id)}>
                       <h4 className="font-medium mb-3 text-foreground">Edit Club Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
@@ -798,7 +806,7 @@ export default function ExecPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-card rounded-lg shadow-sm p-8 text-center border border-border">
+          <div className="bg-card/60 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-8 text-center form-glow">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
             </div>
             <h2 className="text-lg font-semibold text-muted-foreground mb-1">No Clubs to Manage</h2>
@@ -842,6 +850,7 @@ export default function ExecPage() {
             />
           );
         })()}
+      </div>
       </div>
     </div>
   )
