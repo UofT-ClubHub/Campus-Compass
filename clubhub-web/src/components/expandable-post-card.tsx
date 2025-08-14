@@ -10,6 +10,7 @@ import React from "react";
 interface ExpandablePostCardProps {
   post: Post;
   currentUser?: any;
+  isCreating?: boolean;
   onClose: () => void;
   onEdit?: (post: Post) => void;
   onSave?: (post: Post) => void;
@@ -17,7 +18,6 @@ interface ExpandablePostCardProps {
   onLikeUpdate?: (postId: string, newLikes: number, isLiked: boolean) => void;
   onDelete?: (postId: string) => void;
   onRefresh?: () => void;
-  isCreating?: boolean;
 }
 
 export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave, onSaveError, onLikeUpdate, onDelete, onRefresh, isCreating = false }: ExpandablePostCardProps) {
@@ -118,6 +118,33 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Check for missing fields and show warnings
+    const missingFields: string[] = []
+    
+    if (!editedPost.title?.trim()) {
+      missingFields.push("Title")
+    }
+    if (!editedPost.details?.trim()) {
+      missingFields.push("Description")
+    }
+    if (!editedPost.category?.trim()) {
+      missingFields.push("Category")
+    }
+    if (!editedPost.campus?.trim()) {
+      missingFields.push("Campus")
+    }
+    if (!editedPost.date_occuring?.trim()) {
+      missingFields.push("Event Date")
+    }
+    
+    // Show warning for missing fields but don't prevent save
+    if (missingFields.length > 0) {
+      if (onSaveError) {
+        onSaveError(`Warning: The following fields are empty: ${missingFields.join(", ")}. The post will be saved with these fields empty.`)
+      }
+    }
+    
     setIsSaving(true);
 
     try {
@@ -148,7 +175,7 @@ export function ExpandablePostCard({ post, currentUser, onClose, onEdit, onSave,
         } else {
           const errorData = await response.json();
           if (onSaveError) {
-            onSaveError(errorData);
+            onSaveError(errorData.error || errorData.message || 'An error occurred while saving');
           }
         }
       } else {
@@ -405,8 +432,8 @@ END:VCALENDAR`.trim();
           {!isCreating && (
           <button
             onClick={handleExportToCalendar}
-            disabled={!currentUser || isLiking}
-            className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-2 rounded-full border-2 border-white/70 flex items-center gap-2 hover:bg-black/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLiking}
+            className="absolute bottom-4 left-4 bg-primary text-primary-foreground px-3 py-2 rounded-full border-2 border-primary/20 flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Calendar />
           </button>
@@ -503,13 +530,25 @@ END:VCALENDAR`.trim();
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Event Date <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="datetime-local"
-                  value={editedPost.date_occuring ? new Date(editedPost.date_occuring).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => handleInputChange('date_occuring', e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
-                  required
-                />
+                  <input
+                    type="datetime-local"
+                    value={editedPost.date_occuring ? (() => {
+                      const date = new Date(editedPost.date_occuring);
+                      if (isNaN(date.getTime())) return '';
+                      
+                      // Format as YYYY-MM-DDTHH:MM in local timezone
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const hours = String(date.getHours()).padStart(2, '0');
+                      const minutes = String(date.getMinutes()).padStart(2, '0');
+                      
+                      return `${year}-${month}-${day}T${hours}:${minutes}`;
+                    })() : ''}
+                    onChange={(e) => handleInputChange('date_occuring', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                    required
+                  />
               </div>
 
               {/* Image Upload */}

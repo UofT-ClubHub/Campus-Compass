@@ -68,7 +68,7 @@ export function PostCard({
         {/* Image Section */}
         <div className="relative h-48 bg-muted">
           <img
-            src={post.image || "placeholder.jpg"}
+            src={post.image || "/placeholder.jpg"}
             alt={post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -133,7 +133,23 @@ export function PostCard({
           post={post} 
           currentUser={currentUser}
           onClose={handleCloseOverlay}
-          onEdit={onEdit}
+          onEdit={(updatedPost) => {
+            // Update the local post object
+            Object.assign(post, updatedPost);
+            // Call parent's onEdit if provided
+            if (onEdit) onEdit(updatedPost);
+            // Refresh parent if needed
+            if (onRefresh) onRefresh();
+          }}
+          onSave={(savedPost) => {
+            // Update the local post object
+            Object.assign(post, savedPost);
+            // Call parent's onEdit if provided
+            if (onEdit) onEdit(savedPost);
+            // Refresh parent if needed
+            if (onRefresh) onRefresh();
+          }}
+          onSaveError={(error) => console.error('Save error:', error)}
           onLikeUpdate={onLikeUpdate}
           onDelete={onDelete}
           onRefresh={onRefresh}

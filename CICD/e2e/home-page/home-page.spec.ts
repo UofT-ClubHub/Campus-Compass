@@ -25,6 +25,9 @@ test.describe('Home Page - Smoke Tests', () => {
     const desktopContent = page.locator('body');
     await expect(desktopContent).toBeVisible();
     
+    const desktopContent = page.locator('body');
+    await expect(desktopContent).toBeVisible();
+    
     console.log('Home page is responsive across all viewports');
   });
 }); 

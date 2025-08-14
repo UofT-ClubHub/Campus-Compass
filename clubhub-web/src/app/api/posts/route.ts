@@ -141,7 +141,15 @@ export const POST = withAuth(async (request: NextRequest) => {
 
         // Create new post document
         const docRef = await postsCollection.add(data);
-        return NextResponse.json({ id: docRef.id, ...data }, { status: 200 });
+
+        // Update the document to include the id field
+        await docRef.update({ id: docRef.id });
+
+        const newDoc = await docRef.get();
+        return NextResponse.json(
+            { id: docRef.id, ...newDoc.data() }, 
+            { status: 200 }
+        );
     }
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
