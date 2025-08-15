@@ -853,8 +853,8 @@ export default function ExecPage() {
                             Computer, Math, & Stats
                           </option>
                           <option value="Engineering">Engineering</option>
-                          <option value="Business/Managament">
-                            Business/Managament
+                          <option value="Business/Management">
+                            Business/Management
                           </option>
                           <option value="Health & Medicine">
                             Health & Medicine

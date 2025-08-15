@@ -254,7 +254,7 @@ export default function PendingClubRequestPage() {
                 <option value="">Select a department</option>
                 <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
                 <option value="Engineering">Engineering</option>
-                <option value="Business/Managament">Business/Managament</option>
+                <option value="Business/Management">Business/Management</option>
                 <option value="Health & Medicine">Health & Medicine</option>
                 <option value="Law">Law</option>
                 <option value="Cultural">Cultural</option>

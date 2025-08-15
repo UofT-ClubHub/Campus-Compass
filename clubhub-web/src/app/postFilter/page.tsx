@@ -23,6 +23,7 @@ function PostFilterContent() {
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "");
   const [hashtagsFilter, setHashtagsFilter] = useState(searchParams.get('hashtags') || "");
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
+  const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "");
 
   const [initialLoading, setInitialLoading] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -33,7 +34,7 @@ function PostFilterContent() {
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
 
-  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by;
+  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by || departmentFilter;
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -44,6 +45,7 @@ function PostFilterContent() {
     setCategoryFilter("");
     setSortBy("");
     setSortOrder("");
+    setDepartmentFilter("");
   };
 
   useEffect(() => {
@@ -72,12 +74,12 @@ function PostFilterContent() {
   if (categoryFilter) params.set('category', categoryFilter); 
   if (sort_by) params.set('sort_by', sort_by);
   if (sort_order) params.set('sort_order', sort_order);
-  
+  if (departmentFilter) params.set('department', departmentFilter);
   // Update URL without refreshing page
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
 }, [nameFilter, campusFilter, descriptionFilter, hashtagsFilter, 
-    categoryFilter, sort_by, sort_order]);
+    categoryFilter, sort_by, sort_order, departmentFilter]);
 
   const filterPosts = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -102,6 +104,7 @@ function PostFilterContent() {
       campusFilter ? params.append("campus", campusFilter) : null;
       categoryFilter ? params.append("category", categoryFilter) : null;
       descriptionFilter ? params.append("details", descriptionFilter) : null;
+      departmentFilter ? params.append("department", departmentFilter) : null;
       params.append("sort_by", sort_by);
       params.append("sort_order", sort_order);
       params.append("offset", currentOffset.toString());
@@ -196,6 +199,7 @@ function PostFilterContent() {
     descriptionFilter,
     hashtagsFilter,
     categoryFilter,
+    departmentFilter,
     sort_by,
     sort_order,
   ]);
@@ -369,6 +373,29 @@ function PostFilterContent() {
                   <option value="UTSC">UTSC</option>
                   <option value="UTSG">UTSG</option>
                   <option value="UTM">UTM</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Department Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Department</label>
+              <div className="relative">
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Business/Management">Business/Management</option>
+                  <option value="Health & Medicine">Health & Medicine</option>
+                  <option value="Law">Law</option>
+                  <option value="Cultural">Cultural</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Design Team">Design Team</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>

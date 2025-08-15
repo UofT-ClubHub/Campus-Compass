@@ -42,7 +42,7 @@ export default function AdminPage() {
 
         { value: 'Computer, Math, & Stats', label: 'Computer, Math, & Stats' },
         { value: 'Engineering', label: 'Engineering' },
-        { value: 'Business/Managament', label: 'Business/Managament' },
+        { value: 'Business/Management', label: 'Business/Management' },
         { value: 'Health & Medicine', label: 'Health & Medicine' },
         { value: 'Law', label: 'Law' },
         { value: 'Cultural', label: 'Cultural' },
