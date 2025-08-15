@@ -294,7 +294,7 @@ export default function ClubPage({ params }: PageProps) {
 
            <div className="relative z-10 max-w-4xl mx-auto text-center">
             {/* Logo and Title Section */}
-            <div className="mb-10 flex flex-col items-center">
+            <div className="mb-6 flex flex-col items-center">
               <img
                 src={clubData?.image || "/placeholder.svg"}
                 alt={`${clubData?.name} logo`}
@@ -302,6 +302,7 @@ export default function ClubPage({ params }: PageProps) {
               />
               <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">{clubData?.name}</h1>
               <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
+              <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.department}</p>
             </div>
 
             {/* Stats bar */}
