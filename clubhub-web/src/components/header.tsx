@@ -162,7 +162,7 @@ export function Header() {
               <div ref={navRef} className="flex items-center bg-muted/50 rounded-full px-2 py-1 backdrop-blur-sm relative">
                 {/* Sliding indicator */}
                 <div 
-                  className={`absolute bg-primary/70 shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`absolute bg-primary/70  shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
                     indicatorStyle.width === 0 ? 'opacity-0' : 'opacity-100'
                   }`}
                   style={{
