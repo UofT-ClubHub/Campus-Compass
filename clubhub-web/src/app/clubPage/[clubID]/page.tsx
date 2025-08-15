@@ -281,10 +281,27 @@ export default function ClubPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative">
+      {/* Animated background elements */}
+      {Array.from({ length: 12 }, (_, i) => (
+        <div
+          key={i}
+          className={`element-${i + 1}`}
+          style={{
+            position: 'absolute',
+            borderRadius: '50%',
+            filter: 'blur(48px)',
+            willChange: 'opacity, transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+          }}
+        />
+      ))}
+      
+      <main className="relative z-10">
+        <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
-         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden">
+         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
            <div
              className="absolute inset-0 bg-cover bg-center filter blur-md"
              style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
@@ -421,7 +438,7 @@ export default function ClubPage({ params }: PageProps) {
 
         {/* Posts Section */}
         <div className="mb-8">
-          <div className="bg-card rounded-2xl shadow-lg border border-border p-8">
+          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
 
             {posts.length === 0 ? (
               <div className="text-center py-16">
@@ -460,6 +477,7 @@ export default function ClubPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+    </div>
   )
 }
