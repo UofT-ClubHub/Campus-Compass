@@ -7,7 +7,7 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
 import { PostCard } from "@/components/post-card"
-import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink } from "lucide-react"
+import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PageProps {
@@ -302,7 +302,12 @@ export default function ClubPage({ params }: PageProps) {
               />
               <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">{clubData?.name}</h1>
               <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
-              <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.department}</p>
+              {clubData?.department && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <Building2 className="w-5 h-5 text-white/70" />
+                  <p className="text-white/70 text-lg font-medium">{clubData?.department}</p>
+                </div>
+              )}
             </div>
 
             {/* Stats bar */}

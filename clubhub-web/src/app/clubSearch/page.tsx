@@ -230,6 +230,7 @@ function ClubSearchContent() {
 
          {/* Compact Search Filters */}
          <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
+           {/* Top Row - 2 filters */}
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              {/* Club Name Filter */}
              <div className="space-y-2">
@@ -262,7 +263,8 @@ function ClubSearchContent() {
              </div>
            </div>
 
-           <div className="pt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+           {/* Bottom Row - 3 filters */}
+           <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
              {/* Campus Filter */}
              <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Campus</label>
@@ -276,21 +278,6 @@ function ClubSearchContent() {
                 <option value="UTSC">UTSC</option>
                 <option value="UTSG">UTSG</option>
                 <option value="UTM">UTM</option>
-              </select>
-              </div>
-             </div>
-
-             {/* Sort By Filter */}
-             <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Sort By</label>
-              <div className="relative">
-                <select
-                value={sortOrder}
-                onChange={(e) => setsortOrder(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              >
-                <option value="desc">Follows (Descending)</option>
-                <option value="asc">Follows (Ascending)</option>
               </select>
               </div>
              </div>
@@ -317,6 +304,22 @@ function ClubSearchContent() {
               </select>
               </div>
              </div>
+
+             {/* Sort By Filter */}
+             <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Sort By</label>
+              <div className="relative">
+                <select
+                value={sortOrder}
+                onChange={(e) => setsortOrder(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+              >
+                <option value="desc">Follows (Descending)</option>
+                <option value="asc">Follows (Ascending)</option>
+              </select>
+              </div>
+             </div>
+
            </div>
 
           { /* Clear All Filters Button */}
