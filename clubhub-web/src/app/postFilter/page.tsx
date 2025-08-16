@@ -419,43 +419,42 @@ function PostFilterContent() {
             </div>
 
             {/* Sort By Filter */}
-             <div className="space-y-2">
+            <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Sort By</label>
               <div className="relative">
-                <div className="flex flex-row gap-2 w-full items-end">
-                <div className="flex-1">
-                  <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort By</label>
+                <select
+                  id="sort-by"
+                  data-testid="sort-by"
+                  value={sort_by}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                >
+                  <option value="">Sort By</option>
+                  <option value="date_posted">Date Posted</option>
+                  <option value="likes">Likes</option>
+                  <option value="date_occuring">Date Occuring</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sort Order Filter */}
+            {showSortOrder && (
+              <div className="space-y-2">
+                <label className="text-lg font-medium text-primary">Sort Order</label>
+                <div className="relative">
                   <select
-                    id="sort-by"
-                    data-testid="sort-by"
-                    value={sort_by}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
+                    id="sort-order"
+                    data-testid="sort-order"
+                    value={sort_order}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
                   >
-                    <option value="">Sort By</option>
-                    <option value="date_posted">Date Posted</option>
-                    <option value="likes">Likes</option>
-                    <option value="date_occuring">Date Occuring</option>
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
                   </select>
                 </div>
-                {showSortOrder && (
-                  <div className="flex-1">
-                    <label htmlFor="sort-order" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort Order</label>
-                    <select
-                      id="sort-order"
-                      data-testid="sort-order"
-                      value={sort_order}
-                      onChange={(e) => setSortOrder(e.target.value)}
-                      className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
-                    >
-                      <option value="desc">Descending</option>
-                      <option value="asc">Ascending</option>
-                    </select>
-                  </div>
-                )}
               </div>
-              </div>
-             </div>
+            )}
           </div>
 
           { /* Clear All Filters Button */}
