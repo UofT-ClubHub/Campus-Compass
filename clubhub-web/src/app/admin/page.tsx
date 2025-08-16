@@ -6,8 +6,10 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import type { User, Club } from '@/model/types';
 import PendingClubsManagement from '@/components/pending-clubs-management';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AdminPage() {
+    const { theme } = useTheme();
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const router = useRouter();
@@ -332,7 +334,7 @@ export default function AdminPage() {
     if (!currentUserData?.is_admin && !isLoading && !authLoading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-background">
-                <div className="bg-card p-6 rounded-lg shadow-md max-w-md w-full border border-border">
+                <div className="bg-card/60 backdrop-blur-xl p-6 rounded-lg shadow-md max-w-md w-full border border-border">
                     <h2 className="text-xl font-semibold text-destructive mb-3">Access Denied</h2>
                     <p className="text-destructive">Access Denied: You are not an admin.</p>
                 </div>
@@ -341,7 +343,13 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background p-4 md:p-6">
+        <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+            {/* Animated background elements */}
+            {Array.from({ length: 12 }, (_, i) => (
+                <div key={i} className={`element-${i + 1}`}></div>
+            ))}
+            
+            <div className="relative z-10 p-4 md:p-6">
             <div className="max-w-5xl mx-auto">
 
                 <div className="text-center mb-8">
@@ -409,7 +417,7 @@ export default function AdminPage() {
                         </select>
                     </div>
                     {allUsers.length > 0 && (
-                        <div className="bg-card border border-border rounded-lg shadow-sm max-h-96 overflow-y-auto">
+                        <div className="bg-card/60 backdrop-blur-xl border border-border rounded-lg shadow-sm max-h-96 overflow-y-auto">
                             {allUsers.map((user: User) => (
                                 <div
                                     key={user.id}
@@ -436,7 +444,7 @@ export default function AdminPage() {
                 </section>
 
                 {isEditing && selectedUser && (
-                    <section className="bg-card rounded-lg shadow-sm p-6 border border-border">
+                    <section className="bg-card/60 backdrop-blur-xl rounded-lg shadow-sm p-6 border border-border">
                         <h2 className="text-xl font-semibold text-foreground mb-6">Edit User: {selectedUser.name || selectedUser.email}</h2>                        <div className="mb-4">
                             <label className="flex items-center text-foreground">
                                 <input
@@ -470,7 +478,7 @@ export default function AdminPage() {
                                 className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground mb-3"
                             />
                             {searchedClubs.length > 0 && (
-                                <div className="bg-card border border-border rounded-lg shadow-sm max-h-40 overflow-y-auto">
+                                <div className="bg-card/60 backdrop-blur-xl border border-border rounded-lg shadow-sm max-h-40 overflow-y-auto">
                                     {searchedClubs.map(club => (
                                         <div
                                             key={club.id}
@@ -488,7 +496,7 @@ export default function AdminPage() {
                                 {managedClubDetails.length > 0 ? (
                                     <div className="space-y-2">
                                         {managedClubDetails.map(clubDetail => (
-                                            <div key={clubDetail.id} className="flex items-center justify-between p-2 bg-muted rounded border border-border">
+                                            <div key={clubDetail.id} className="flex items-center justify-between p-2 bg-muted/50 backdrop-blur-xl rounded border border-border">
                                                 <span className="text-foreground">{clubDetail.name}</span>
                                                 <button
                                                     onClick={() => handleRemoveClubFromManaged(clubDetail.id)}
@@ -521,6 +529,7 @@ export default function AdminPage() {
                         </div>
                     </section>
                 )}
+            </div>
             </div>
         </div>
     );

@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { auth } from '@/model/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import React from "react";
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function PendingClubRequestPage() {
   const [user] = useAuthState(auth);
+  const { theme } = useTheme();
   const [clubName, setClubName] = useState('');
   const [clubCampus, setClubCampus] = useState('');
   const [clubDescription, setClubDescription] = useState('');
@@ -131,8 +133,15 @@ export default function PendingClubRequestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto py-12 px-4">
+    <div className="min-h-screen relative overflow-hidden bg-theme-gradient" data-theme={theme}>
+      {/* Animated background elements */}
+      <div className="absolute inset-0 bg-animated-elements">
+        {Array.from({ length: 12 }, (_, i) => (
+          <div key={i} className={`element-${i + 1}`}></div>
+        ))}
+      </div>
+
+      <div className="relative z-10 container max-w-4xl mx-auto py-12 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-3">Club Registration Portal</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -164,7 +173,7 @@ export default function PendingClubRequestPage() {
         </div>
 
         {showForm ? (
-          <div className="bg-card/80 backdrop-blur-sm rounded-xl shadow-xl border border-border p-8 card-glow">
+          <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-8 form-glow">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold text-foreground mb-3">Register Your Club</h2>
               <p className="text-muted-foreground">
@@ -317,7 +326,7 @@ export default function PendingClubRequestPage() {
             </form>
           </div>
         ) : (
-          <div className="bg-card/80 backdrop-blur-sm rounded-xl shadow-xl border border-border p-8">
+          <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-8 form-glow">
             <div className="mb-6">
               <h2 className="text-2xl font-semibold text-foreground mb-2">My Club Requests</h2>
               <p className="text-muted-foreground">Track the status of your submitted club registration requests.</p>

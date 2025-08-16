@@ -8,11 +8,13 @@ import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Separate component that uses useSearchParams
 function PostFilterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme } = useTheme();
 
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -300,10 +302,16 @@ function PostFilterContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative overflow-hidden bg-theme-gradient" data-theme={theme}>
+      {/* Animated background elements */}
+      <div className="absolute inset-0 bg-animated-elements">
+        {Array.from({ length: 12 }, (_, i) => (
+          <div key={i} className={`element-${i + 1}`}></div>
+        ))}
+      </div>
 
       {/* Header and Search Section */}
-      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
+      <div className="relative z-10 max-w-4xl mx-auto pt-8 pb-8 px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CalendarDays className="w-6 h-6 text-primary" />
@@ -312,7 +320,7 @@ function PostFilterContent() {
           <p className="text-muted-foreground">Find events, hiring opportunities, announcements, and surveys from student organizations</p>
         </div>
 
-        <div className="bg-card rounded-lg shadow-md border border-border p-4 mb-4 form-glow">
+        <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Post Name</label>
@@ -470,9 +478,9 @@ function PostFilterContent() {
       </div>
 
       {/* Results Section */}
-      <div className="w-full bg-background pb-12">
+      <div className="relative z-10 w-full pb-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-card rounded-lg shadow-md border border-border p-6 form-glow">
+          <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-6 form-glow">
             <h2 className="text-2xl font-bold text-primary mb-6 text-center">
               Post Results
             </h2>
@@ -539,8 +547,18 @@ function PostFilterContent() {
 // Loading fallback component
 function PostFilterLoading() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto pt-8 pb-8 px-4">
+    <div className="min-h-screen relative overflow-hidden bg-theme-gradient">
+      {/* Background elements for loading state */}
+      <div className="absolute inset-0 bg-animated-elements">
+        <div className="element-1"></div>
+        <div className="element-2"></div>
+        <div className="element-3"></div>
+        <div className="element-4"></div>
+        <div className="element-5"></div>
+        <div className="element-6"></div>
+      </div>
+      
+      <div className="relative z-10 max-w-4xl mx-auto pt-8 pb-8 px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <CalendarDays className="w-6 h-6 text-primary" />
