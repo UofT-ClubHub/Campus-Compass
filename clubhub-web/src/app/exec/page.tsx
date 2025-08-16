@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import { auth } from '@/model/firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { auth } from "@/model/firebase";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
 import { ExpandablePostCard } from "@/components/expandable-post-card";
@@ -26,15 +26,19 @@ export default function ExecPage() {
   const [newExecEmail, setNewExecEmail] = useState("");
   const [showEditClubForm, setShowEditClubForm] = useState<string | null>(null);
   const [editingClub, setEditingClub] = useState<Partial<Club>>({});
-  const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(null);
-  const [executiveDetailsMap, setExecutiveDetailsMap] = useState<Map<string, User[]>>(new Map());
+  const [showCreatePostForm, setShowCreatePostForm] = useState<string | null>(
+    null
+  );
+  const [executiveDetailsMap, setExecutiveDetailsMap] = useState<
+    Map<string, User[]>
+  >(new Map());
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [deletingClubId, setDeletingClubId] = useState<string | null>(null);
 
   const campusOptions = [
-    { value: 'UTSG', label: 'UTSG' },
-    { value: 'UTSC', label: 'UTSC' },
-    { value: 'UTM', label: 'UTM' }
+    { value: "UTSG", label: "UTSG" },
+    { value: "UTSC", label: "UTSC" },
+    { value: "UTM", label: "UTM" },
   ];
 
   useEffect(() => {
@@ -76,7 +80,7 @@ export default function ExecPage() {
       try {
         const token = await authUser.getIdToken();
         const response = await fetch(`/api/users?id=${authUser.uid}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -92,18 +96,22 @@ export default function ExecPage() {
         }
 
         if (user.managed_clubs && user.managed_clubs.length > 0) {
-          const clubsDataPromises = user.managed_clubs.map(async (clubId: string) => {
-            const clubResponse = await fetch(`/api/clubs?id=${clubId}`);
-            if (!clubResponse.ok) {
-              return null;
+          const clubsDataPromises = user.managed_clubs.map(
+            async (clubId: string) => {
+              const clubResponse = await fetch(`/api/clubs?id=${clubId}`);
+              if (!clubResponse.ok) {
+                return null;
+              }
+              return clubResponse.json();
             }
-            return clubResponse.json();
-          });
+          );
           const clubsResults = await Promise.all(clubsDataPromises);
-          setManagedClubs(clubsResults.filter((club) => club !== null) as Club[]);
+          setManagedClubs(
+            clubsResults.filter((club) => club !== null) as Club[]
+          );
         }
       } catch (err: any) {
-        setError(err.message || 'An error occurred while loading user data');
+        setError(err.message || "An error occurred while loading user data");
       } finally {
         setIsLoading(false);
       }
@@ -127,25 +135,25 @@ export default function ExecPage() {
               try {
                 const token = await authUser?.getIdToken();
                 const response = await fetch(`/api/users?id=${execId}`, {
-                  headers: { 'Authorization': `Bearer ${token}` }
+                  headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
                   return null;
                 }
-                const execUser = await response.json() as User;
+                const execUser = (await response.json()) as User;
                 return execUser;
               } catch (error) {
                 return null;
               }
             });
-            const resolvedExecs = (await Promise.all(execDetailsPromises)).filter(
-              (exec) => exec !== null,
-            ) as User[];
+            const resolvedExecs = (
+              await Promise.all(execDetailsPromises)
+            ).filter((exec) => exec !== null) as User[];
             if (resolvedExecs.length > 0) {
               newExecDetailsMap.set(club.id, resolvedExecs);
             }
           }
-        }),
+        })
       );
       setExecutiveDetailsMap(newExecDetailsMap);
     };
@@ -162,79 +170,83 @@ export default function ExecPage() {
   };
 
   const addLink = () => {
-    setEditingClub(prev => {
+    setEditingClub((prev) => {
       const existingLinks = prev.links || {};
       const newKey = `Link ${Object.keys(existingLinks).length + 1}`;
       return {
         ...prev,
         links: {
           ...existingLinks,
-          [newKey]: ""
-        }
+          [newKey]: "",
+        },
       };
     });
   };
 
   const removeLink = (index: number) => {
-    setEditingClub(prev => {
+    setEditingClub((prev) => {
       const keys = Object.keys(prev.links || {});
       const newLinks = { ...(prev.links || {}) };
       delete newLinks[keys[index]];
       return {
         ...prev,
-        links: newLinks
+        links: newLinks,
       };
     });
   };
 
   const updateLink = (key: string, value: string) => {
-    setEditingClub(prev => ({
+    setEditingClub((prev) => ({
       ...prev,
       links: {
         ...prev.links,
-        [key]: value, 
+        [key]: value,
       },
     }));
   };
 
   const updateLinkName = (oldKey: string, newKey: string) => {
-    setEditingClub(prev => {
+    setEditingClub((prev) => {
       const oldLinks = prev.links || {};
       const newLinks: { [key: string]: string } = {};
-      
+
       // Preserve order by iterating through entries and updating the specific key
       Object.entries(oldLinks).forEach(([key, value]) => {
         if (key === oldKey) {
           newLinks[newKey] = value;
         } else {
-          newLinks[key] = value; 
+          newLinks[key] = value;
         }
       });
-      
+
       return {
         ...prev,
-        links: newLinks
+        links: newLinks,
       };
     });
   };
 
-  const uploadImageToBackend = async (file: File, folder: string = 'clubs', clubId: string): Promise<string> => {
+  const uploadImageToBackend = async (
+    file: File,
+    folder: string = "clubs",
+    clubId: string
+  ): Promise<string> => {
     const user = auth.currentUser;
     if (!user) {
-      throw new Error('Please log in to upload images');
+      throw new Error("Please log in to upload images");
     }
 
     const token = await user.getIdToken();
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folder);
-    formData.append('clubId', clubId);
-    formData.append('originalImageUrl', clubId);
+    formData.append("file", file);
+    formData.append("folder", folder);
+    formData.append("clubId", clubId);
+    formData.append("originalImageUrl", clubId);
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
+    const response = await fetch("/api/upload", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
@@ -258,9 +270,12 @@ export default function ExecPage() {
 
     try {
       const token = await authUser?.getIdToken();
-      const userResponse = await fetch(`/api/users?email=${encodeURIComponent(newExecEmail)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const userResponse = await fetch(
+        `/api/users?email=${encodeURIComponent(newExecEmail)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!userResponse.ok) {
         setError("Failed to fetch user data.");
         return;
@@ -272,7 +287,9 @@ export default function ExecPage() {
       }
       const execUser = users[0] as User;
 
-      const updatedManagedClubs = Array.isArray(execUser.managed_clubs) ? [...execUser.managed_clubs] : [];
+      const updatedManagedClubs = Array.isArray(execUser.managed_clubs)
+        ? [...execUser.managed_clubs]
+        : [];
       if (!updatedManagedClubs.includes(clubId)) {
         updatedManagedClubs.push(clubId);
       }
@@ -319,19 +336,23 @@ export default function ExecPage() {
       console.log("Error adding executive:", err);
       setError(`Error: ${err.message}`);
     }
-  }
+  };
 
   const handleEditClubInfo = async (e: FormEvent, clubId: string) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!editingClub.name || !editingClub.description || !editingClub.campus) {
-      setSuccessMessage("Name, description, and campus are required.")
-      return
+      setSuccessMessage("Name, description, and campus are required.");
+      return;
     }
 
     try {
       let imageUrl = editingClub.image;
       if (pendingImageFile) {
-        imageUrl = await uploadImageToBackend(pendingImageFile, 'clubs', clubId);
+        imageUrl = await uploadImageToBackend(
+          pendingImageFile,
+          "clubs",
+          clubId
+        );
       }
 
       const idToken = await authUser?.getIdToken();
@@ -339,31 +360,35 @@ export default function ExecPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ ...editingClub, image: imageUrl }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData)
+        const errorData = await response.json();
+        throw new Error(errorData);
       }
 
-      const updatedClub = await response.json()
+      const updatedClub = await response.json();
 
       // Update local state
-      setManagedClubs(prevClubs =>
-        prevClubs.map(club => (club.id === clubId ? { ...club, ...updatedClub } : club))
-      )
-      setShowEditClubForm(null)
-      setEditingClub({})
-      setPendingImageFile(null)
-      setSuccessMessage("Club information updated successfully!")
+      setManagedClubs((prevClubs) =>
+        prevClubs.map((club) =>
+          club.id === clubId ? { ...club, ...updatedClub } : club
+        )
+      );
+      setShowEditClubForm(null);
+      setEditingClub({});
+      setPendingImageFile(null);
+      setSuccessMessage("Club information updated successfully!");
     } catch (err: any) {
-      console.log("Error editing club info:", err)
-      setError(`Error: ${err.message || 'An error occurred while updating club information'}`)
+      console.log("Error editing club info:", err);
+      setError(
+        `Error: ${err.message || "An error occurred while updating club information"}`
+      );
     }
-  }
+  };
 
   const handleDeleteClub = async (clubId: string, clubName: string) => {
     const confirmMessage = `Are you sure you want to delete "${clubName}"? Type "DELETE" to confirm:`;
@@ -384,8 +409,8 @@ export default function ExecPage() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`
-        }
+          Authorization: `Bearer ${idToken}`,
+        },
       });
 
       if (!response.ok) {
@@ -394,7 +419,9 @@ export default function ExecPage() {
       }
 
       // Remove the club from local state
-      setManagedClubs(prevClubs => prevClubs.filter(club => club.id !== clubId));
+      setManagedClubs((prevClubs) =>
+        prevClubs.filter((club) => club.id !== clubId)
+      );
 
       // Clear any open forms for this club
       if (showAddExecForm === clubId) setShowAddExecForm(null);
@@ -408,28 +435,39 @@ export default function ExecPage() {
     } finally {
       setDeletingClubId(null);
     }
-  }
+  };
 
   if (authLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-background">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
+          <p className="text-muted-foreground font-medium">
+            Loading your dashboard...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (!userData?.is_executive && !userData?.is_admin && !isLoading && !authLoading) {
+  if (
+    !userData?.is_executive &&
+    !userData?.is_admin &&
+    !isLoading &&
+    !authLoading
+  ) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-background">
         <div className="bg-card p-6 rounded-lg shadow-md max-w-md w-full border border-border">
-          <h2 className="text-xl font-semibold text-destructive mb-3">Access Denied</h2>
-          <p className="text-destructive">Access Denied: You are not an admin or executive.</p>
+          <h2 className="text-xl font-semibold text-destructive mb-3">
+            Access Denied
+          </h2>
+          <p className="text-destructive">
+            Access Denied: You are not an admin or executive.
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -440,7 +478,8 @@ export default function ExecPage() {
         ))}
       
       <div className="relative z-10 p-4 md:p-6">
-        <div className="max-w-5xl mx-auto">        <div className="text-center mb-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Executive Dashboard</h1>
           <p className="text-muted-foreground text-lg mb-2">
             Welcome, <span className="text-primary font-semibold">{userData?.name || "User"}</span>
@@ -455,7 +494,6 @@ export default function ExecPage() {
             <strong>Error:</strong> {error}
           </div>
         )}
-
         {successMessage && (
           <div
             className="bg-success/10 border border-success/20 text-success p-4 mb-4 text-sm rounded-lg"
@@ -464,7 +502,6 @@ export default function ExecPage() {
             {successMessage}
           </div>
         )}
-
         {/* Clubs list */}
         {managedClubs.length > 0 ? (
           <div className="space-y-4">
@@ -485,20 +522,23 @@ export default function ExecPage() {
                       </Link>
                     ) : (
                       <Link href={`/clubPage/${club.id}`} className="block">
-                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors">
-                        </div>
+                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"></div>
                       </Link>
                     )}
                   </div>
 
                   <div className="flex-grow min-w-0 w-full md:w-auto">
                     <div className="flex items-start gap-3 mb-1">
-                      <h3 className="text-lg font-bold text-foreground truncate">{club.name}</h3>
+                      <h3 className="text-lg font-bold text-foreground truncate">
+                        {club.name}
+                      </h3>
                       <span className="inline-block bg-primary/55 text-white text-xs px-2 py-1 rounded-md font-medium shrink-0 border border-primary/30">
                         {club.campus}
                       </span>
                     </div>
-                    <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{club.description}</p>
+                    <p className="text-muted-foreground text-sm mb-2 line-clamp-1">
+                      {club.description}
+                    </p>
 
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>
@@ -512,38 +552,52 @@ export default function ExecPage() {
                       )}
                       {club.links && Object.keys(club.links).length > 0 && (
                         <span>
-                          <strong>{Object.keys(club.links).length}</strong> links
+                          <strong>{Object.keys(club.links).length}</strong>{" "}
+                          links
                         </span>
                       )}
                     </div>
                   </div>
 
                   <div className="flex-shrink-0 flex flex-wrap gap-2 mt-2 md:mt-0 w-full md:w-auto justify-start md:ml-auto">
-                    {!showAddExecForm && (<button
-                      onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
-                    </button>
+                    {!showAddExecForm && (
+                      <button
+                        onClick={() =>
+                          setShowAddExecForm(
+                            showAddExecForm === club.id ? null : club.id
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
+                      </button>
                     )}
-                    {!showEditClubForm && (<button
-                      onClick={() => {
-                        setEditingClub({
-                          name: club.name,
-                          description: club.description,
-                          campus: club.campus,
-                          instagram: club.instagram,
-                          links: club.links || {},
-                        })
-                        setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      {showEditClubForm === club.id ? "Cancel" : "Edit"}
-                    </button>
+                    {!showEditClubForm && (
+                      <button
+                        onClick={() => {
+                          setEditingClub({
+                            name: club.name,
+                            description: club.description,
+                            department: club.department,
+                            campus: club.campus,
+                            instagram: club.instagram,
+                            links: club.links || {},
+                          });
+                          setShowEditClubForm(
+                            showEditClubForm === club.id ? null : club.id
+                          );
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        {showEditClubForm === club.id ? "Cancel" : "Edit"}
+                      </button>
                     )}
                     <button
-                      onClick={() => setShowCreatePostForm(showCreatePostForm === club.id ? null : club.id)}
+                      onClick={() =>
+                        setShowCreatePostForm(
+                          showCreatePostForm === club.id ? null : club.id
+                        )
+                      }
                       className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       {showCreatePostForm === club.id ? "Cancel" : "Post"}
@@ -558,7 +612,8 @@ export default function ExecPage() {
                   </div>
                 </div>
 
-                {(club.executives && club.executives.length > 0) || (club.links && Object.keys(club.links).length > 0) ? (
+                {(club.executives && club.executives.length > 0) ||
+                (club.links && Object.keys(club.links).length > 0) ? (
                   <div className="px-4 pb-4 pt-2 border-t border-border bg-background">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       {club.executives && club.executives.length > 0 && (
@@ -577,29 +632,41 @@ export default function ExecPage() {
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                               />
                             </svg>
-                            <p className="font-medium text-muted-foreground">Executives:</p>
+                            <p className="font-medium text-muted-foreground">
+                              Executives:
+                            </p>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {executiveDetailsMap.get(club.id)
-                              ? executiveDetailsMap.get(club.id)!.map((execUser, index) => (
-                                <div
-                                  key={execUser.id || index}
-                                  className="bg-muted text-foreground p-2 rounded shadow-sm min-w-[150px]"
-                                >
-                                  <p className="text-sm font-semibold truncate" title={execUser.name}>
-                                    {execUser.name || "N/A"}
-                                  </p>
-                                </div>
-                              ))
-                              : club.executives.map((execId, index) => ( // Show placeholders if details not yet fetched
-                                <div
-                                  key={execId || index}
-                                  className="bg-muted p-2 rounded shadow-sm min-w-[150px] animate-pulse"
-                                >
-                                  <div className="h-4 bg-muted-foreground/20 rounded w-20 mb-1"></div>
-                                  <div className="h-3 bg-muted-foreground/20 rounded w-28"></div>
-                                </div>
-                              ))}
+                              ? executiveDetailsMap
+                                  .get(club.id)!
+                                  .map((execUser, index) => (
+                                    <div
+                                      key={execUser.id || index}
+                                      className="bg-muted text-foreground p-2 rounded shadow-sm min-w-[150px]"
+                                    >
+                                      <p
+                                        className="text-sm font-semibold truncate"
+                                        title={execUser.name}
+                                      >
+                                        {execUser.name || "N/A"}
+                                      </p>
+                                    </div>
+                                  ))
+                              : club.executives.map(
+                                  (
+                                    execId,
+                                    index // Show placeholders if details not yet fetched
+                                  ) => (
+                                    <div
+                                      key={execId || index}
+                                      className="bg-muted p-2 rounded shadow-sm min-w-[150px] animate-pulse"
+                                    >
+                                      <div className="h-4 bg-muted-foreground/20 rounded w-20 mb-1"></div>
+                                      <div className="h-3 bg-muted-foreground/20 rounded w-28"></div>
+                                    </div>
+                                  )
+                                )}
                           </div>
                         </div>
                       )}
@@ -620,22 +687,28 @@ export default function ExecPage() {
                                 d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                               />
                             </svg>
-                            <p className="font-medium text-muted-foreground">Links:</p>
+                            <p className="font-medium text-muted-foreground">
+                              Links:
+                            </p>
                           </div>
                           <div className="space-y-1">
-                            {Object.entries(club.links).slice(0, 3).map(([key, link], index) => (
-                              <a
-                                key={index}
-                                href={link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block text-primary hover:text-primary/80 truncate text-xs"
-                              >
-                                {key}
-                              </a>
-                            ))}
+                            {Object.entries(club.links)
+                              .slice(0, 3)
+                              .map(([key, link], index) => (
+                                <a
+                                  key={index}
+                                  href={link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block text-primary hover:text-primary/80 truncate text-xs"
+                                >
+                                  {key}
+                                </a>
+                              ))}
                             {Object.keys(club.links).length > 3 && (
-                              <p className="text-xs text-muted-foreground">+{Object.keys(club.links).length - 3} more links</p>
+                              <p className="text-xs text-muted-foreground">
+                                +{Object.keys(club.links).length - 3} more links
+                              </p>
                             )}
                           </div>
                         </div>
@@ -665,7 +738,11 @@ export default function ExecPage() {
                           Add
                         </button>
                         <button
-                          onClick={() => setShowAddExecForm(showAddExecForm === club.id ? null : club.id)}
+                          onClick={() =>
+                            setShowAddExecForm(
+                              showAddExecForm === club.id ? null : club.id
+                            )
+                          }
                           className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                         >
                           Cancel
@@ -679,26 +756,42 @@ export default function ExecPage() {
                 {showEditClubForm === club.id && (
                   <div className="border-t border-border p-4 bg-muted/50">
                     <form onSubmit={(e) => handleEditClubInfo(e, club.id)}>
-                      <h4 className="font-medium mb-3 text-foreground">Edit Club Information</h4>
+                      <h4 className="font-medium mb-3 text-foreground">
+                        Edit Club Information
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-1">Name:</label>
+                          <label className="block text-sm font-medium text-muted-foreground mb-1">
+                            Name:
+                          </label>
                           <input
                             type="text"
                             value={editingClub.name || ""}
-                            onChange={(e) => setEditingClub((prev) => ({ ...prev, name: e.target.value }))}
+                            onChange={(e) =>
+                              setEditingClub((prev) => ({
+                                ...prev,
+                                name: e.target.value,
+                              }))
+                            }
                             className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-1">Campus:</label>
+                          <label className="block text-sm font-medium text-muted-foreground mb-1">
+                            Campus:
+                          </label>
                           <select
                             value={editingClub.campus || ""}
-                            onChange={(e) => setEditingClub((prev) => ({ ...prev, campus: e.target.value }))}
+                            onChange={(e) =>
+                              setEditingClub((prev) => ({
+                                ...prev,
+                                campus: e.target.value,
+                              }))
+                            }
                             className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
                           >
                             <option value="">Select Campus</option>
-                            {campusOptions.map(option => (
+                            {campusOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
                               </option>
@@ -706,26 +799,74 @@ export default function ExecPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-1">Instagram:</label>
+                          <label className="block text-sm font-medium text-muted-foreground mb-1">
+                            Instagram:
+                          </label>
                           <input
                             type="text"
                             value={editingClub.instagram || ""}
-                            onChange={(e) => setEditingClub((prev) => ({ ...prev, instagram: e.target.value }))}
+                            onChange={(e) =>
+                              setEditingClub((prev) => ({
+                                ...prev,
+                                instagram: e.target.value,
+                              }))
+                            }
                             className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
                           />
                         </div>
                       </div>
                       <div className="mb-3">
-                        <label className="block text-sm font-medium text-muted-foreground mb-1">Description:</label>
+                        <label className="block text-sm font-medium text-muted-foreground mb-1">
+                          Description:
+                        </label>
                         <textarea
                           value={editingClub.description || ""}
-                          onChange={(e) => setEditingClub((prev) => ({ ...prev, description: e.target.value }))}
+                          onChange={(e) =>
+                            setEditingClub((prev) => ({
+                              ...prev,
+                              description: e.target.value,
+                            }))
+                          }
                           className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
                           rows={2}
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="block text-sm font-medium text-muted-foreground mb-1">Image:</label>
+                        <label className="block text-sm font-medium text-muted-foreground mb-1">
+                          Department:
+                        </label>
+                        <select
+                          value={editingClub.department || ""}
+                          onChange={(e) =>
+                            setEditingClub((prev) => ({
+                              ...prev,
+                              department: e.target.value,
+                            }))
+                          }
+                          className="w-full p-2 border border-border rounded focus:outline-none focus:ring-1 focus:ring-ring focus:border-transparent text-foreground bg-card"
+                        >
+                          <option value="">Select Department</option>
+                          <option value="Computer, Math, & Stats">
+                            Computer, Math, & Stats
+                          </option>
+                          <option value="Engineering">Engineering</option>
+                          <option value="Business/Management">
+                            Business/Management
+                          </option>
+                          <option value="Health & Medicine">
+                            Health & Medicine
+                          </option>
+                          <option value="Law">Law</option>
+                          <option value="Cultural">Cultural</option>
+                          <option value="Sports">Sports</option>
+                          <option value="Design Team">Design Team</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-muted-foreground mb-1">
+                          Image:
+                        </label>
                         <input
                           type="file"
                           accept="image/*"
@@ -737,7 +878,9 @@ export default function ExecPage() {
                       {/* Links */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-muted-foreground mb-1">Related Links:</label>
+                          <label className="block text-sm font-medium text-muted-foreground mb-1">
+                            Related Links:
+                          </label>
                           <button
                             type="button"
                             onClick={addLink}
@@ -748,31 +891,37 @@ export default function ExecPage() {
                           </button>
                         </div>
                         <div className="space-y-2">
-                          {Object.entries(editingClub.links || {}).map(([key, link], index) => (
-                            <div key={index} className="flex gap-2">
-                                                             <input
-                                 type="text"
-                                 value={key}
-                                 onChange={(e) => updateLinkName(key, e.target.value)}
-                                 placeholder="Enter Link Name"
-                                 className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
-                               />
-                              <input
-                                type="url"
-                                value={link}
-                                onChange={(e) => updateLink(key, e.target.value)}
-                                placeholder="Enter URL"
-                                className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeLink(index)}
-                                className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ))}
+                          {Object.entries(editingClub.links || {}).map(
+                            ([key, link], index) => (
+                              <div key={index} className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={key}
+                                  onChange={(e) =>
+                                    updateLinkName(key, e.target.value)
+                                  }
+                                  placeholder="Enter Link Name"
+                                  className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                                />
+                                <input
+                                  type="url"
+                                  value={link}
+                                  onChange={(e) =>
+                                    updateLink(key, e.target.value)
+                                  }
+                                  placeholder="Enter URL"
+                                  className="flex-1 mb-4 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-input text-foreground"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeLink(index)}
+                                  className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
 
@@ -787,11 +936,14 @@ export default function ExecPage() {
                           setEditingClub({
                             name: club.name,
                             description: club.description,
+                            department: club.department,
                             campus: club.campus,
                             instagram: club.instagram,
                             links: club.links || {},
-                          })
-                          setShowEditClubForm(showEditClubForm === club.id ? null : club.id)
+                          });
+                          setShowEditClubForm(
+                            showEditClubForm === club.id ? null : club.id
+                          );
                         }}
                         className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
                       >
@@ -813,45 +965,48 @@ export default function ExecPage() {
             <p className="text-muted-foreground text-sm">You don't manage any clubs yet or the data is still loading.</p>
           </div>
         )}
+        {showCreatePostForm &&
+          (() => {
+            const clubForPost = managedClubs.find(
+              (c) => c.id === showCreatePostForm
+            );
+            if (!clubForPost) return null;
 
-        {showCreatePostForm && (() => {
-          const clubForPost = managedClubs.find(c => c.id === showCreatePostForm);
-          if (!clubForPost) return null;
+            const initialPostForCreation: Post = {
+              id: "",
+              title: "",
+              details: "",
+              club: clubForPost.id,
+              campus: "", // Default to empty string so user must select
+              category: "",
+              date_posted: new Date().toISOString(),
+              date_occuring: "",
+              image: "",
+              likes: 0,
+              hashtags: [],
+              links: [],
+              department: clubForPost.department,
+            };
 
-          const initialPostForCreation: Post = {
-            id: '',
-            title: '',
-            details: '',
-            club: clubForPost.id,
-            campus: '', // Default to empty string so user must select
-            category: '',
-            date_posted: new Date().toISOString(),
-            date_occuring: '',
-            image: '',
-            likes: 0,
-            hashtags: [],
-            links: [],
-          };
-
-          return (
-            <ExpandablePostCard
-              isCreating={true}
-              post={initialPostForCreation}
-              currentUser={userData}
-              onClose={() => setShowCreatePostForm(null)}
-              onSave={(savedPost: Post) => {
-                setSuccessMessage("Post created successfully!");
-                setShowCreatePostForm(null);
-              }}
-              onSaveError={(error: string) => {
-                setError(error);
-                setShowCreatePostForm(null);
-              }}
-            />
-          );
-        })()}
-      </div>
+            return (
+              <ExpandablePostCard
+                isCreating={true}
+                post={initialPostForCreation}
+                currentUser={userData}
+                onClose={() => setShowCreatePostForm(null)}
+                onSave={(savedPost: Post) => {
+                  setSuccessMessage("Post created successfully!");
+                  setShowCreatePostForm(null);
+                }}
+                onSaveError={(error: string) => {
+                  setError(error);
+                  setShowCreatePostForm(null);
+                }}
+              />
+            );
+          })()}
+        </div>
       </div>
     </div>
-  )
+  );
 }

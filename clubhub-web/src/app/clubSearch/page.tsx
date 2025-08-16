@@ -23,6 +23,7 @@ function ClubSearchContent() {
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
   const [sortOrder, setsortOrder] = useState(searchParams.get('sort_order') || "")
+  const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "")
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -30,7 +31,7 @@ function ClubSearchContent() {
   const limit = 4;
   const loadingRef = useRef(false);
 
-  const hasFilters = nameFilter || descriptionFilter || campusFilter || sortOrder
+  const hasFilters = nameFilter || descriptionFilter || campusFilter || sortOrder || departmentFilter
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -38,6 +39,7 @@ function ClubSearchContent() {
     setCampusFilter("");
     setDescriptionFilter("");
     setsortOrder("");
+    setDepartmentFilter("");
   };
   
 
@@ -78,11 +80,11 @@ function ClubSearchContent() {
   if (campusFilter) params.set('campus', campusFilter);
   if (descriptionFilter) params.set('description', descriptionFilter);
   if (sortOrder) params.set('sort_order', sortOrder);
-  
+  if (departmentFilter) params.set('department', departmentFilter);
   // Update URL as filters are applied
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
+}, [nameFilter, campusFilter, descriptionFilter, sortOrder, departmentFilter]);
 
   const clubSearch = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -108,6 +110,7 @@ function ClubSearchContent() {
       descriptionFilter ? params.append("description", descriptionFilter) : null
       sortOrder ? params.append("sort_by", "followers") : null
       sortOrder ? params.append("sort_order", sortOrder) : null
+      departmentFilter ? params.append("department", departmentFilter) : null
       params.append("offset", currentOffset.toString())
       params.append("limit", limit.toString());
 
@@ -166,7 +169,7 @@ function ClubSearchContent() {
       // Cancel any ongoing requests when component unmounts or dependencies change
       loadingRef.current = false;
     };
-  }, [nameFilter, campusFilter, descriptionFilter, sortOrder]);
+  }, [nameFilter, campusFilter, descriptionFilter, sortOrder, departmentFilter]);
 
   // Infinite scrolling logic with debouncing
   useEffect(() => {
@@ -267,7 +270,8 @@ function ClubSearchContent() {
              </div>
            </div>
 
-           <div className="pt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+           {/* Bottom Row - 3 filters */}
+           <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
              {/* Campus Filter */}
              <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Campus</label>
@@ -281,6 +285,29 @@ function ClubSearchContent() {
                 <option value="UTSC">UTSC</option>
                 <option value="UTSG">UTSG</option>
                 <option value="UTM">UTM</option>
+              </select>
+              </div>
+             </div>
+
+             {/* Department Filter */}
+             <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Department</label>
+              <div className="relative">
+                <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
+              >
+                <option value="">Select Department</option>
+                <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Business/Management">Business/Management</option>
+                <option value="Health & Medicine">Health & Medicine</option>
+                <option value="Law">Law</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Sports">Sports</option>
+                <option value="Design Team">Design Team</option>
+                <option value="Other">Other</option>
               </select>
               </div>
              </div>
@@ -299,6 +326,7 @@ function ClubSearchContent() {
               </select>
               </div>
              </div>
+
            </div>
 
           { /* Clear All Filters Button */}

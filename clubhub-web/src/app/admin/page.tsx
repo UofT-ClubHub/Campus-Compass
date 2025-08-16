@@ -19,6 +19,7 @@ export default function AdminPage() {
     const [nameFilter, setNameFilter] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
     const [campusFilter, setCampusFilter] = useState('');
+    const [departmentFilter, setDepartmentFilter] = useState('');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -37,6 +38,19 @@ export default function AdminPage() {
         { value: 'UTSG', label: 'UTSG' },
         { value: 'UTSC', label: 'UTSC' },
         { value: 'UTM', label: 'UTM' }
+    ];
+
+    const departmentOptions = [
+
+        { value: 'Computer, Math, & Stats', label: 'Computer, Math, & Stats' },
+        { value: 'Engineering', label: 'Engineering' },
+        { value: 'Business/Management', label: 'Business/Management' },
+        { value: 'Health & Medicine', label: 'Health & Medicine' },
+        { value: 'Law', label: 'Law' },
+        { value: 'Cultural', label: 'Cultural' },
+        { value: 'Sports', label: 'Sports' },
+        { value: 'Design Team', label: 'Design Team' },
+        { value: 'Other', label: 'Other' }
     ];
 
     useEffect(() => {
@@ -122,7 +136,7 @@ export default function AdminPage() {
         }
     }, [authUser, currentUserData]);
 
-    const fetchFilteredUsers = useCallback(async (name: string, email: string, campus: string) => {
+    const fetchFilteredUsers = useCallback(async (name: string, email: string, campus: string, department: string) => {
         if (!authUser) return;
         setError(null);
         try {
@@ -130,7 +144,7 @@ export default function AdminPage() {
             if (name.trim()) params.append('name', name);
             if (email.trim()) params.append('email', email);
             if (campus.trim()) params.append('campus', campus);
-
+            if (department.trim()) params.append('department', department);
             const token = await authUser.getIdToken();
             const response = await fetch(`/api/users?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
@@ -147,15 +161,15 @@ export default function AdminPage() {
     // Debounced user search using useEffect
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            if (nameFilter || emailFilter || campusFilter) {
-                fetchFilteredUsers(nameFilter, emailFilter, campusFilter);
+            if (nameFilter || emailFilter || campusFilter || departmentFilter) {
+                fetchFilteredUsers(nameFilter, emailFilter, campusFilter, departmentFilter);
             } else if (currentUserData?.is_admin) {
-                fetchFilteredUsers('', '', '');
+                fetchFilteredUsers('', '', '', '');
             }
         }, 200);
 
         return () => clearTimeout(timeoutId);
-    }, [nameFilter, emailFilter, campusFilter, fetchFilteredUsers, currentUserData]);
+    }, [nameFilter, emailFilter, campusFilter, departmentFilter, fetchFilteredUsers, currentUserData]);
 
     const fetchClubs = useCallback(async (query: string) => {
         if (!query.trim() || !authUser) return;
@@ -273,7 +287,7 @@ export default function AdminPage() {
             setIsEditing(false);
             // Refresh the users list to show updated data
             if (currentUserData?.is_admin) {
-                fetchFilteredUsers(nameFilter, emailFilter, campusFilter);
+                fetchFilteredUsers(nameFilter, emailFilter, campusFilter, departmentFilter);
             }
         } catch (err: any) {
             setError(err.message);
@@ -384,6 +398,18 @@ export default function AdminPage() {
                         >
                             <option value="">All Campuses</option>
                             {campusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            value={departmentFilter}
+                            onChange={(e) => setDepartmentFilter(e.target.value)}
+                            className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground"
+                        >
+                            <option value="">All Departments</option>
+                            {departmentOptions.map(option => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>

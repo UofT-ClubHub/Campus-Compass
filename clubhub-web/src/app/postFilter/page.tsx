@@ -25,6 +25,7 @@ function PostFilterContent() {
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "");
   const [hashtagsFilter, setHashtagsFilter] = useState(searchParams.get('hashtags') || "");
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || "");
+  const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "");
 
   const [initialLoading, setInitialLoading] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -35,7 +36,7 @@ function PostFilterContent() {
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
 
-  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by;
+  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by || departmentFilter;
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -46,6 +47,7 @@ function PostFilterContent() {
     setCategoryFilter("");
     setSortBy("");
     setSortOrder("");
+    setDepartmentFilter("");
   };
 
   useEffect(() => {
@@ -74,12 +76,12 @@ function PostFilterContent() {
   if (categoryFilter) params.set('category', categoryFilter); 
   if (sort_by) params.set('sort_by', sort_by);
   if (sort_order) params.set('sort_order', sort_order);
-  
+  if (departmentFilter) params.set('department', departmentFilter);
   // Update URL without refreshing page
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
 }, [nameFilter, campusFilter, descriptionFilter, hashtagsFilter, 
-    categoryFilter, sort_by, sort_order]);
+    categoryFilter, sort_by, sort_order, departmentFilter]);
 
   const filterPosts = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -104,6 +106,7 @@ function PostFilterContent() {
       campusFilter ? params.append("campus", campusFilter) : null;
       categoryFilter ? params.append("category", categoryFilter) : null;
       descriptionFilter ? params.append("details", descriptionFilter) : null;
+      departmentFilter ? params.append("department", departmentFilter) : null;
       params.append("sort_by", sort_by);
       params.append("sort_order", sort_order);
       params.append("offset", currentOffset.toString());
@@ -198,6 +201,7 @@ function PostFilterContent() {
     descriptionFilter,
     hashtagsFilter,
     categoryFilter,
+    departmentFilter,
     sort_by,
     sort_order,
   ]);
@@ -381,6 +385,29 @@ function PostFilterContent() {
               </div>
             </div>
 
+            {/* Department Filter */}
+            <div className="space-y-2">
+              <label className="text-lg font-medium text-primary">Department</label>
+              <div className="relative">
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Business/Management">Business/Management</option>
+                  <option value="Health & Medicine">Health & Medicine</option>
+                  <option value="Law">Law</option>
+                  <option value="Cultural">Cultural</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Design Team">Design Team</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
             {/* Category Filter */}
             <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Post Type</label>
@@ -400,43 +427,42 @@ function PostFilterContent() {
             </div>
 
             {/* Sort By Filter */}
-             <div className="space-y-2">
+            <div className="space-y-2">
               <label className="text-lg font-medium text-primary">Sort By</label>
               <div className="relative">
-                <div className="flex flex-row gap-2 w-full items-end">
-                <div className="flex-1">
-                  <label htmlFor="sort-by" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort By</label>
+                <select
+                  id="sort-by"
+                  data-testid="sort-by"
+                  value={sort_by}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                >
+                  <option value="">Sort By</option>
+                  <option value="date_posted">Date Posted</option>
+                  <option value="likes">Likes</option>
+                  <option value="date_occuring">Date Occuring</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sort Order Filter */}
+            {showSortOrder && (
+              <div className="space-y-2">
+                <label className="text-lg font-medium text-primary">Sort Order</label>
+                <div className="relative">
                   <select
-                    id="sort-by"
-                    data-testid="sort-by"
-                    value={sort_by}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
+                    id="sort-order"
+                    data-testid="sort-order"
+                    value={sort_order}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
                   >
-                    <option value="">Sort By</option>
-                    <option value="date_posted">Date Posted</option>
-                    <option value="likes">Likes</option>
-                    <option value="date_occuring">Date Occuring</option>
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
                   </select>
                 </div>
-                {showSortOrder && (
-                  <div className="flex-1">
-                    <label htmlFor="sort-order" className="block text-xs font-medium text-muted-foreground mb-1 sr-only">Sort Order</label>
-                    <select
-                      id="sort-order"
-                      data-testid="sort-order"
-                      value={sort_order}
-                      onChange={(e) => setSortOrder(e.target.value)}
-                      className="px-2 sm:px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-xs sm:text-sm text-card-foreground bg-input w-full"
-                    >
-                      <option value="desc">Descending</option>
-                      <option value="asc">Ascending</option>
-                    </select>
-                  </div>
-                )}
               </div>
-              </div>
-             </div>
+            )}
           </div>
 
           { /* Clear All Filters Button */}

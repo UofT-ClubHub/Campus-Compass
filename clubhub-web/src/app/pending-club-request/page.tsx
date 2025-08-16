@@ -13,6 +13,7 @@ export default function PendingClubRequestPage() {
   const [clubCampus, setClubCampus] = useState('');
   const [clubDescription, setClubDescription] = useState('');
   const [clubInstagram, setClubInstagram] = useState('');
+  const [clubDepartment, setClubDepartment] = useState('');
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +108,7 @@ export default function PendingClubRequestPage() {
           club_description: clubDescription.trim(),
           club_image: imageUrl,
           club_instagram: clubInstagram.trim(),
+          club_department: clubDepartment.trim(),
         }),
       });
 
@@ -122,6 +124,7 @@ export default function PendingClubRequestPage() {
       setClubDescription('');
       setPendingImageFile(null);
       setClubInstagram('');
+      setClubDepartment('');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -246,6 +249,30 @@ export default function PendingClubRequestPage() {
                 <p className="text-sm text-muted-foreground text-right">{clubDescription.length}/500 characters</p>
               </div>
 
+              <div className="space-y-2">
+                <label htmlFor="clubDepartment" className="block text-sm font-medium text-foreground">
+                  Department *
+                </label>
+              <select
+                id="clubDepartment"
+                value={clubDepartment}
+                onChange={(e) => setClubDepartment(e.target.value)}
+                required
+                className="w-full h-11 p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground bg-background"
+              >
+                <option value="">Select a department</option>
+                <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Business/Management">Business/Management</option>
+                <option value="Health & Medicine">Health & Medicine</option>
+                <option value="Law">Law</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Sports">Sports</option>
+                <option value="Design Team">Design Team</option>
+                <option value="Other">Other</option>
+              </select>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="clubImage" className="block text-sm font-medium text-foreground">
@@ -342,6 +369,7 @@ export default function PendingClubRequestPage() {
                     </div>
 
                     <p className="text-muted-foreground mb-4">{club.club_description}</p>
+                    <p className="text-muted-foreground mb-4">{club.club_department}</p>
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
                       <span>

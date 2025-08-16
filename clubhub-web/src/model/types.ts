@@ -22,6 +22,7 @@ export interface Club {
     instagram: string;
     followers: number; 
     executives: string[];
+    department: string;
     links: { [key: string]: string };
 }
 
@@ -37,6 +38,7 @@ export interface Post {
     date_posted: string;
     likes: number;
     image: string;
+    department: string;
     links: string[];
 }
 
@@ -49,6 +51,7 @@ export interface PendingClub {
     created_at: string;
     club_image: string;
     club_instagram: string;
+    club_department: string;
     status: 'pending' | 'approved' | 'rejected';
     message?: string;
 }

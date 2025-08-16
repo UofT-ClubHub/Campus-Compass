@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const nameFilter = searchParams.get("name");
     const descriptionFilter = searchParams.get("description");
     const campusFilter = searchParams.get("campus");
+    const departmentFilter = searchParams.get("department");
     const sortBy = searchParams.get("sort_by");
     const sortOrder = searchParams.get("sort_order") || "asc";
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -37,6 +38,10 @@ export async function GET(request: NextRequest) {
         query = query.where('campus', '==', campusFilter);
     }
 
+    if (departmentFilter) {
+        query = query.where('department', '==', departmentFilter);
+    }
+
     if (sortBy && ['followers'].includes(sortBy)) {
         const order = sortOrder === 'asc' ? 'asc' : 'desc';
         query = query.orderBy(sortBy, order);
@@ -58,7 +63,10 @@ export async function GET(request: NextRequest) {
               .includes(descriptionFilter.toLowerCase()))) &&
         (!campusFilter ||
           (club.campus &&
-            club.campus.toLowerCase() === campusFilter.toLowerCase()))
+            club.campus.toLowerCase() === campusFilter.toLowerCase())) &&
+        (!departmentFilter ||
+          (club.department &&
+            club.department.toLowerCase() === departmentFilter.toLowerCase()))
     );
 
     // Sort

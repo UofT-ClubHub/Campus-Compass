@@ -13,6 +13,7 @@ export default function PendingClubsManagement() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [campusFilter, setCampusFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
   const [userDetails, setUserDetails] = useState<{ [key: string]: User }>({});
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [messageInputs, setMessageInputs] = useState<{ [id: string]: string }>({});
@@ -22,6 +23,18 @@ export default function PendingClubsManagement() {
     { value: 'UTSG', label: 'UTSG' },
     { value: 'UTSC', label: 'UTSC' },
     { value: 'UTM', label: 'UTM' }
+  ];
+
+  const departmentOptions = [
+    { value: 'Computer, Math, & Stats', label: 'Computer, Math, & Stats' },
+    { value: 'Engineering', label: 'Engineering' },
+    { value: 'Business/Management', label: 'Business/Management' },
+    { value: 'Health & Medicine', label: 'Health & Medicine' },
+    { value: 'Law', label: 'Law' },
+    { value: 'Cultural', label: 'Cultural' },
+    { value: 'Sports', label: 'Sports' },
+    { value: 'Design Team', label: 'Design Team' },
+    { value: 'Other', label: 'Other' }
   ];
 
   const fetchPendingClubs = useCallback(async () => {
@@ -34,6 +47,7 @@ export default function PendingClubsManagement() {
       const token = await user.getIdToken();
       const params = new URLSearchParams();
       if (campusFilter) params.append('campus', campusFilter);
+      if (departmentFilter) params.append('department', departmentFilter);
       
       const response = await fetch(`/api/pending-clubs?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -74,7 +88,7 @@ export default function PendingClubsManagement() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, campusFilter]);
+  }, [user, campusFilter, departmentFilter]);
 
   useEffect(() => {
     if (user) {
@@ -195,6 +209,18 @@ export default function PendingClubsManagement() {
                   </option>
                 ))}
               </select>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-foreground bg-card"
+              >
+                <option value="">All Departments</option>
+                {departmentOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               
               <button
                 onClick={() => fetchPendingClubs()}
@@ -235,6 +261,7 @@ export default function PendingClubsManagement() {
                           <h3 className="text-lg font-semibold text-foreground">{pendingClub.club_name}</h3>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span className="bg-muted px-2 py-1 rounded">{pendingClub.club_campus}</span>
+                            <span className="bg-muted px-2 py-1 rounded">{pendingClub.club_department}</span>
                             <span>•</span>
                             <span>{formatDate(pendingClub.created_at)}</span>
                           </div>

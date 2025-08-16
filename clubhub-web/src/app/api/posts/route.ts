@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
         const titleFilter = searchParams.get('title');
         const detailsFilter = searchParams.get('details');
         const campusFilter = searchParams.get('campus');
+        const departmentFilter = searchParams.get('department');
         const categoryFilter = searchParams.get('category');
         const limit = parseInt(searchParams.get("limit") || "10");
         const offset = parseInt(searchParams.get("offset") || "0");
@@ -42,6 +43,9 @@ export async function GET(request: NextRequest) {
         // Apply Firestore-supported filters first (these use indexes)
         if (campusFilter) {
             query = query.where('campus', '==', campusFilter);
+        }
+        if (departmentFilter) {
+            query = query.where('department', '==', departmentFilter);
         }
         if (categoryFilter) {
             query = query.where('category', '==', categoryFilter);
@@ -118,7 +122,7 @@ export async function GET(request: NextRequest) {
 export const POST = withAuth(async (request: NextRequest) => {
     try {
         const authResult = (request as any).auth; // Added by middleware
-        const data = await request.json();
+        let data = await request.json();
         const postsCollection = firestore.collection('Posts');
 
         // Validate required fields
@@ -138,6 +142,13 @@ export const POST = withAuth(async (request: NextRequest) => {
                 return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
             }
         }
+
+        // Get club data to assign department (for both admin and non-admin cases)
+        const clubDoc = await firestore.collection('Clubs').doc(data.club).get();
+        const clubData = clubDoc.data() as Club;
+
+        // Automatically assign the club's department to the post
+        data = { ...data, department: clubData?.department || "" };
 
         // Create new post document
         const docRef = await postsCollection.add(data);
