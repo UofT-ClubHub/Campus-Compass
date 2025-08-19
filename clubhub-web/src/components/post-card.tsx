@@ -70,7 +70,7 @@ export function PostCard({
 
       {/* Content Section */}
       <div className="p-8 space-y-5">
-        <h3 className="text-xl font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="text-xl font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors text-center">
           {post.title}
         </h3>
 

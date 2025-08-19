@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         const documentId = searchParams.get('id');
         const titleFilter = searchParams.get('title');
         const detailsFilter = searchParams.get('details');
+        const searchFilter = searchParams.get('search'); // New combined search parameter
         const campusFilter = searchParams.get('campus');
         const departmentFilter = searchParams.get('department');
         const categoryFilter = searchParams.get('category');
@@ -86,13 +87,28 @@ export async function GET(request: NextRequest) {
         }
 
         // Apply text-based filters in memory (these can't use Firestore indexes efficiently)
-        allPosts = allPosts.filter(post =>
-            (!titleFilter || (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()))) &&
-            (!detailsFilter || (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()))) &&
-            (hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
+        allPosts = allPosts.filter(post => {
+            // Handle combined search (search in title, details, and hashtags with OR logic)
+            const matchesSearch = !searchFilter || 
+              (post.title && post.title.toLowerCase().includes(searchFilter.toLowerCase())) ||
+              (post.details && post.details.toLowerCase().includes(searchFilter.toLowerCase())) ||
+              (post.hashtags && post.hashtags.some((hashtag: string) => 
+                hashtag.toLowerCase().includes(searchFilter.toLowerCase())
+              ));
+            
+            // Handle individual title/details filters (with AND logic for backward compatibility)
+            const matchesTitle = !titleFilter ||
+              (post.title && post.title.toLowerCase().includes(titleFilter.toLowerCase()));
+            const matchesDetails = !detailsFilter ||
+              (post.details && post.details.toLowerCase().includes(detailsFilter.toLowerCase()));
+            
+            // Handle hashtags filter
+            const matchesHashtags = hashtagsFilter.length === 0 || (post.hashtags && hashtagsFilter.every((tag: string) =>
                 post.hashtags.map((h: string) => h.toLowerCase()).includes(tag.toLowerCase())
-            )))
-        );
+            ));
+            
+            return matchesSearch && matchesTitle && matchesDetails && matchesHashtags;
+        });
 
         // Apply sorting in memory if not already sorted by Firestore
         if (!sortBy || !['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {

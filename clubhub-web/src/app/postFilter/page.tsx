@@ -20,6 +20,7 @@ function PostFilterContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
 
+  const [query, setQuery] = useState(searchParams.get('q') || "");
   const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "");
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "");
   const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "");
@@ -35,15 +36,15 @@ function PostFilterContent() {
   const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const hasFilters = nameFilter || campusFilter || descriptionFilter || hashtagsFilter || categoryFilter || sort_by || departmentFilter;
+  const hasFilters = campusFilter || categoryFilter || sort_by || departmentFilter;
 
   // Clear all filters function
   const clearAllFilters = () => {
-    setNameFilter("");
     setCampusFilter("");
-    setDescriptionFilter("");
-    setHashtagsFilter("");
     setCategoryFilter("");
     setSortBy("");
     setSortOrder("");
@@ -69,10 +70,8 @@ function PostFilterContent() {
   useEffect(() => {
   const params = new URLSearchParams();
   
-  if (nameFilter) params.set('name', nameFilter);
+  if (query) params.set('q', query);
   if (campusFilter) params.set('campus', campusFilter);   
-  if (descriptionFilter) params.set('description', descriptionFilter); 
-  if (hashtagsFilter) params.set('hashtags', hashtagsFilter); 
   if (categoryFilter) params.set('category', categoryFilter); 
   if (sort_by) params.set('sort_by', sort_by);
   if (sort_order) params.set('sort_order', sort_order);
@@ -80,8 +79,7 @@ function PostFilterContent() {
   // Update URL without refreshing page
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter, hashtagsFilter, 
-    categoryFilter, sort_by, sort_order, departmentFilter]);
+}, [query, campusFilter, categoryFilter, sort_by, sort_order, departmentFilter]);
 
   const filterPosts = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -102,24 +100,16 @@ function PostFilterContent() {
     try {
       const params = new URLSearchParams();
 
-      nameFilter ? params.append("title", nameFilter) : null;
+      if (query) {
+        params.append('search', query) // Use the new combined search parameter
+      }
       campusFilter ? params.append("campus", campusFilter) : null;
       categoryFilter ? params.append("category", categoryFilter) : null;
-      descriptionFilter ? params.append("details", descriptionFilter) : null;
       departmentFilter ? params.append("department", departmentFilter) : null;
       params.append("sort_by", sort_by);
       params.append("sort_order", sort_order);
       params.append("offset", currentOffset.toString());
       params.append("limit", limit.toString());
-
-      if (hashtagsFilter) {
-        const hashtags = hashtagsFilter.split(",").map((tag) => tag.trim());
-        // Ensure hashtags are lowercase
-        params.append(
-          "hashtags",
-          JSON.stringify(hashtags.map((tag) => tag.toLowerCase()))
-        );
-      }
 
       const response = await fetch(`/api/posts?${params.toString()}`, {
         method: "GET",
@@ -196,10 +186,8 @@ function PostFilterContent() {
       loadingRef.current = false;
     };
   }, [
-    nameFilter,
+    query,
     campusFilter,
-    descriptionFilter,
-    hashtagsFilter,
     categoryFilter,
     departmentFilter,
     sort_by,
@@ -318,163 +306,194 @@ function PostFilterContent() {
             <h1 className="text-3xl font-bold text-primary text-center ">Post Search</h1>
           </div>
           <p className="text-muted-foreground">Find events, hiring opportunities, announcements, and surveys from student organizations</p>
+          <div className="space-y-2 mt-6">
+               <label className="text-lg font-medium text-primary"></label>
+              {/* Main search container */}
+              <div className={`relative bg-card border border-white/20 rounded-2xl shadow-lg transition-all duration-300 ${
+                isFocused 
+                  ? 'scale-[1.02] shadow-2xl [box-shadow:0_0_30px_rgba(var(--primary-rgb),0.3)] border-primary/30' 
+                  : 'hover:shadow-xl'
+              }`}>
+                <div className="relative flex items-center">
+                  {/* Search icon with animation */}
+                  <div className="absolute left-5 flex items-center">
+                    <Search
+                      className={`w-5 h-5 transition-all duration-300 ${
+                        isFocused ? "text-primary scale-110 drop-shadow-sm" : "text-muted-foreground group-hover:text-primary/70"
+                      }`}
+                    />
+                  </div>
+
+                  {/* Search input */}
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Search posts by title, description, or hashtags..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className="w-full pl-14 pr-20 py-5 bg-transparent border-0 rounded-2xl 
+                             focus:outline-none focus:ring-0
+                             text-card-foreground placeholder-muted-foreground/70
+                             text-lg font-medium"
+                  />
+                </div>
+              </div>
+             </div>
         </div>
 
-        <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Post Name</label>
-              <div className="relative">
-                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                 <input
-                  type="text"
-                  placeholder="Search by post title..."
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-                 />
-               </div>
+        {/* Filter Toggle Button */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className="flex items-center gap-2 px-6 py-3 bg-card/30 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
+          >
+            <Filter className="w-4 h-4 text-primary" />
+            <span className="text-primary font-medium">
+              {isFiltersExpanded ? 'Hide Filters' : 'Show Filters'}
+            </span>
+            <div className={`transition-transform duration-300 ${isFiltersExpanded ? 'rotate-180' : ''}`}>
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
+          </button>
+        </div>
 
-            {/* Description Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Description</label>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={descriptionFilter}
-                  onChange={(e) => setDescriptionFilter(e.target.value)}
-                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-                />
-               </div>
-             </div>
-          
-            {/* Hashtags Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Hashtags</label>
-              <div className="relative">
-                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <input
-                type="text"
-                placeholder="Hashtags (comma separated)"
-                value={hashtagsFilter}
-                onChange={(e) => setHashtagsFilter(e.target.value)}
-                className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              />
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Campus Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Campus</label>
-              <div className="relative">
-                <select
-                  value={campusFilter}
-                  onChange={(e) => setCampusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
-                >
-                  <option value="">Select Campus</option>
-                  <option value="UTSC">UTSC</option>
-                  <option value="UTSG">UTSG</option>
-                  <option value="UTM">UTM</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Department Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Department</label>
-              <div className="relative">
-                <select
-                  value={departmentFilter}
-                  onChange={(e) => setDepartmentFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
-                >
-                  <option value="">Select Department</option>
-                  <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Business/Management">Business/Management</option>
-                  <option value="Health & Medicine">Health & Medicine</option>
-                  <option value="Law">Law</option>
-                  <option value="Cultural">Cultural</option>
-                  <option value="Sports">Sports</option>
-                  <option value="Design Team">Design Team</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Post Type</label>
-              <div className="relative">
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
-                >
-                  <option value="">Select Type of Post</option>
-                  <option value="Event">Event</option>
-                  <option value="Hiring Opportunity">Hiring Opportunity</option>
-                  <option value="General Announcement">General Announcement</option>
-                  <option value="Survey">Survey</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Sort By Filter */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Sort By</label>
-              <div className="relative">
-                <select
-                  id="sort-by"
-                  data-testid="sort-by"
-                  value={sort_by}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
-                >
-                  <option value="">Sort By</option>
-                  <option value="date_posted">Date Posted</option>
-                  <option value="likes">Likes</option>
-                  <option value="date_occuring">Date Occuring</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Sort Order Filter */}
-            {showSortOrder && (
+        {/* Collapsible Filters */}
+        {isFiltersExpanded && (
+          <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow animate-in slide-in-from-top-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Campus Filter */}
               <div className="space-y-2">
-                <label className="text-lg font-medium text-primary">Sort Order</label>
+                <label className="text-lg font-medium text-primary text-center block">Campus</label>
                 <div className="relative">
                   <select
-                    id="sort-order"
-                    data-testid="sort-order"
-                    value={sort_order}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                    value={campusFilter}
+                    onChange={(e) => setCampusFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
                   >
-                    <option value="desc">Descending</option>
-                    <option value="asc">Ascending</option>
+                    <option value="">Select Campus</option>
+                    <option value="UTSC">UTSC</option>
+                    <option value="UTSG">UTSG</option>
+                    <option value="UTM">UTM</option>
                   </select>
                 </div>
               </div>
+
+              {/* Department Filter */}
+              <div className="space-y-2">
+                <label className="text-lg font-medium text-primary text-center block">Department</label>
+                <div className="relative">
+                  <select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm  text-card-foreground placeholder-muted-foreground bg-input"
+                  >
+                    <option value="">Select Department</option>
+                    <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Business/Management">Business/Management</option>
+                    <option value="Health & Medicine">Health & Medicine</option>
+                    <option value="Law">Law</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Design Team">Design Team</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Category Filter */}
+              <div className="space-y-2">
+                <label className="text-lg font-medium text-primary text-center block">Post Type</label>
+                <div className="relative">
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                  >
+                    <option value="">Select Type of Post</option>
+                    <option value="Event">Event</option>
+                    <option value="Hiring Opportunity">Hiring Opportunity</option>
+                    <option value="General Announcement">General Announcement</option>
+                    <option value="Survey">Survey</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-5 flex justify-center">
+              {!showSortOrder ? (
+                /* Single Sort By Filter - Centered */
+                <div className="space-y-2 max-w-xs">
+                  <label className="text-lg font-medium text-primary text-center block">Sort By</label>
+                  <div className="relative">
+                    <select
+                      id="sort-by"
+                      data-testid="sort-by"
+                      value={sort_by}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                    >
+                      <option value="">Sort By</option>
+                      <option value="date_posted">Date Posted</option>
+                      <option value="likes">Likes</option>
+                      <option value="date_occuring">Date Occuring</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                /* Both Sort By and Sort Order - Side by Side */
+                <div className="grid grid-cols-2 gap-4 max-w-md">
+                  <div className="space-y-2">
+                    <label className="text-lg font-medium text-primary text-center block">Sort By</label>
+                    <div className="relative">
+                      <select
+                        id="sort-by"
+                        data-testid="sort-by"
+                        value={sort_by}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                      >
+                        <option value="">Sort By</option>
+                        <option value="date_posted">Date Posted</option>
+                        <option value="likes">Likes</option>
+                        <option value="date_occuring">Date Occuring</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-lg font-medium text-primary text-center block">Sort Order</label>
+                    <div className="relative">
+                      <select
+                        id="sort-order"
+                        data-testid="sort-order"
+                        value={sort_order}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground bg-input w-full"
+                      >
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            { /* Clear All Filters Button */}
+            {hasFilters && (
+              <div className="flex justify-center mt-4">
+                <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
+                  Clear All Filters
+                </button>
+              </div>  
             )}
           </div>
-
-          { /* Clear All Filters Button */}
-          {hasFilters && (
-            <div className="flex justify-center mt-4">
-              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
-                Clear All Filters
-              </button>
-            </div>  
-          )}
-
-        </div>
+        )}
       </div>
 
       {/* Results Section */}
