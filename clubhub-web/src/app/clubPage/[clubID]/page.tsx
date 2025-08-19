@@ -442,10 +442,29 @@ export default function ClubPage({ params }: PageProps) {
 
         
 
+        {/* Tab Buttons Section */}
+        <div className="flex justify-center mb-6">
+          <div className="flex gap-4 w-full max-w-xs">
+            <button
+              className="flex-1 py-2 px-0 rounded-lg font-semibold text-white bg-primary shadow focus:outline-none transition-colors duration-200 text-center text-base"
+              // TODO: Add active state logic
+              style={{ minWidth: 0 }}
+            >
+              Posts
+            </button>
+            <button
+              className="flex-1 py-2 px-0 rounded-lg font-semibold text-card-foreground bg-card border border-border shadow focus:outline-none transition-colors duration-200 text-center text-base hover:bg-muted"
+              // TODO: Add active state logic
+              style={{ minWidth: 0 }}
+            >
+              Open Positions
+            </button>
+          </div>
+        </div>
+
         {/* Posts Section */}
         <div className="mb-8">
           <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
-
             {posts.length === 0 ? (
               <div className="text-center py-16">
                 <div className="mb-6">
@@ -467,18 +486,18 @@ export default function ClubPage({ params }: PageProps) {
                 <p className="text-muted-foreground">This club hasn't posted anything yet</p>
               </div>
             ) : (
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                 {posts.map((post) => (
-                   <PostCard 
-                     key={post.id} 
-                     post={post} 
-                     currentUser={currentUser}
-                     onLikeUpdate={handleLikeUpdate}
-                     onDelete={handlePostDelete}
-                     onRefresh={handlePostRefresh}
-                   />
-                 ))}
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post) => (
+                  <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    currentUser={currentUser}
+                    onLikeUpdate={handleLikeUpdate}
+                    onDelete={handlePostDelete}
+                    onRefresh={handlePostRefresh}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
