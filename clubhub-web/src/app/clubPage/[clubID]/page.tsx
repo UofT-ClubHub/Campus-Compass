@@ -447,14 +447,14 @@ export default function ClubPage({ params }: PageProps) {
         <div className="flex justify-center mb-6">
           <div className="flex gap-4 w-full max-w-xs">
             <button
-              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-colors duration-200 text-center ${activeTab === 'posts' ? 'text-white bg-primary' : 'text-card-foreground bg-card border border-border hover:bg-muted'}`}
+              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'posts' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
               style={{ minWidth: 0 }}
               onClick={() => setActiveTab('posts')}
             >
               Posts
             </button>
             <button
-              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-colors duration-200 text-center ${activeTab === 'positions' ? 'text-white bg-primary' : 'text-card-foreground bg-card border border-border hover:bg-muted'}`}
+              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'positions' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
               style={{ minWidth: 0 }}
               onClick={() => setActiveTab('positions')}
             >
