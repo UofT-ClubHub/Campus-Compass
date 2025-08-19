@@ -60,6 +60,7 @@ export default function ClubPage({ params }: PageProps) {
   const [executivesLoading, setExecutivesLoading] = useState(false)
   const [ig, setIg] = useState("");
   const [links, setLinks] = useState<{ [key: string]: string }>({})
+  const [activeTab, setActiveTab] = useState<'posts' | 'positions'>('posts');
   const router = useRouter()
 
   // Initialize component
@@ -446,60 +447,77 @@ export default function ClubPage({ params }: PageProps) {
         <div className="flex justify-center mb-6">
           <div className="flex gap-4 w-full max-w-xs">
             <button
-              className="flex-1 py-2 px-0 rounded-lg font-semibold text-white bg-primary shadow focus:outline-none transition-colors duration-200 text-center text-base"
-              // TODO: Add active state logic
+              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-colors duration-200 text-center ${activeTab === 'posts' ? 'text-white bg-primary' : 'text-card-foreground bg-card border border-border hover:bg-muted'}`}
               style={{ minWidth: 0 }}
+              onClick={() => setActiveTab('posts')}
             >
               Posts
             </button>
             <button
-              className="flex-1 py-2 px-0 rounded-lg font-semibold text-card-foreground bg-card border border-border shadow focus:outline-none transition-colors duration-200 text-center text-base hover:bg-muted"
-              // TODO: Add active state logic
+              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-colors duration-200 text-center ${activeTab === 'positions' ? 'text-white bg-primary' : 'text-card-foreground bg-card border border-border hover:bg-muted'}`}
               style={{ minWidth: 0 }}
+              onClick={() => setActiveTab('positions')}
             >
               Open Positions
             </button>
           </div>
         </div>
 
-        {/* Posts Section */}
+        {/* Tab Content Section */}
         <div className="mb-8">
-          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
-            {posts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="mb-6">
-                  <svg
-                    className="w-16 h-16 text-muted-foreground mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+          {activeTab === 'posts' ? (
+            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
+              {posts.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="mb-6">
+                    <svg
+                      className="w-16 h-16 text-muted-foreground mx-auto mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-card-foreground mb-2">No posts found</h3>
+                  <p className="text-muted-foreground">This club hasn't posted anything yet</p>
                 </div>
-                <h3 className="text-xl font-semibold text-card-foreground mb-2">No posts found</h3>
-                <p className="text-muted-foreground">This club hasn't posted anything yet</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {posts.map((post) => (
-                  <PostCard 
-                    key={post.id} 
-                    post={post} 
-                    currentUser={currentUser}
-                    onLikeUpdate={handleLikeUpdate}
-                    onDelete={handlePostDelete}
-                    onRefresh={handlePostRefresh}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {posts.map((post) => (
+                    <PostCard 
+                      key={post.id} 
+                      post={post} 
+                      currentUser={currentUser}
+                      onLikeUpdate={handleLikeUpdate}
+                      onDelete={handlePostDelete}
+                      onRefresh={handlePostRefresh}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow flex flex-col items-center justify-center min-h-[300px]">
+              <svg
+                className="w-16 h-16 text-muted-foreground mb-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">No open positions</h3>
+              <p className="text-muted-foreground">This club currently has no open positions.</p>
+            </div>
+          )}
         </div>
       </div>
       </main>
