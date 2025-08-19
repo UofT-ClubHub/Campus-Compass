@@ -19,25 +19,25 @@ function ClubSearchContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [clubs, setClubs] = useState<Club[]>([])
 
-  const [nameFilter, setNameFilter] = useState(searchParams.get('name') || "")
+  const [query, setQuery] = useState(searchParams.get('q') || "")
   const [campusFilter, setCampusFilter] = useState(searchParams.get('campus') || "")
-  const [descriptionFilter, setDescriptionFilter] = useState(searchParams.get('description') || "")
   const [sortOrder, setsortOrder] = useState(searchParams.get('sort_order') || "")
   const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "")
 
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const limit = 4;
   const loadingRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const hasFilters = nameFilter || descriptionFilter || campusFilter || sortOrder || departmentFilter
+  const hasFilters =  campusFilter || sortOrder || departmentFilter
 
   // Clear all filters function
   const clearAllFilters = () => {
-    setNameFilter("");
     setCampusFilter("");
-    setDescriptionFilter("");
     setsortOrder("");
     setDepartmentFilter("");
   };
@@ -76,15 +76,14 @@ function ClubSearchContent() {
   useEffect(() => {
   const params = new URLSearchParams();
   
-  if (nameFilter) params.set('name', nameFilter);
+  if (query) params.set('q', query);
   if (campusFilter) params.set('campus', campusFilter);
-  if (descriptionFilter) params.set('description', descriptionFilter);
   if (sortOrder) params.set('sort_order', sortOrder);
   if (departmentFilter) params.set('department', departmentFilter);
   // Update URL as filters are applied
   const url = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
-}, [nameFilter, campusFilter, descriptionFilter, sortOrder, departmentFilter]);
+}, [query, campusFilter, sortOrder, departmentFilter]);
 
   const clubSearch = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
@@ -105,9 +104,10 @@ function ClubSearchContent() {
     try {
       const params = new URLSearchParams()
 
-      nameFilter ? params.append("name", nameFilter) : null
+      if (query) {
+        params.append('search', query) // Use the new combined search parameter
+      }
       campusFilter ? params.append("campus", campusFilter) : null
-      descriptionFilter ? params.append("description", descriptionFilter) : null
       sortOrder ? params.append("sort_by", "followers") : null
       sortOrder ? params.append("sort_order", sortOrder) : null
       departmentFilter ? params.append("department", departmentFilter) : null
@@ -169,7 +169,7 @@ function ClubSearchContent() {
       // Cancel any ongoing requests when component unmounts or dependencies change
       loadingRef.current = false;
     };
-  }, [nameFilter, campusFilter, descriptionFilter, sortOrder, departmentFilter]);
+  }, [query, campusFilter, sortOrder, departmentFilter]);
 
   // Infinite scrolling logic with debouncing
   useEffect(() => {
@@ -234,47 +234,75 @@ function ClubSearchContent() {
             <h1 className="text-3xl font-bold text-primary text-center ">Club Search</h1>
           </div>
           <p className="text-muted-foreground">Discover and connect with student organizations</p>
+          <div className="space-y-2 mt-6">
+               <label className="text-lg font-medium text-primary"></label>
+              {/* Main search container */}
+              <div className={`relative bg-card border border-white/20 rounded-2xl shadow-lg transition-all duration-300 ${
+                isFocused 
+                  ? 'scale-[1.02] shadow-2xl [box-shadow:0_0_30px_rgba(var(--primary-rgb),0.3)] border-primary/30' 
+                  : 'hover:shadow-xl'
+              }`}>
+                <div className="relative flex items-center">
+                  {/* Search icon with animation */}
+                  <div className="absolute left-5 flex items-center">
+                    <Search
+                      className={`w-5 h-5 transition-all duration-300 ${
+                        isFocused ? "text-primary scale-110 drop-shadow-sm" : "text-muted-foreground group-hover:text-primary/70"
+                      }`}
+                    />
+                  </div>
+
+                  {/* Search input */}
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Search clubs by name, category, or interest..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className="w-full pl-14 pr-20 py-5 bg-transparent border-0 rounded-2xl 
+                             focus:outline-none focus:ring-0
+                             text-card-foreground placeholder-muted-foreground/70
+                             text-lg font-medium"
+                  />
+                </div>
+              </div>
+             </div>
         </div>
 
-         {/* Compact Search Filters */}
-         <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow">
+        {/* Filter Toggle Button */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className="flex items-center gap-2 px-6 py-3 bg-card/30 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
+          >
+            <Filter className="w-4 h-4 text-primary" />
+            <span className="text-primary font-medium">
+              {isFiltersExpanded ? 'Hide Filters' : 'Show Filters'}
+            </span>
+            <div className={`transition-transform duration-300 ${isFiltersExpanded ? 'rotate-180' : ''}`}>
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+        </div>
+
+         {/* Collapsible Search Filters */}
+         {isFiltersExpanded && (
+           <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow animate-in slide-in-from-top-2 duration-300">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              {/* Club Name Filter */}
-             <div className="space-y-2">
-               <label className="text-lg font-medium text-primary">Club Name</label>
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                 <input
-                  type="text"
-                  placeholder="Search by club name..."
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-                 />
-               </div>
-             </div>
 
              {/* Description Filter */}
-             <div className="space-y-2">
-               <label className="text-lg font-medium text-primary">Description</label>
-               <div className="relative">
-                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                 <input
-                   type="text"
-                   placeholder="Description"
-                   value={descriptionFilter}
-                   onChange={(e) => setDescriptionFilter(e.target.value)}
-                   className="pl-10 w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              />
-               </div>
-             </div>
            </div>
 
            {/* Bottom Row - 3 filters */}
            <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
              {/* Campus Filter */}
              <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Campus</label>
+              <label className="text-lg font-medium text-primary text-center block">Campus</label>
               <div className="relative">
                 <select
                 value={campusFilter}
@@ -291,7 +319,7 @@ function ClubSearchContent() {
 
              {/* Department Filter */}
              <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Department</label>
+              <label className="text-lg font-medium text-primary text-center block">Department</label>
               <div className="relative">
                 <select
                 value={departmentFilter}
@@ -314,7 +342,7 @@ function ClubSearchContent() {
 
              {/* Sort By Filter */}
              <div className="space-y-2">
-              <label className="text-lg font-medium text-primary">Sort By</label>
+              <label className="text-lg font-medium text-primary text-center block">Sort By</label>
               <div className="relative">
                 <select
                 value={sortOrder}
@@ -339,6 +367,7 @@ function ClubSearchContent() {
           )}
 
          </div>
+        )}
       </div> 
 
       {/* Results Section */}
