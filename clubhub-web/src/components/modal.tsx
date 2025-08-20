@@ -36,7 +36,7 @@ export function Modal({
           <div className={`relative ${backgroundClass} rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col`}>
             {showCloseButton && (
               <Dialog.Close asChild>
-                <button className="absolute top-4 right-4 z-10 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors border-2 border-white/70">
+                <button className="cursor-pointer absolute top-4 right-4 z-10 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors border-2 border-white/70">
                   <X className="h-5 w-5" />
                 </button>
               </Dialog.Close>
