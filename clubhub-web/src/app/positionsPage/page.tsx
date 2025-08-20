@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Separate component that uses useSearchParams
-function ClubSearchContent() {
+function PositionSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
@@ -85,10 +85,9 @@ function ClubSearchContent() {
   window.history.replaceState({ ...window.history.state, as: url, url }, '', url);
 }, [query, campusFilter, sortOrder, departmentFilter]);
 
-  const clubSearch = async (isNewSearch = false) => {
+  const positionSearch = async (isNewSearch = false) => {
     // Prevent multiple simultaneous calls
     if (loadingRef.current) {
-      console.log("Club search already in progress, skipping...");
       return;
     }
     
@@ -141,9 +140,7 @@ function ClubSearchContent() {
         })
       }
 
-      console.log("Club list updated:", data)
     } catch (error) {
-      console.error("Error fetching clubs:", error);
       // Reset loading states on error
       setHasMore(false);
     } finally {
@@ -161,7 +158,7 @@ function ClubSearchContent() {
       setHasMore(true); // Reset hasMore for new search
       setOffset(0); // Reset offset for new search
       setInitialLoading(true); // Show loading state for new search
-      clubSearch(true);
+      positionSearch(true);
     }, 300); // Reduced from 500ms to 300ms for faster response
   
     return () => {
@@ -200,7 +197,7 @@ function ClubSearchContent() {
     // Set a longer debounce to prevent rapid calls
     scrollTimeout = setTimeout(() => {
       if (!loadingRef.current && hasMore) {
-        clubSearch();
+        positionSearch();
       }
     }, 300); // Increased debounce time
   };
@@ -231,9 +228,9 @@ function ClubSearchContent() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold text-primary text-center ">Club Search</h1>
+            <h1 className="text-3xl font-bold text-primary text-center ">Position Search</h1>
           </div>
-          <p className="text-muted-foreground">Discover and connect with student organizations</p>
+          <p className="text-muted-foreground">Discover and apply for club positions</p>
           <div className="space-y-2 mt-6">
                <label className="text-lg font-medium text-primary"></label>
               {/* Main search container */}
@@ -256,7 +253,7 @@ function ClubSearchContent() {
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Search clubs by name, category, or interest..."
+                    placeholder="Search positions by title, club, or requirements..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setIsFocused(true)}
@@ -374,7 +371,7 @@ function ClubSearchContent() {
       <div className="relative z-10 w-full pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-6 form-glow">
-            <h2 className="text-2xl font-bold text-primary mb-6 text-center">Club Results</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6 text-center">Position Results</h2>
 
             {initialLoading ? (
               <div className="flex justify-center items-center py-12">
@@ -397,8 +394,8 @@ function ClubSearchContent() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-card-foreground mb-2">No clubs found</h3>
-                <p className="text-muted-foreground text-sm">Try adjusting your filters to find more clubs</p>
+                <h3 className="text-lg font-semibold text-card-foreground mb-2">No positions found</h3>
+                <p className="text-muted-foreground text-sm">Try adjusting your filters to find more positions</p>
               </div>            ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -422,7 +419,7 @@ function ClubSearchContent() {
                 {/* End of results indicator */}
                 {!hasMore && clubs.length > 0 && (
                   <div className="mt-8 py-4 text-center">
-                    <p className="text-muted-foreground">No more clubs to load</p>
+                    <p className="text-muted-foreground">No more positions to load</p>
                   </div>
                 )}
               </>
@@ -437,7 +434,7 @@ function ClubSearchContent() {
 }
 
 // Loading fallback component
-function ClubSearchLoading() {
+function PositionSearchLoading() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-theme-gradient">
       {/* Background elements for loading state */}
@@ -454,9 +451,9 @@ function ClubSearchLoading() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold text-primary text-center">Club Search</h1>
+            <h1 className="text-3xl font-bold text-primary text-center">Position Search</h1>
           </div>
-          <p className="text-muted-foreground">Discover and connect with student organizations</p>
+          <p className="text-muted-foreground">Discover and apply for club positions</p>
         </div>
         <div className="flex justify-center items-center py-12">
           <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -467,10 +464,10 @@ function ClubSearchLoading() {
 }
 
 // Main exported component with Suspense boundary
-export default function ClubSearchPage() {
+export default function PositionSearchPage() {
   return (
-    <Suspense fallback={<ClubSearchLoading />}>
-      <ClubSearchContent />
+    <Suspense fallback={<PositionSearchLoading />}>
+      <PositionSearchContent />
     </Suspense>
   );
 }
