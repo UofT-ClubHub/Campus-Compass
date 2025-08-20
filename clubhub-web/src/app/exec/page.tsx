@@ -5,7 +5,6 @@ import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
-import { ExpandablePostCard } from "@/components/expandable-post-card";
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -987,23 +986,6 @@ export default function ExecPage() {
               links: [],
               department: clubForPost.department,
             };
-
-            return (
-              <ExpandablePostCard
-                isCreating={true}
-                post={initialPostForCreation}
-                currentUser={userData}
-                onClose={() => setShowCreatePostForm(null)}
-                onSave={(savedPost: Post) => {
-                  setSuccessMessage("Post created successfully!");
-                  setShowCreatePostForm(null);
-                }}
-                onSaveError={(error: string) => {
-                  setError(error);
-                  setShowCreatePostForm(null);
-                }}
-              />
-            );
           })()}
         </div>
       </div>

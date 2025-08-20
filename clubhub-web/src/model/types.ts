@@ -40,6 +40,7 @@ export interface Post {
     image: string;
     department: string;
     links: string[];
+    location?: string;
 }
 
 export interface PendingClub {
@@ -54,4 +55,20 @@ export interface PendingClub {
     club_department: string;
     status: 'pending' | 'approved' | 'rejected';
     message?: string;
+}
+
+export interface CalendarEvent {
+    id: string;
+    title: string;
+    description?: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    isAllDay: boolean;
+    postId?: string;
+    clubId?: string;
+    color?: string;
+    location?: string;
+    createdAt: string;
+    updatedAt: string;
 }
