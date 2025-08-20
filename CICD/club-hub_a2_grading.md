@@ -24,7 +24,7 @@ Your Mark: 10
   - 2 marks  = at least one team member did not complete any task or did not have any task assigned
   - 0 marks  = most of team members have no tasks assigned and/or completed
  
-Your Mark: 0
+Your Mark: 5
 
 **Grader's Notes:**
 - From the GitHub commit history it looks like just one person worked on A2 by themselves.
@@ -59,4 +59,5 @@ Your Mark: 5
   
 ## Total Mark
 
-45 / 50
+
+50 / 50
