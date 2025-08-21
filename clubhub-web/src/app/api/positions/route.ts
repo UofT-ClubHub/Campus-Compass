@@ -57,15 +57,34 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Add club information to each position
-      const positionsWithClub = positions.map((position: any) => ({
-        ...position,
-        clubId: doc.id,
-        clubName: clubData.name,
-        clubCampus: clubData.campus,
-        clubDepartment: clubData.department,
-        clubDescription: clubData.description
-      }));
+      // Add club information to each position and sort questions
+      const positionsWithClub = positions.map((position: any) => {
+        // Sort questions if they exist
+        let sortedQuestions = position.questions;
+        if (position.questions && typeof position.questions === 'object') {
+          const sortedKeys = Object.keys(position.questions).sort((a, b) => {
+            // Extract numbers from Q1, Q2, etc. and sort numerically
+            const numA = parseInt(a.replace(/\D/g, ''));
+            const numB = parseInt(b.replace(/\D/g, ''));
+            return numA - numB;
+          });
+          
+          sortedQuestions = {};
+          sortedKeys.forEach(key => {
+            sortedQuestions[key] = position.questions[key];
+          });
+        }
+
+        return {
+          ...position,
+          questions: sortedQuestions,
+          clubId: doc.id,
+          clubName: clubData.name,
+          clubCampus: clubData.campus,
+          clubDepartment: clubData.department,
+          clubDescription: clubData.description
+        };
+      });
 
       const paginated = positionsWithClub.slice(offset, offset + limit);
       
@@ -92,9 +111,26 @@ export async function GET(request: NextRequest) {
     clubs.forEach((club) => {
       if (club.positions && Array.isArray(club.positions)) {
         club.positions.forEach((position: any) => {
+          // Sort questions if they exist
+          let sortedQuestions = position.questions;
+          if (position.questions && typeof position.questions === 'object') {
+            const sortedKeys = Object.keys(position.questions).sort((a, b) => {
+              // Extract numbers from Q1, Q2, etc. and sort numerically
+              const numA = parseInt(a.replace(/\D/g, ''));
+              const numB = parseInt(b.replace(/\D/g, ''));
+              return numA - numB;
+            });
+            
+            sortedQuestions = {};
+            sortedKeys.forEach(key => {
+              sortedQuestions[key] = position.questions[key];
+            });
+          }
+
           // Add club information to each position
           const positionWithClub = {
             ...position,
+            questions: sortedQuestions,
             clubId: club.id,
             clubName: club.name,
             clubCampus: club.campus,
