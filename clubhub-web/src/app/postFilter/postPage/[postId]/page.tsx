@@ -584,7 +584,7 @@ END:VCALENDAR`.trim()
               </div>
 
               {/* Status */}
-              <div className="group flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-xl bg-gradient-to-br from-emerald-25 to-lime-25 dark:from-green-900/20 dark:to-emerald-900/20 border border-emerald-100 dark:border-green-700/50 hover:border-emerald-200 dark:hover:border-green-600/70 transition-all duration-200">
+              <div className="group flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-xl bg-gradient-to-br from-emerald-25 to-lime-25 dark:from-green-500/20 dark:to-emerald-500/20 border border-emerald-100 dark:border-green-700/50 hover:border-emerald-200 dark:hover:border-green-600/70 transition-all duration-200">
                 <div className="p-3 sm:p-4 rounded-full bg-emerald-50 dark:bg-green-800/50 group-hover:bg-emerald-100 dark:group-hover:bg-green-700/70 transition-colors flex-shrink-0">
                   <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-300 dark:bg-green-400 flex items-center justify-center shadow-lg">
                     <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-white animate-pulse"></div>
