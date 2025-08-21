@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get("sort_order") || "asc";
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
+    const showClosed = searchParams.get("show_closed") === "true";
 
     const clubsCollection = firestore.collection("Clubs");
 
@@ -28,9 +29,14 @@ export async function GET(request: NextRequest) {
       
       const clubData = doc.data() as Club;
       let positions = clubData.positions || [];
+      
+      // Apply status filter for specific club
+      if (!showClosed) {
+        positions = positions.filter((position: any) => position.status !== 'closed');
+      }
 
-      // Sort positions by date_posted
-      if (sortBy && ["date_posted"].includes(sortBy)) {
+      // Sort positions by date_posted or deadline
+      if (sortBy && ["date_posted", "deadline"].includes(sortBy)) {
         const order = sortOrder === "asc" ? 1 : -1;
         positions.sort((a, b) => {
           const aVal = a[sortBy as keyof typeof a];
@@ -116,12 +122,15 @@ export async function GET(request: NextRequest) {
         const matchesDepartment = !departmentFilter ||
           (position.clubDepartment && position.clubDepartment.toLowerCase() === departmentFilter.toLowerCase());
         
-        return matchesSearch && matchesCampus && matchesDepartment;
+        // Handle closed positions filter
+        const matchesStatus = showClosed || position.status !== 'closed';
+        
+        return matchesSearch && matchesCampus && matchesDepartment && matchesStatus;
       }
     );
 
-    // Sort positions by date_posted
-    if (sortBy && ["date_posted"].includes(sortBy)) {
+    // Sort positions by date_posted or deadline
+    if (sortBy && ["date_posted", "deadline"].includes(sortBy)) {
       const order = sortOrder === "asc" ? 1 : -1;
       allPositions.sort((a, b) => {
         const aVal = a[sortBy];

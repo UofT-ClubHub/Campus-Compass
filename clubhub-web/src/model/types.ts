@@ -30,6 +30,8 @@ export interface Club {
         requirements?: string[];
         questions?: { [key: string]: { [key: string]: string } };
         date_posted: string;
+        deadline: string;
+        status: 'open' | 'closed';
     }>;
 }
 
