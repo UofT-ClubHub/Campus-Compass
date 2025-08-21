@@ -16,16 +16,53 @@ export async function GET(request: NextRequest) {
 
     const clubsCollection = firestore.collection("Clubs");
 
-    // Fetch by ID (returns specific position)
+    // Fetch by ID (returns all positions for that club)
     if (documentId) {
       const doc = await clubsCollection.doc(documentId).get();
       if (!doc.exists) {
         return NextResponse.json(
-          { message: "Position not found" },
+          { message: "Club not found" },
           { status: 404 }
         );
       }
-      return NextResponse.json({ ...doc.data(), id: doc.id }, { status: 200 });
+      
+      const clubData = doc.data() as Club;
+      let positions = clubData.positions || [];
+
+      // Sort positions by date_posted
+      if (sortBy && ["date_posted"].includes(sortBy)) {
+        const order = sortOrder === "asc" ? 1 : -1;
+        positions.sort((a, b) => {
+          const aVal = a[sortBy as keyof typeof a];
+          const bVal = b[sortBy as keyof typeof b];
+          if (aVal == null || bVal == null) return 0;
+          if (aVal === bVal) return 0;
+          return aVal > bVal ? order : -order;
+        });
+      } else {
+        // Default sorting by date_posted descending (newest first)
+        positions.sort((a, b) => {
+          const aVal = a.date_posted;
+          const bVal = b.date_posted;
+          if (aVal == null || bVal == null) return 0;
+          if (aVal === bVal) return 0;
+          return aVal > bVal ? -1 : 1; // Descending order
+        });
+      }
+
+      // Add club information to each position
+      const positionsWithClub = positions.map((position: any) => ({
+        ...position,
+        clubId: doc.id,
+        clubName: clubData.name,
+        clubCampus: clubData.campus,
+        clubDepartment: clubData.department,
+        clubDescription: clubData.description
+      }));
+
+      const paginated = positionsWithClub.slice(offset, offset + limit);
+      
+      return NextResponse.json(paginated, { status: 200 });
     }
 
     // Fetch all clubs and extract positions
