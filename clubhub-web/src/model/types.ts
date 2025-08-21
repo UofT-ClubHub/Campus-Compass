@@ -24,6 +24,12 @@ export interface Club {
     executives: string[];
     department: string;
     links: { [key: string]: string };
+    positions?: Array<{
+        title?: string;
+        description?: string;
+        requirements?: string[];
+        questions?: { [key: string]: string };
+    }>;
 }
 
 export interface Post {
