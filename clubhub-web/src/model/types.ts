@@ -32,6 +32,7 @@ export interface Club {
         date_posted: string;
         deadline: string;
         status: 'open' | 'closed';
+        positionId: string;
     }>;
 }
 

@@ -1,6 +1,7 @@
 import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore } from '../firebaseAdmin';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(request: NextRequest) {
   try {
@@ -173,35 +174,76 @@ export async function PATCH(request: NextRequest) {
 
         const clubData = clubDoc.data() as Club;
         const newPositionData = await request.json();
-        const { title, ...positionFields } = newPositionData;
+        const { positionId, ...positionFields } = newPositionData;
 
-        if (!title) {
-            return NextResponse.json({ message: "Position title is required" }, { status: 400 });
+        if (!positionId) {
+            return NextResponse.json({ message: "Position ID is required" }, { status: 400 });
         }
 
         let positions = clubData.positions || [];
         let positionFound = false;
 
-        // Loop through existing positions to find matching title
+        // Loop through existing positions to find matching positionId
         positions = positions.map((position: any) => {
-            if (position.title === title) {
+            if (position.positionId === positionId) {
                 positionFound = true;
                 return { ...position, ...positionFields };
             }
             return position;
         });
 
-        // If position not found, add new position
+        // If position not found, add new position with generated positionId
         if (!positionFound) {
-            positions.push({ title, ...positionFields });
+            const newPositionId = uuidv4();
+            positions.push({ positionId: newPositionId, ...positionFields });
         }
 
         // Update the club with new positions array
         await firestore.collection("Clubs").doc(clubId).update({ positions });
         
         return NextResponse.json({ 
-            message: positionFound ? "Position updated successfully" : "Position added successfully" 
+            message: positionFound ? "Position updated successfully" : "Position added successfully",
+            positionId: positionFound ? positionId : uuidv4()
         }, { status: 200 });
+    }
+    catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = request.nextUrl;
+        const positionId = searchParams.get("positionId");
+        const clubId = searchParams.get("clubId");
+        
+        if (!positionId) {
+            return NextResponse.json({ message: "Position ID is required" }, { status: 400 });
+        }
+
+        if (!clubId) {
+            return NextResponse.json({ message: "Club ID is required" }, { status: 400 });
+        }
+
+        const clubDoc = await firestore.collection("Clubs").doc(clubId).get();
+        if (!clubDoc.exists) {
+            return NextResponse.json({ message: "Club not found" }, { status: 404 });
+        }
+
+        const clubData = clubDoc.data() as Club;
+        const positions = clubData.positions || [];
+        
+        // Check if position exists in this club
+        const positionExists = positions.some((position: any) => position.positionId === positionId);
+        if (!positionExists) {
+            return NextResponse.json({ message: "Position not found in this club" }, { status: 404 });
+        }
+
+        const newPositions = positions.filter((position: any) => position.positionId !== positionId);
+
+        await firestore.collection("Clubs").doc(clubId).update({ positions: newPositions });
+
+        return NextResponse.json({ message: "Position deleted successfully" }, { status: 200 });
     }
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
