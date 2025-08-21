@@ -29,6 +29,7 @@ export interface Club {
         description?: string;
         requirements?: string[];
         questions?: { [key: string]: { [key: string]: string } };
+        date_posted: string;
     }>;
 }
 
