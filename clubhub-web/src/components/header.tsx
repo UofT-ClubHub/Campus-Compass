@@ -319,6 +319,19 @@ export function Header() {
                 >
                   Posts
                 </button>
+                {user && (
+                  <button 
+                    onClick={(e) => handleNavigation(e, '/calendar')}
+                    className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+                      isActive('/calendar') 
+                        ? 'text-primary font-medium' 
+                        : 'text-muted-foreground hover:text-secondary'
+                    }`}
+                    type="button"
+                  >
+                    Calendar
+                  </button>
+                )}
                 {user && isAdmin && (
                   <button 
                     onClick={(e) => handleNavigation(e, '/admin')}

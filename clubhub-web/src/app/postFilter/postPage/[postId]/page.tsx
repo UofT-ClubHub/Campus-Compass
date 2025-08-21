@@ -30,6 +30,7 @@ export default function PostPage() {
   const [isImageExpanded, setIsImageExpanded] = useState(false)
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null)
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null)
+  const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
 
   // Fetch post data
   useEffect(() => {
@@ -178,7 +179,7 @@ export default function PostPage() {
     }
   }
 
-  const handleExportToCalendar = (e: React.MouseEvent) => {
+  const handleExportToCalendar = async (e: React.MouseEvent) => {
     e.stopPropagation()
 
     if (!post?.date_occuring) {
@@ -186,39 +187,56 @@ export default function PostPage() {
       return
     }
 
-    const start = new Date(post.date_occuring)
-    const end = new Date(start.getTime() + 60 * 60 * 1000) // Default 1 hour event
-
-    const formatDate = (date: Date) => {
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date')
-      }
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+    if (!currentUser) {
+      setError('Please log in to add events to your calendar')
+      return
     }
 
-    const icsContent = 
-      `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//YourApp//EN
-BEGIN:VEVENT
-UID:${post.id}@yourapp.com
-DTSTAMP:${formatDate(new Date())}
-DTSTART:${formatDate(start)}
-DTEND:${formatDate(end)}
-SUMMARY:${post.title}
-DESCRIPTION:${post.details || ''}
-LOCATION:${post.campus || ''}
-END:VEVENT
-END:VCALENDAR`.trim()
-      
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${post.title.replace(/\s+/g, "_")}.ics`
-      link.click()
+    if (isAddingToCalendar) return
 
-      URL.revokeObjectURL(url) // clean up
+    setIsAddingToCalendar(true)
+    setError(null)
+
+    try {
+      const user = auth.currentUser
+      if (!user) {
+        setError('Please log in to add events to your calendar')
+        return
+      }
+
+      const token = await user.getIdToken()
+      
+      const response = await fetch('/api/calendar/from-post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          postId: post.id,
+          color: '#3B82F6' // Default blue color
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Show success message (you could add a toast notification here)
+        setError(null)
+        // Optionally show a success message
+        alert('Event added to your calendar successfully!')
+      } else if (response.status === 409) {
+        const data = await response.json()
+        setError('This event is already in your calendar')
+      } else {
+        const errorData = await response.json()
+        setError(errorData.message || 'Failed to add event to calendar')
+      }
+    } catch (error) {
+      console.error('Calendar API error:', error)
+      setError('Error occurred while adding event to calendar')
+    } finally {
+      setIsAddingToCalendar(false)
+    }
   }
 
   const handleEdit = () => {
@@ -567,18 +585,27 @@ END:VCALENDAR`.trim()
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Location</p>
                   {isEditing ? (
-                    <select
-                      value={editedPost?.campus || ''}
-                      onChange={(e) => handleInputChange('campus', e.target.value)}
-                      className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
-                    >
-                      <option value="">Select campus</option>
-                      <option value="UTSG">UTSG</option>
-                      <option value="UTSC">UTSC</option>
-                      <option value="UTM">UTM</option>
-                    </select>
+                    <div className="grid grid-cols-1 gap-2">
+                      <select
+                        value={editedPost?.campus || ''}
+                        onChange={(e) => handleInputChange('campus', e.target.value)}
+                        className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
+                      >
+                        <option value="">Select campus</option>
+                        <option value="UTSG">UTSG</option>
+                        <option value="UTSC">UTSC</option>
+                        <option value="UTM">UTM</option>
+                      </select>
+                      <input
+                        type="text"
+                        value={editedPost?.location || ''}
+                        onChange={(e) => handleInputChange('location', e.target.value)}
+                        placeholder="Building/Room or Address (optional)"
+                        className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
+                      />
+                    </div>
                   ) : (
-                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.campus || 'TBD'}</p>
+                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.location ? `${post.location} • ${post?.campus || ''}` : (post?.campus || 'TBD')}</p>
                   )}
                 </div>
               </div>
@@ -633,11 +660,28 @@ END:VCALENDAR`.trim()
 
               <button
                 onClick={handleExportToCalendar}
-                className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                disabled={isAddingToCalendar || !currentUser}
+                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg text-sm sm:text-base ${
+                  isAddingToCalendar || !currentUser
+                    ? "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground cursor-not-allowed opacity-50 transform-none"
+                    : "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground hover:scale-105 hover:shadow-xl"
+                }`}
+                title={!currentUser ? 'Please log in to add events to your calendar' : ''}
               >
-                <Calendar size={18} className="sm:size-5 group-hover:rotate-12 transition-transform" />
-                <span className="hidden sm:inline">Add to Calendar</span>
-                <span className="sm:hidden">Calendar</span>
+                <div className="relative">
+                  <Calendar size={18} className={`sm:size-5 ${!isAddingToCalendar && currentUser ? 'group-hover:rotate-12 transition-transform' : ''}`} />
+                  {isAddingToCalendar && (
+                    <div className="absolute inset-0 animate-spin">
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                <span className="hidden sm:inline">
+                  {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
+                </span>
+                <span className="sm:hidden">
+                  {isAddingToCalendar ? 'Adding...' : 'Calendar'}
+                </span>
               </button>
 
               {post.links && post.links.length > 0 && (

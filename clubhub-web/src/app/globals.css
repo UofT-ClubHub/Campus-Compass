@@ -294,11 +294,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
 /* Theme-based background gradients */
 .bg-theme-gradient {
-  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #f3e8ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 25%, #f3e8ff 50%, #fce7f3 75%, #fef3c7 100%);
 }
 
 [data-theme="warm-light"] .bg-theme-gradient {
-  background: linear-gradient(135deg, #fed7aa 0%, #fef3c7 50%, #fecaca 100%);
+  background: linear-gradient(135deg, #fed7aa 0%, #fef3c7 25%, #fecaca 50%, #fde68a 75%, #fbbf24 100%);
 }
 
 [data-theme="deep-dark"] .bg-theme-gradient {
@@ -306,7 +306,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 }
 
 [data-theme="vibrant-dark"] .bg-theme-gradient {
-  background: linear-gradient(135deg, #312e81 0%, #581c87 50%, #be185d 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #581c87 50%, #7c3aed 75%, #a855f7 100%);
 }
 
 /* Theme-based animated background elements container */
