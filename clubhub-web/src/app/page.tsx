@@ -61,7 +61,6 @@ function TypewriterText() {
 
 export default function HomePage() {
   const { theme } = useTheme()
-  const isLightTheme = theme === 'light' || theme === 'warm-light'
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -322,8 +321,10 @@ export default function HomePage() {
         <section className="relative min-h-[500px] overflow-hidden">
         {/* Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br z-10 ${
-          isLightTheme
+          theme === 'light'
             ? 'from-black/50 via-black/40 to-black/30' 
+            : theme === 'deep-dark'
+            ? 'from-black/70 via-black/60 to-black/50'
             : 'from-black/70 via-black/60 to-black/s0'
         }`} />
 
