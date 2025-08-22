@@ -434,6 +434,12 @@ export default function ClubPage({ params }: PageProps) {
                        </div>
                      )}
                      </button>
+                     <button
+                       onClick={() => router.push(`/applicationsPage/${clubID}`)}
+                       className="cursor-pointer px-6 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium transition-all duration-200 border border-accent"
+                     >
+                       View Open Applications
+                     </button>
                  </div>
                )}
           </div>
@@ -514,8 +520,8 @@ export default function ClubPage({ params }: PageProps) {
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <h3 className="text-xl font-semibold text-card-foreground mb-2">No open positions</h3>
-              <p className="text-muted-foreground">This club currently has no open positions.</p>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">Open Positions</h3>
+              <p className="text-muted-foreground">Check out available positions and application forms for {clubData?.name}.</p>
             </div>
           )}
         </div>
