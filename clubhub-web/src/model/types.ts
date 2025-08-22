@@ -24,11 +24,25 @@ export interface Club {
     executives: string[];
     department: string;
     links: { [key: string]: string };
-    positions?: Array<{
+    openPositions?: Array<{
         title?: string;
         description?: string;
         requirements?: string[];
         questions?: { [key: string]: { [key: string]: string } };
+        date_posted?: string;
+        deadline?: string;
+        status: 'open' | 'closed';
+        positionId: string;
+    }>;
+    closedPositions?: Array<{
+        title?: string;
+        description?: string;
+        requirements?: string[];
+        questions?: { [key: string]: { [key: string]: string } };
+        date_posted?: string;
+        deadline?: string;
+        status: 'open' | 'closed';
+        positionId: string;
     }>;
 }
 
