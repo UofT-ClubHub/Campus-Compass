@@ -8,6 +8,7 @@ import { collection, query, where, getDocs, getFirestore } from "firebase/firest
 import db from "@/model/firebase"
 import type { User } from "@/model/types"
 import { ArrowLeft, Building2, Users, MapPin, Instagram, ExternalLink } from "lucide-react"
+import PositionCard from "@/components/PositionCard"
 
 interface PageProps {
   params: Promise<{
@@ -226,28 +227,98 @@ export default function ApplicationsPage({ params }: PageProps) {
             </div>
           </header>
 
-          {/* Open Positions Section */}
+          {/* All Positions Section */}
           <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
-            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Available Positions</h2>
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">Club Positions</h2>
             
-            {/* Placeholder for positions - to be implemented */}
-            <div className="flex flex-col items-center justify-center min-h-[300px]">
-              <svg
-                className="w-16 h-16 text-muted-foreground mb-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <h3 className="text-xl font-semibold text-card-foreground mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground text-center max-w-md">
-                The application system for {clubData?.name} positions is currently being developed. 
-                Check back soon for available opportunities!
-              </p>
-            </div>
+            {/* Display all positions using PositionCard component */}
+            {(() => {
+              // Combine open and closed positions
+              const openPositions = clubData?.openPositions || [];
+              const closedPositions = clubData?.closedPositions || [];
+              const allPositions = [...openPositions, ...closedPositions];
+              
+              if (allPositions.length > 0) {
+                return (
+                  <div className="space-y-4">
+                    {/* Open Positions First */}
+                    {openPositions.map((position: any, index: number) => {
+                      // Check if deadline has passed to determine actual status
+                      const deadline = position.deadline ? new Date(position.deadline) : null;
+                      const isDeadlinePassed = deadline && deadline < new Date();
+                      const actualStatus = isDeadlinePassed ? 'closed' : 'open';
+                      
+                      const transformedPosition = {
+                        positionId: position.positionId || `open-position-${index}`,
+                        title: position.title || "Position",
+                        description: position.description || "No description provided",
+                        requirements: position.requirements || [],
+                        deadline: position.deadline,
+                        date_posted: position.date_posted,
+                        status: actualStatus as 'open' | 'closed',
+                        questions: position.questions || {},
+                        clubId: clubID,
+                        clubName: clubData.name,
+                        clubCampus: clubData.campus || '',
+                        clubDepartment: clubData.department || ''
+                      }
+                      
+                      return (
+                        <PositionCard 
+                          key={transformedPosition.positionId} 
+                          position={transformedPosition} 
+                        />
+                      )
+                    })}
+                    
+                    {/* Closed Positions */}
+                    {closedPositions.map((position: any, index: number) => {
+                      const transformedPosition = {
+                        positionId: position.positionId || `closed-position-${index}`,
+                        title: position.title || "Position",
+                        description: position.description || "No description provided",
+                        requirements: position.requirements || [],
+                        deadline: position.deadline,
+                        date_posted: position.date_posted,
+                        status: 'closed' as const,
+                        questions: position.questions || {},
+                        clubId: clubID,
+                        clubName: clubData.name,
+                        clubCampus: clubData.campus || '',
+                        clubDepartment: clubData.department || ''
+                      }
+                      
+                      return (
+                        <PositionCard 
+                          key={transformedPosition.positionId} 
+                          position={transformedPosition} 
+                        />
+                      )
+                    })}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex flex-col items-center justify-center min-h-[300px]">
+                    <svg
+                      className="w-16 h-16 text-gray-400 mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Positions Available</h3>
+                    <p className="text-gray-300 text-center max-w-md">
+                      {clubData?.name} doesn't have any positions at the moment. 
+                      Check back soon for available opportunities!
+                    </p>
+                  </div>
+                );
+              }
+            })()}
           </div>
         </div>
       </main>
