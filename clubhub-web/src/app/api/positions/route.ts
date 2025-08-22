@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
     const showClosed = searchParams.get("show_closed") === "true";
+    const showOpen = searchParams.get("show_open") !== "false"; // Default to true if not specified
 
     const clubsCollection = firestore.collection("Clubs");
 
@@ -29,11 +30,14 @@ export async function GET(request: NextRequest) {
       }
       
       const clubData = doc.data() as Club;
-      let positions = clubData.positions || [];
+      let positions: any[] = [];
       
-      // Apply status filter for specific club
-      if (!showClosed) {
-        positions = positions.filter((position: any) => position.status !== 'closed');
+      // Get positions from appropriate arrays based on show_open and show_closed
+      if (showOpen && clubData.openPositions) {
+        positions = positions.concat(clubData.openPositions);
+      }
+      if (showClosed && clubData.closedPositions) {
+        positions = positions.concat(clubData.closedPositions);
       }
 
       // Sort positions by date_posted or deadline
@@ -109,37 +113,45 @@ export async function GET(request: NextRequest) {
     let allPositions: any[] = [];
     
     clubs.forEach((club) => {
-      if (club.positions && Array.isArray(club.positions)) {
-        club.positions.forEach((position: any) => {
-          // Sort questions if they exist
-          let sortedQuestions = position.questions;
-          if (position.questions && typeof position.questions === 'object') {
-            const sortedKeys = Object.keys(position.questions).sort((a, b) => {
-              // Extract numbers from Q1, Q2, etc. and sort numerically
-              const numA = parseInt(a.replace(/\D/g, ''));
-              const numB = parseInt(b.replace(/\D/g, ''));
-              return numA - numB;
-            });
-            
-            sortedQuestions = {};
-            sortedKeys.forEach(key => {
-              sortedQuestions[key] = position.questions[key];
-            });
-          }
-
-          // Add club information to each position
-          const positionWithClub = {
-            ...position,
-            questions: sortedQuestions,
-            clubId: club.id,
-            clubName: club.name,
-            clubCampus: club.campus,
-            clubDepartment: club.department,
-            clubDescription: club.description
-          };
-          allPositions.push(positionWithClub);
-        });
+      // Get positions from appropriate arrays based on show_open and show_closed
+      let clubPositions: any[] = [];
+      
+      if (showOpen && club.openPositions && Array.isArray(club.openPositions)) {
+        clubPositions = clubPositions.concat(club.openPositions);
       }
+      if (showClosed && club.closedPositions && Array.isArray(club.closedPositions)) {
+        clubPositions = clubPositions.concat(club.closedPositions);
+      }
+      
+      clubPositions.forEach((position: any) => {
+        // Sort questions if they exist
+        let sortedQuestions = position.questions;
+        if (position.questions && typeof position.questions === 'object') {
+          const sortedKeys = Object.keys(position.questions).sort((a, b) => {
+            // Extract numbers from Q1, Q2, etc. and sort numerically
+            const numA = parseInt(a.replace(/\D/g, ''));
+            const numB = parseInt(b.replace(/\D/g, ''));
+            return numA - numB;
+          });
+          
+          sortedQuestions = {};
+          sortedKeys.forEach(key => {
+            sortedQuestions[key] = position.questions[key];
+          });
+        }
+
+        // Add club information to each position
+        const positionWithClub = {
+          ...position,
+          questions: sortedQuestions,
+          clubId: club.id,
+          clubName: club.name,
+          clubCampus: club.campus,
+          clubDepartment: club.department,
+          clubDescription: club.description
+        };
+        allPositions.push(positionWithClub);
+      });
     });
 
     // Apply filters to positions
@@ -159,10 +171,9 @@ export async function GET(request: NextRequest) {
         const matchesDepartment = !departmentFilter ||
           (position.clubDepartment && position.clubDepartment.toLowerCase() === departmentFilter.toLowerCase());
         
-        // Handle closed positions filter
-        const matchesStatus = showClosed || position.status !== 'closed';
+
         
-        return matchesSearch && matchesCampus && matchesDepartment && matchesStatus;
+        return matchesSearch && matchesCampus && matchesDepartment;
       }
     );
 
@@ -210,36 +221,71 @@ export async function PATCH(request: NextRequest) {
 
         const clubData = clubDoc.data() as Club;
         const newPositionData = await request.json();
-        const { positionId, ...positionFields } = newPositionData;
+        const { positionId, currentStatus, ...positionFields } = newPositionData;  // currentStatus is the current status of the position when PATCH route is called (either "open" or "closed")
 
         if (!positionId) {
             return NextResponse.json({ message: "Position ID is required" }, { status: 400 });
         }
 
-        let positions = clubData.positions || [];
+        let openPositions = clubData.openPositions || [];
+        let closedPositions = clubData.closedPositions || [];
         let positionFound = false;
+        let positionFoundInOpen = false;
+        let positionFoundInClosed = false;
 
-        // Loop through existing positions to find matching positionId
-        positions = positions.map((position: any) => {
-            if (position.positionId === positionId) {
-                positionFound = true;
-                return { ...position, ...positionFields };
-            }
-            return position;
-        });
+        // Check if position exists in either array
+        const existingPositionInOpen = openPositions.find((position: any) => position.positionId === positionId);
+        const existingPositionInClosed = closedPositions.find((position: any) => position.positionId === positionId);
 
-        // If position not found, add new position with generated positionId
-        if (!positionFound) {
-            const newPositionId = uuidv4();
-            positions.push({ positionId: newPositionId, ...positionFields });
+        if (existingPositionInOpen) {
+            positionFound = true;
+            positionFoundInOpen = true;
+        } else if (existingPositionInClosed) {
+            positionFound = true;
+            positionFoundInClosed = true;
         }
 
-        // Update the club with new positions array
-        await firestore.collection("Clubs").doc(clubId).update({ positions });
+        // Handle status change (moving between arrays)
+        if (positionFound) {
+            if (positionFoundInOpen && currentStatus === "closed") {
+                // Moving from open to closed
+                openPositions = openPositions.filter((position: any) => position.positionId !== positionId);
+                closedPositions.push({ ...existingPositionInOpen, ...positionFields, status: "closed" });
+            } else if (positionFoundInClosed && currentStatus === "open") {
+                // Moving from closed to open
+                closedPositions = closedPositions.filter((position: any) => position.positionId !== positionId);
+                openPositions.push({ ...existingPositionInClosed, ...positionFields, status: "open" });
+            } else {
+                // Updating within same array
+                if (currentStatus === "open") {
+                    openPositions = openPositions.map((position: any) => 
+                        position.positionId === positionId ? { ...position, ...positionFields } : position
+                    );
+                } else {
+                    closedPositions = closedPositions.map((position: any) => 
+                        position.positionId === positionId ? { ...position, ...positionFields } : position
+                    );
+                }
+            }
+        } else {
+            // Position not found - only allow creating new open positions
+            if (currentStatus === "open") {
+                const newPositionId = uuidv4();
+                openPositions.push({ positionId: newPositionId, ...positionFields });
+            } else {
+                return NextResponse.json({ message: "Cannot create new closed positions" }, { status: 400 });
+            }
+        }
+
+        // Update the club with both arrays
+        await firestore.collection("Clubs").doc(clubId).update({
+            openPositions,
+            closedPositions
+        });
         
         return NextResponse.json({ 
             message: positionFound ? "Position updated successfully" : "Position added successfully",
-            positionId: positionFound ? positionId : uuidv4()
+            positionId: positionFound ? positionId : "new-position-created"
         }, { status: 200 });
     }
     catch (error: any) {
@@ -252,6 +298,7 @@ export async function DELETE(request: NextRequest) {
         const { searchParams } = request.nextUrl;
         const positionId = searchParams.get("positionId");
         const clubId = searchParams.get("clubId");
+        const isOpenPosition = searchParams.get("isOpenPosition") !== "false"; // boolean value (default to true if not specified)
         
         if (!positionId) {
             return NextResponse.json({ message: "Position ID is required" }, { status: 400 });
@@ -265,19 +312,33 @@ export async function DELETE(request: NextRequest) {
         if (!clubDoc.exists) {
             return NextResponse.json({ message: "Club not found" }, { status: 404 });
         }
+        
 
         const clubData = clubDoc.data() as Club;
-        const positions = clubData.positions || [];
+        let positions: any[] = [];
+
+        if (isOpenPosition) {
+            positions = clubData.openPositions || [];
+        } else {
+            positions = clubData.closedPositions || [];
+        }
+
+
         
         // Check if position exists in this club
         const positionExists = positions.some((position: any) => position.positionId === positionId);
         if (!positionExists) {
-            return NextResponse.json({ message: "Position not found in this club" }, { status: 404 });
+            const status = isOpenPosition ? "open" : "closed";
+            return NextResponse.json({ message: `Position not found in this club's ${status} positions` }, { status: 404 });
         }
 
         const newPositions = positions.filter((position: any) => position.positionId !== positionId);
 
-        await firestore.collection("Clubs").doc(clubId).update({ positions: newPositions });
+        if (isOpenPosition) {
+            await firestore.collection("Clubs").doc(clubId).update({ openPositions: newPositions });
+        } else {
+            await firestore.collection("Clubs").doc(clubId).update({ closedPositions: newPositions });
+        }
 
         return NextResponse.json({ message: "Position deleted successfully" }, { status: 200 });
     }
