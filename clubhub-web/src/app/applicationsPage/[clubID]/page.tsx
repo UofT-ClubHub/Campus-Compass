@@ -136,7 +136,7 @@ export default function ApplicationsPage({ params }: PageProps) {
       ))}
       
       <main className="relative z-10">
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Back Button */}
           <div className="mb-6">
             <button
@@ -156,7 +156,7 @@ export default function ApplicationsPage({ params }: PageProps) {
             ></div>
             <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
 
-            <div className="relative z-10 max-w-4xl mx-auto">
+            <div className="relative z-10 max-w-6xl mx-auto">
               {/* Logo and Title Section */}
               <div className="flex items-center gap-6 mb-6">
                 <img
@@ -228,7 +228,7 @@ export default function ApplicationsPage({ params }: PageProps) {
           </header>
 
           {/* All Positions Section */}
-          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
+          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-6 form-glow max-w-6xl mx-auto">
             <h2 className="text-2xl font-bold text-white mb-6 text-center">Club Positions</h2>
             
             {/* Display all positions using PositionCard component */}
