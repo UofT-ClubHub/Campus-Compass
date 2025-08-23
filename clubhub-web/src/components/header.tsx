@@ -50,16 +50,17 @@ export function Header() {
     const getCurrentActiveIndex = useCallback(() => {
         if (pathname === '/clubSearch') return 0;
         if (pathname === '/postFilter') return 1;
-        if (pathname === '/admin' && userData?.is_admin) return 2;
+        if (pathname === '/positionsPage') return 2;
+        if (pathname === '/admin' && userData?.is_admin) return 3;
         if (pathname === '/exec' && userData?.managed_clubs && userData.managed_clubs.length > 0) {
-            return userData?.is_admin ? 3 : 2;
+            return userData?.is_admin ? 4 : 3;
         }
         if (pathname === '/pending-club-request') {
             const hasAdmin = userData?.is_admin;
             const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
-            if (hasAdmin && hasExec) return 4;
-            if (hasAdmin || hasExec) return 3;
-            return 2;
+            if (hasAdmin && hasExec) return 5;
+            if (hasAdmin || hasExec) return 4;
+            return 3;
         }
         // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
         return -1;
@@ -186,22 +187,28 @@ export function Header() {
                   label="Posts"
                   index={1}
                 />
+                <NavButton
+                  onClick={(e) => handleNavigation(e, "/positionsPage")}
+                  isActive={isActive("/positionsPage")}
+                  label="Positions"
+                  index={2}
+                />
                 {isAdmin && (
-                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={2} />
+                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={3} />
                 )}
                 {isExecutive && (
                   <NavButton
                     onClick={(e) => handleNavigation(e, "/exec")}
                     isActive={isActive("/exec")}
                     label="Executive"
-                    index={isAdmin ? 3 : 2}
+                    index={isAdmin ? 4 : 3}
                   />
                 )}
                 <NavButton
                   onClick={(e) => handleNavigation(e, "/pending-club-request")}
                   isActive={isActive("/pending-club-request")}
                   label="Request Club"
-                  index={isAdmin && isExecutive ? 4 : isAdmin || isExecutive ? 3 : 2}
+                  index={isAdmin && isExecutive ? 5 : isAdmin || isExecutive ? 4 : 3}
                 />
               </div>
             </nav>
@@ -318,6 +325,17 @@ export function Header() {
                   type="button"
                 >
                   Posts
+                </button>
+                <button 
+                  onClick={(e) => handleNavigation(e, '/positionsPage')}
+                  className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+                    isActive('/positionsPage') 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground hover:text-secondary'
+                  }`}
+                  type="button"
+                >
+                  Positions
                 </button>
                 {user && (
                   <button 
