@@ -155,16 +155,15 @@ export default function ApplicationsPage({ params }: PageProps) {
               style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
-
-            <div className="relative z-10 max-w-6xl mx-auto">
+            <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center justify-center">
               {/* Logo and Title Section */}
-              <div className="flex items-center gap-6 mb-6">
+              <div className="flex flex-col items-center gap-6 mb-6">
                 <img
                   src={clubData?.image || "/placeholder.svg"}
                   alt={`${clubData?.name} logo`}
                   className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
                 />
-                <div>
+                <div className="text-center">
                   <h1 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
                     {clubData?.name} - Open Positions
                   </h1>
@@ -229,7 +228,7 @@ export default function ApplicationsPage({ params }: PageProps) {
 
           {/* All Positions Section */}
           <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-6 form-glow max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">Club Positions</h2>
+            <h2 className="text-2xl font-bold text-primary mb-6 text-center">Club Positions</h2>
             
             {/* Display all positions using PositionCard component */}
             {(() => {

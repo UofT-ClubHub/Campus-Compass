@@ -79,7 +79,7 @@ export default function PositionCard({ position }: PositionCardProps) {
 
   return (
     <div className="group relative mb-6 max-w-5xl mx-auto">
-      <div className="bg-white/10 dark:bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-border/50 overflow-hidden transition-all duration-500 hover:shadow-3xl hover:border-white/30 dark:hover:border-border/80 hover:bg-white/15 dark:hover:bg-card/90">
+      <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 overflow-hidden form-glow">
         <div className="relative">
           <div
             className="p-6 cursor-pointer transition-all duration-300 hover:bg-white/5 dark:hover:bg-muted/20 backdrop-blur-sm"
@@ -94,12 +94,12 @@ export default function PositionCard({ position }: PositionCardProps) {
                     </h3>
                     <div className="flex items-center gap-3 text-sm">
                       <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
-                        <Building className="w-4 h-4" />
+                        <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         <span className="font-medium">{position.clubName}</span>
                       </div>
                       <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-muted-foreground rounded-full" />
                       <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
+                        <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
                         <span>{position.clubCampus}</span>
                       </div>
                     </div>
@@ -123,7 +123,7 @@ export default function PositionCard({ position }: PositionCardProps) {
                 <div className="flex flex-wrap gap-4 text-sm">
                   {position.date_posted && (
                     <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <span>Posted {formatDate(position.date_posted)}</span>
                     </div>
                   )}
@@ -134,7 +134,7 @@ export default function PositionCard({ position }: PositionCardProps) {
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     <span>{position.clubDepartment}</span>
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export default function PositionCard({ position }: PositionCardProps) {
           
           {isExpanded && (
             <div 
-              className="border-t border-white/20 dark:border-gray-200/80 dark:dark:border-border/50 bg-white/5 dark:bg-gray-50/30 dark:dark:bg-muted/10 backdrop-blur-md"
+              className="px-4 pb-4 pt-2 border-t border-border bg-background"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 space-y-6">
@@ -265,10 +265,10 @@ export default function PositionCard({ position }: PositionCardProps) {
                 e.stopPropagation()
                 setIsExpanded(true)
               }}
-              className="px-5 py-2 rounded-full bg-white/20 dark:bg-accent text-gray-700 dark:text-accent-foreground shadow-xl border border-white/30 dark:border-background flex items-center gap-2 backdrop-blur-md hover:bg-white/30 dark:hover:bg-accent/90 transition-all duration-300 cursor-pointer"
+              className="px-6 py-2 rounded-full bg-[#2563eb] text-white font-semibold flex items-center gap-2 transition-all duration-300 cursor-pointer shadow-none border-none hover:bg-[#1d4fd7] focus:outline-none dark:bg-[#2563eb] dark:text-white"
             >
-              <span className="text-sm font-medium">Application Form</span>
-              <ChevronDown className="w-4 h-4" />
+              <span className="text-base font-semibold">Application Form</span>
+              <ChevronDown className="w-4 h-4 text-white" />
             </button>
           </div>
         )}
