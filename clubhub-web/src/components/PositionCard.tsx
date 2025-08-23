@@ -260,10 +260,16 @@ export default function PositionCard({ position }: PositionCardProps) {
 
         {!isExpanded && (
           <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110 z-10">
-            <div className="px-5 py-2 rounded-full bg-white/20 dark:bg-accent text-gray-700 dark:text-accent-foreground shadow-xl border border-white/30 dark:border-background flex items-center gap-2 backdrop-blur-md">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsExpanded(true)
+              }}
+              className="px-5 py-2 rounded-full bg-white/20 dark:bg-accent text-gray-700 dark:text-accent-foreground shadow-xl border border-white/30 dark:border-background flex items-center gap-2 backdrop-blur-md hover:bg-white/30 dark:hover:bg-accent/90 transition-all duration-300 cursor-pointer"
+            >
               <span className="text-sm font-medium">Application Form</span>
               <ChevronDown className="w-4 h-4" />
-            </div>
+            </button>
           </div>
         )}
       </div>
