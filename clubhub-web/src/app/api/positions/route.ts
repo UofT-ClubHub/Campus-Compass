@@ -149,7 +149,8 @@ export async function GET(request: NextRequest) {
           clubName: club.name,
           clubCampus: club.campus,
           clubDepartment: club.department,
-          clubDescription: club.description
+          clubDescription: club.description,
+          clubImage: club.image
         };
         allPositions.push(positionWithClub);
       });

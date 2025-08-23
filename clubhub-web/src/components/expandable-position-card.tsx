@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Briefcase, Users, Calendar, ExternalLink, X, CheckCircle, Building2 } from "lucide-react";
-import type { Club } from "@/model/types";
+import { MapPin, Briefcase, Users, CheckCircle, Building2 } from "lucide-react";
 import { Modal } from "./modal";
 import React from "react";
 import Link from "next/link";
@@ -10,11 +9,10 @@ import { useRouter } from "next/navigation";
 
 interface ExpandablePositionCardProps {
   position: any;
-  club: Club;
   onClose: () => void;
 }
 
-export function ExpandablePositionCard({ position, club, onClose }: ExpandablePositionCardProps) {
+export function ExpandablePositionCard({ position, onClose }: ExpandablePositionCardProps) {
   const [isOpen, setIsOpen] = useState(true);
   const router = useRouter();
   const handleOpenChange = (open: boolean) => {
@@ -38,7 +36,7 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
     <Modal
       open={isOpen}
       onOpenChange={handleOpenChange}
-      title={`${position.title || 'Position'} at ${club.name}`}
+      title={`${position.title || 'Position'} at ${position.clubName}`}
       className="p-4"
       backgroundClass="bg-card/95 backdrop-blur-xl"
     >
@@ -48,10 +46,10 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
           <div className="flex items-start gap-4">
             {/* Club Image */}
             <div className="flex-shrink-0">
-              {club.image ? (
+              {position.clubImage ? (
                 <img
-                  src={club.image}
-                  alt={club.name}
+                  src={position.clubImage}
+                  alt={position.clubName}
                   className="w-16 h-16 rounded-lg object-cover"
                 />
               ) : (
@@ -64,11 +62,11 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
             {/* Position and Club Info */}
             <div className="flex-1 min-w-0">
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                {position.title || `Position at ${club.name}`}
+                {position.title || `Position at ${position.clubName}`}
               </h2>
               <h3 className="text-lg font-semibold text-primary mb-2">
-                <Link href={`/clubPage/${club.id}`} className="hover:underline">
-                  {club.name}
+                <Link href={`/clubPage/${position.clubId}`} className="hover:underline">
+                  {position.clubName}
                 </Link>
               </h3>
               
@@ -76,12 +74,12 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {club.campus}
+                  {position.clubCampus}
                 </span>
-                {club.department && (
+                {position.clubDepartment && (
                   <span className="flex items-center gap-1">
                     <Building2 className="h-4 w-4" />
-                    {club.department}
+                    {position.clubDepartment}
                   </span>
                 )}
               </div>
@@ -128,15 +126,15 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
           )}
 
           {/* Club Description */}
-          {club.description && (
+          {position.clubDescription && (
             <div>
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                About {club.name}
+                About {position.clubName}
               </h3>
               <div className="bg-muted/30 rounded-lg p-4">
                 <p className="text-muted-foreground leading-relaxed">
-                  {club.description}
+                  {position.clubDescription}
                 </p>
               </div>
             </div>
@@ -148,7 +146,7 @@ export function ExpandablePositionCard({ position, club, onClose }: ExpandablePo
             <button
               onClick={() => {
                 // Navigate to application form
-                router.push(`/clubPage/${club.id}`);
+                router.push(`/clubPage/${position.clubId}`);
               }}
               className="cursor-pointer w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
             >
