@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { ChevronDown, Calendar, MapPin, Building, AlertCircle, CheckCircle, Clock, Users } from "lucide-react"
+import { ChevronDown, ChevronUp, Calendar, MapPin, Building, AlertCircle, CheckCircle, Clock, Users } from "lucide-react"
 
 interface Position {
   positionId: string
@@ -79,8 +79,8 @@ export default function PositionCard({ position }: PositionCardProps) {
 
   return (
     <div className="group relative mb-6 max-w-5xl mx-auto">
-      <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 overflow-hidden form-glow">
-        <div className="relative">
+      <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 overflow-hidden form-glow transition-all duration-300 hover:shadow-3xl hover:border-white/30 dark:hover:border-border/80 hover:bg-white/15 dark:hover:bg-card/90">
+        <div className="relative group-hover:pb-12 transition-all duration-300">
           <div
             className="p-6 cursor-pointer transition-all duration-300 hover:bg-white/5 dark:hover:bg-muted/20 backdrop-blur-sm"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -208,9 +208,20 @@ export default function PositionCard({ position }: PositionCardProps) {
                         <button
                           type="submit"
                           disabled={isSubmitting || !position.questions || Object.keys(position.questions).length === 0}
-                          className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none text-base backdrop-blur-sm"
+                          className="group/submit relative px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02] disabled:transform-none text-sm backdrop-blur-md border border-blue-400/40 hover:border-blue-300/60 disabled:border-gray-400/30 overflow-hidden"
                         >
-                          {isSubmitting ? "Submitting..." : "Submit Application"}
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 group-hover/submit:opacity-100 transition-opacity duration-300"></div>
+                          <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover/submit:left-[100%] transition-all duration-700"></div>
+                          <span className="relative flex items-center gap-2 font-bold tracking-wide">
+                            {isSubmitting ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <span className="animate-pulse">Submitting...</span>
+                              </>
+                            ) : (
+                              "Submit Application"
+                            )}
+                          </span>
                         </button>
                         <button
                           type="button"
@@ -218,9 +229,10 @@ export default function PositionCard({ position }: PositionCardProps) {
                             setFormData({})
                             setIsExpanded(false)
                           }}
-                          className="px-8 py-3 bg-white/20 hover:bg-white/30 text-gray-700 dark:text-muted-foreground hover:text-gray-900 dark:hover:text-foreground rounded-xl font-semibold transition-all duration-300 text-base backdrop-blur-sm border border-white/30 dark:border-border/40"
+                          className="group/btn relative px-8 py-3 bg-white/10 hover:bg-white/20 dark:bg-gray-800/30 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl font-semibold transition-all duration-300 text-base backdrop-blur-md border border-white/20 hover:border-white/40 dark:border-gray-600/30 dark:hover:border-gray-500/50 shadow-md hover:shadow-lg overflow-hidden"
                         >
-                          Cancel
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                          <span className="relative">Cancel</span>
                         </button>
                       </div>
                     </form>
@@ -265,10 +277,12 @@ export default function PositionCard({ position }: PositionCardProps) {
                 e.stopPropagation()
                 setIsExpanded(true)
               }}
-              className="px-6 py-2 rounded-full bg-[#2563eb] text-white font-semibold flex items-center gap-2 transition-all duration-300 cursor-pointer shadow-none border-none hover:bg-[#1d4fd7] focus:outline-none dark:bg-[#2563eb] dark:text-white"
+              className="group/app-btn relative px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white font-semibold flex items-center gap-2 transition-all duration-300 cursor-pointer shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 hover:scale-105 focus:outline-none backdrop-blur-sm border border-blue-400/30 overflow-hidden"
             >
-              <span className="text-base font-semibold">Application Form</span>
-              <ChevronDown className="w-4 h-4 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 group-hover/app-btn:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-white/20 animate-pulse"></div>
+              <span className="relative text-sm font-bold tracking-wide">Application Form</span>
+              <ChevronDown className="relative w-4 h-4 text-white group-hover/app-btn:animate-bounce" />
             </button>
           </div>
         )}
