@@ -14,7 +14,7 @@
   --secondary:               #64748b;
   --secondary-foreground:    #ffffff;
   --muted:                   #f1f5f9;
-  --muted-foreground:        #64748b;
+  --muted-foreground:        #475569;
   --accent:                  #7c3aed;
   --accent-foreground:       #ffffff;
   --destructive:             #dc2626;
@@ -42,7 +42,7 @@
   --secondary:               #a16207;
   --secondary-foreground:    #ffffff;
   --muted:                   #f5f3f0;
-  --muted-foreground:        #78716c;
+  --muted-foreground:        #57534e;
   --accent:                  #dc2626;
   --accent-foreground:       #ffffff;
   --destructive:             #b91c1c;
@@ -120,6 +120,15 @@
 /* Vibrant Dark Bottom Glow Only */
 [data-theme="vibrant-dark"] header {
   box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4), 0 4px 40px rgba(139, 92, 246, 0.2);
+}
+
+/* Light Theme Form Glow Effect */
+.form-glow {
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1), 0 0 30px rgba(37, 99, 235, 0.05);
+}
+
+[data-theme="warm-light"] .form-glow {
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.1), 0 0 30px rgba(234, 88, 12, 0.05);
 }
 
 /* Dark Theme Form Glow Effect For Request Club Form - matches header glow */

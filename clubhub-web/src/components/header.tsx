@@ -48,23 +48,19 @@ export function Header() {
 
     // Get the current active index based on pathname
     const getCurrentActiveIndex = useCallback(() => {
+        const hasAdmin = userData?.is_admin;
+        const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
+        const base = user ? 3 : 2; // Base index after Clubs and Posts (and Calendar if logged in)
+
         if (pathname === '/clubSearch') return 0;
         if (pathname === '/postFilter') return 1;
-        if (pathname === '/positionsPage') return 2;
-        if (pathname === '/admin' && userData?.is_admin) return 3;
-        if (pathname === '/exec' && userData?.managed_clubs && userData.managed_clubs.length > 0) {
-            return userData?.is_admin ? 4 : 3;
-        }
-        if (pathname === '/pending-club-request') {
-            const hasAdmin = userData?.is_admin;
-            const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
-            if (hasAdmin && hasExec) return 5;
-            if (hasAdmin || hasExec) return 4;
-            return 3;
-        }
+        if (pathname === '/calendar' && user) return 2;
+        if (pathname === '/admin' && hasAdmin) return base;
+        if (pathname === '/exec' && hasExec) return base + (hasAdmin ? 1 : 0);
+        if (pathname === '/pending-club-request') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0);
         // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
         return -1;
-    }, [pathname, userData]);
+    }, [pathname, userData, user]);
 
     // Update indicator position based on active button
     useEffect(() => {
@@ -187,28 +183,30 @@ export function Header() {
                   label="Posts"
                   index={1}
                 />
-                <NavButton
-                  onClick={(e) => handleNavigation(e, "/positionsPage")}
-                  isActive={isActive("/positionsPage")}
-                  label="Positions"
-                  index={2}
-                />
+                {user && (
+                  <NavButton
+                    onClick={(e) => handleNavigation(e, "/calendar")}
+                    isActive={isActive("/calendar")}
+                    label="Calendar"
+                    index={2}
+                  />
+                )}
                 {isAdmin && (
-                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={3} />
+                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={user ? 3 : 2} />
                 )}
                 {isExecutive && (
                   <NavButton
                     onClick={(e) => handleNavigation(e, "/exec")}
                     isActive={isActive("/exec")}
                     label="Executive"
-                    index={isAdmin ? 4 : 3}
+                    index={(user ? 3 : 2) + (isAdmin ? 1 : 0)}
                   />
                 )}
                 <NavButton
                   onClick={(e) => handleNavigation(e, "/pending-club-request")}
                   isActive={isActive("/pending-club-request")}
                   label="Request Club"
-                  index={isAdmin && isExecutive ? 5 : isAdmin || isExecutive ? 4 : 3}
+                  index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
                 />
               </div>
             </nav>
@@ -325,17 +323,6 @@ export function Header() {
                   type="button"
                 >
                   Posts
-                </button>
-                <button 
-                  onClick={(e) => handleNavigation(e, '/positionsPage')}
-                  className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/positionsPage') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
-                  }`}
-                  type="button"
-                >
-                  Positions
                 </button>
                 {user && (
                   <button 
