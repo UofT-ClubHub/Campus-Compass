@@ -24,7 +24,7 @@ export const GET = withAuth(async (request: NextRequest) => {
 
     let applications: any[] = [];
 
-    if (clubId) {
+    if (clubId) { // will be used by execs to check applications for a specific club
       // Check if club exists (for both admin and non-admin users)
       const clubDoc = await firestore.collection("Clubs").doc(clubId).get();
       if (!clubDoc.exists) {
@@ -48,7 +48,7 @@ export const GET = withAuth(async (request: NextRequest) => {
         id: doc.id,
         ...doc.data(),
       }));
-    } else if (userId) {
+    } else if (userId) { // will be used by students to check their own applications (profile page)
 
       const userDoc = await firestore.collection("Users").doc(userId).get();
       if (!userDoc.exists) {
