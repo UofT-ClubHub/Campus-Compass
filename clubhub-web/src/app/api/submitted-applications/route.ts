@@ -178,8 +178,14 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
 
                 // add userId to the clubs openPositions applicants array
                 const openPositions = clubData?.openPositions || [];
-                openPositions.applicants.push(userId);
-                await firestore.collection("Clubs").doc(clubId).update({ openPositions });
+                const positionIndex = openPositions.findIndex((pos: any) => pos.positionId === positionId);
+                if (positionIndex !== -1) {
+                    if (!openPositions[positionIndex].applicants) {
+                        openPositions[positionIndex].applicants = [];
+                    }
+                    openPositions[positionIndex].applicants.push(userId);
+                    await firestore.collection("Clubs").doc(clubId).update({ openPositions });
+                }
 
                 return NextResponse.json({ message: "Application submitted successfully" }, { status: 200 });
             }
@@ -205,7 +211,20 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         const userApplicationRef = firestore.collection("Users").doc(userId).collection("submittedApplications").doc(applicationRef.id);
         await userApplicationRef.set(applicationData);
 
-        return NextResponse.json({ message: "Application submitted successfully" }, { status: 200 });
+        if (isFinalSubmission) {
+            // add userId to the clubs openPositions applicants array
+            const openPositions = clubData?.openPositions || [];
+            const positionIndex = openPositions.findIndex((pos: any) => pos.positionId === positionId);
+            if (positionIndex !== -1) {
+                if (!openPositions[positionIndex].applicants) {
+                    openPositions[positionIndex].applicants = [];
+                }
+                openPositions[positionIndex].applicants.push(userId);
+                await firestore.collection("Clubs").doc(clubId).update({ openPositions });
+            }
+        }
+
+        return NextResponse.json({ message: "Application submitted/saved successfully" }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json(
           { error: "Failed to submit application" },
