@@ -33,7 +33,7 @@ export interface Club {
         deadline?: string;
         status: 'open' | 'closed';
         positionId: string;
-        submittedApplications?: Array<string>;
+        applicants?: Array<string>;
     }>;
     closedPositions?: Array<{
         title?: string;
@@ -44,7 +44,7 @@ export interface Club {
         deadline?: string;
         status: 'open' | 'closed';
         positionId: string;
-        submittedApplications?: Array<string>;
+        applicants?: Array<string>;
     }>;
 }
 

@@ -175,7 +175,12 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
                     answers, 
                     submittedAt: new Date().toISOString() 
                 });
-                
+
+                // add userId to the clubs openPositions applicants array
+                const openPositions = clubData?.openPositions || [];
+                openPositions.applicants.push(userId);
+                await firestore.collection("Clubs").doc(clubId).update({ openPositions });
+
                 return NextResponse.json({ message: "Application submitted successfully" }, { status: 200 });
             }
         }
