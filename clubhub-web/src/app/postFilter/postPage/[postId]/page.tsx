@@ -431,11 +431,13 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -449,11 +451,13 @@ useEffect(() => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center max-w-md">
@@ -474,11 +478,13 @@ useEffect(() => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -505,8 +511,7 @@ useEffect(() => {
         <div key={i} className={`element-${i + 1}`}></div>
       ))}
       
-      <div className="relative z-10 p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-0 px-4">
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <button

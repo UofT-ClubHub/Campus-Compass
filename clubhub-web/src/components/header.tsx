@@ -143,7 +143,7 @@ export function Header() {
     const isExecutive = userData?.managed_clubs && userData.managed_clubs.length > 0;
 
     return (
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             

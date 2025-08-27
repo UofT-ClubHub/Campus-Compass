@@ -343,14 +343,16 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+        <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
             {/* Animated background elements */}
-            {Array.from({ length: 12 }, (_, i) => (
-                <div key={i} className={`element-${i + 1}`}></div>
-            ))}
+            <div className="absolute inset-0 bg-animated-elements">
+                {Array.from({ length: 12 }, (_, i) => (
+                    <div key={i} className={`element-${i + 1}`}></div>
+                ))}
+            </div>
             
-            <div className="relative z-10 p-4 md:p-6">
-            <div className="max-w-5xl mx-auto">
+            <div className="relative z-10 max-w-5xl mx-auto pt-8 pb-0 px-4">
+            <div>
 
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
