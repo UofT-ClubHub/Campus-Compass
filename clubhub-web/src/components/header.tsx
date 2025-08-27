@@ -58,6 +58,7 @@ export function Header() {
         if (pathname === '/admin' && hasAdmin) return base;
         if (pathname === '/exec' && hasExec) return base + (hasAdmin ? 1 : 0);
         if (pathname === '/pending-club-request') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0);
+        if (pathname === '/about') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0) + 1;
         // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
         return -1;
     }, [pathname, userData, user]);
@@ -207,6 +208,12 @@ export function Header() {
                   isActive={isActive("/pending-club-request")}
                   label="Request Club"
                   index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
+                />
+                <NavButton
+                onClick={(e) => handleNavigation(e, "/about")}
+                isActive={isActive("/about")}
+                label="About"
+                index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0) + 1}
                 />
               </div>
             </nav>
