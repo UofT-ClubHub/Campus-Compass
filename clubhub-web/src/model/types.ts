@@ -22,7 +22,40 @@ export interface Club {
     instagram: string;
     followers: number; 
     executives: string[];
+    department: string;
     links: { [key: string]: string };
+    openPositions?: Array<{
+        title?: string;
+        description?: string;
+        requirements?: string[];
+        questions?: { [key: string]: { [key: string]: string } };
+        date_posted?: string;
+        deadline?: string;
+        status: 'open' | 'closed';
+        positionId: string;
+        applicants?: Array<string>;
+    }>;
+    closedPositions?: Array<{
+        title?: string;
+        description?: string;
+        requirements?: string[];
+        questions?: { [key: string]: { [key: string]: string } };
+        date_posted?: string;
+        deadline?: string;
+        status: 'open' | 'closed';
+        positionId: string;
+        applicants?: Array<string>;
+    }>;
+}
+
+export interface SubmittedApplication {
+    id: string;
+    clubId: string;
+    positionId: string;
+    userId: string;
+    status: 'draft' | 'pending' | 'approved' | 'rejected';
+    submittedAt: string;
+    answers: { [question: string]: string };
 }
 
 export interface Post {
@@ -37,7 +70,9 @@ export interface Post {
     date_posted: string;
     likes: number;
     image: string;
+    department: string;
     links: string[];
+    location?: string;
 }
 
 export interface PendingClub {
@@ -49,6 +84,23 @@ export interface PendingClub {
     created_at: string;
     club_image: string;
     club_instagram: string;
+    club_department: string;
     status: 'pending' | 'approved' | 'rejected';
     message?: string;
+}
+
+export interface CalendarEvent {
+    id: string;
+    title: string;
+    description?: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    isAllDay: boolean;
+    postId?: string;
+    clubId?: string;
+    color?: string;
+    location?: string;
+    createdAt: string;
+    updatedAt: string;
 }

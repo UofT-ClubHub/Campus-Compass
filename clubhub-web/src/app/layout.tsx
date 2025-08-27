@@ -40,8 +40,9 @@ export default function RootLayout({
                   var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'deep-dark' : 'light';
                   var theme = savedTheme || systemTheme;
                   
-                  // Validate theme
-                  var validThemes = ['light', 'warm-light', 'deep-dark', 'vibrant-dark'];
+                  // Validate theme - only allow light and deep-dark for now
+                  var validThemes = ['light', 'deep-dark'];
+                  // Commented out: 'warm-light', 'vibrant-dark'
                   if (!validThemes.includes(theme)) {
                     theme = 'light';
                   }

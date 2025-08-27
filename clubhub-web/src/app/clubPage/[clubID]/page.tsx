@@ -7,7 +7,7 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
 import { PostCard } from "@/components/post-card"
-import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink } from "lucide-react"
+import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink, Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface PageProps {
@@ -281,10 +281,27 @@ export default function ClubPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative">
+      {/* Animated background elements */}
+      {Array.from({ length: 12 }, (_, i) => (
+        <div
+          key={i}
+          className={`element-${i + 1}`}
+          style={{
+            position: 'absolute',
+            borderRadius: '50%',
+            filter: 'blur(48px)',
+            willChange: 'opacity, transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+          }}
+        />
+      ))}
+      
+      <main className="relative z-10">
+        <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
-         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden">
+         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
            <div
              className="absolute inset-0 bg-cover bg-center filter blur-md"
              style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
@@ -294,7 +311,7 @@ export default function ClubPage({ params }: PageProps) {
 
            <div className="relative z-10 max-w-4xl mx-auto text-center">
             {/* Logo and Title Section */}
-            <div className="mb-10 flex flex-col items-center">
+            <div className="mb-6 flex flex-col items-center">
               <img
                 src={clubData?.image || "/placeholder.svg"}
                 alt={`${clubData?.name} logo`}
@@ -302,6 +319,12 @@ export default function ClubPage({ params }: PageProps) {
               />
               <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">{clubData?.name}</h1>
               <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
+              {clubData?.department && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <Building2 className="w-5 h-5 text-white/70" />
+                  <p className="text-white/70 text-lg font-medium">{clubData?.department}</p>
+                </div>
+              )}
             </div>
 
             {/* Stats bar */}
@@ -421,7 +444,7 @@ export default function ClubPage({ params }: PageProps) {
 
         {/* Posts Section */}
         <div className="mb-8">
-          <div className="bg-card rounded-2xl shadow-lg border border-border p-8">
+          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
 
             {posts.length === 0 ? (
               <div className="text-center py-16">
@@ -460,6 +483,7 @@ export default function ClubPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+    </div>
   )
 }

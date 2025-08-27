@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
     const documentId = searchParams.get("id");
     const nameFilter = searchParams.get("name");
     const descriptionFilter = searchParams.get("description");
+    const searchFilter = searchParams.get("search"); // New combined search parameter
     const campusFilter = searchParams.get("campus");
+    const departmentFilter = searchParams.get("department");
     const sortBy = searchParams.get("sort_by");
     const sortOrder = searchParams.get("sort_order") || "asc";
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -37,6 +39,10 @@ export async function GET(request: NextRequest) {
         query = query.where('campus', '==', campusFilter);
     }
 
+    if (departmentFilter) {
+        query = query.where('department', '==', departmentFilter);
+    }
+
     if (sortBy && ['followers'].includes(sortBy)) {
         const order = sortOrder === 'asc' ? 'asc' : 'desc';
         query = query.orderBy(sortBy, order);
@@ -47,18 +53,26 @@ export async function GET(request: NextRequest) {
 
     // Filters
     clubs = clubs.filter(
-      (club) =>
-        (!nameFilter ||
-          (club.name &&
-            club.name.toLowerCase().includes(nameFilter.toLowerCase()))) &&
-        (!descriptionFilter ||
-          (club.description &&
-            club.description
-              .toLowerCase()
-              .includes(descriptionFilter.toLowerCase()))) &&
-        (!campusFilter ||
-          (club.campus &&
-            club.campus.toLowerCase() === campusFilter.toLowerCase()))
+      (club) => {
+        // Handle combined search (search in both name and description with OR logic)
+        const matchesSearch = !searchFilter || 
+          (club.name && club.name.toLowerCase().includes(searchFilter.toLowerCase())) ||
+          (club.description && club.description.toLowerCase().includes(searchFilter.toLowerCase()));
+        
+        // Handle individual name/description filters (with AND logic for backward compatibility)
+        const matchesName = !nameFilter ||
+          (club.name && club.name.toLowerCase().includes(nameFilter.toLowerCase()));
+        const matchesDescription = !descriptionFilter ||
+          (club.description && club.description.toLowerCase().includes(descriptionFilter.toLowerCase()));
+        
+        // Handle other filters
+        const matchesCampus = !campusFilter ||
+          (club.campus && club.campus.toLowerCase() === campusFilter.toLowerCase());
+        const matchesDepartment = !departmentFilter ||
+          (club.department && club.department.toLowerCase() === departmentFilter.toLowerCase());
+        
+        return matchesSearch && matchesName && matchesDescription && matchesCampus && matchesDepartment;
+      }
     );
 
     // Sort

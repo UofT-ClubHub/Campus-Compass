@@ -8,6 +8,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = request.nextUrl;
     const campusFilter = searchParams.get("campus");
+    const departmentFilter = searchParams.get("department");
     const userFilter = searchParams.get("user");
     const statusFilter = searchParams.get("status");
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -32,6 +33,12 @@ export const GET = withAuth(async (request: NextRequest) => {
     if (campusFilter) {
       pendingClubs = pendingClubs.filter(
         (club) => club.club_campus.toLowerCase() === campusFilter.toLowerCase()
+      );
+    }
+    // Apply department filter if provided
+    if (departmentFilter) {
+      pendingClubs = pendingClubs.filter(
+        (club) => club.club_department?.toLowerCase() === departmentFilter.toLowerCase()
       );
     }
     // Apply user filter if provided
@@ -59,12 +66,12 @@ export const POST = withAuth(async (request: NextRequest) => {
   try {
     const authResult = (request as any).auth; // Added by middleware
     const data = await request.json();
-    const { club_name, club_campus, club_description, club_image = "", club_instagram = "" } = data;
+    const { club_name, club_campus, club_description, club_image = "", club_instagram = "", club_department = "" } = data;
 
     // Validate required fields
-    if (!club_name || !club_campus || !club_description) {
+    if (!club_name || !club_campus || !club_description || !club_department) {
       return NextResponse.json(
-        { error: "Missing required fields: club_name, club_campus, club_description" },
+        { error: "Missing required fields: club_name, club_campus, club_description, club_department" },
         { status: 400 }
       );
     }
@@ -96,6 +103,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       club_description: club_description.trim(),
       club_image: club_image.trim(),
       club_instagram: club_instagram.trim(),
+      club_department: club_department.trim(),
       created_at: admin.firestore.FieldValue.serverTimestamp(),
       status: 'pending',
     };
@@ -160,6 +168,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
         followers: 0,
         executives: [],
         links: {},
+        department: pendingClubData.club_department || '',
       };
 
       // Create the club

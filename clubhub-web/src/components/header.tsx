@@ -4,9 +4,32 @@ import Link from "next/link"
 import { auth } from '@/model/firebase';
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { User as UserType } from '@/model/types';
 import { useTheme } from '@/contexts/ThemeContext';
+
+// NavButton component for enhanced navigation
+interface NavButtonProps {
+  onClick: (e: React.MouseEvent) => void;
+  isActive: boolean;
+  label: string;
+  index: number;
+}
+
+const NavButton = ({ onClick, isActive, label, index }: NavButtonProps) => (
+  <button
+    onClick={onClick}
+    data-nav-index={index}
+    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer bg-transparent border-0 relative z-10 ${
+      isActive 
+        ? 'text-gray-900 dark:text-gray-100 font-semibold' 
+        : 'text-muted-foreground hover:text-foreground hover:scale-102'
+    }`}
+    type="button"
+  >
+    {label}
+  </button>
+);
 
 export function Header() {
     const [user, setUser] = useState<User | null>(null);
@@ -16,10 +39,50 @@ export function Header() {
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { theme, toggleTheme, getThemeIcon } = useTheme();
+    const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+    const navRef = useRef<HTMLDivElement>(null);
 
     const isActive = (path: string) => {
         return pathname === path;
     };
+
+    // Get the current active index based on pathname
+    const getCurrentActiveIndex = useCallback(() => {
+        const hasAdmin = userData?.is_admin;
+        const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
+        const base = user ? 3 : 2; // Base index after Clubs and Posts (and Calendar if logged in)
+
+        if (pathname === '/clubSearch') return 0;
+        if (pathname === '/postFilter') return 1;
+        if (pathname === '/calendar' && user) return 2;
+        if (pathname === '/admin' && hasAdmin) return base;
+        if (pathname === '/exec' && hasExec) return base + (hasAdmin ? 1 : 0);
+        if (pathname === '/pending-club-request') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0);
+        // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
+        return -1;
+    }, [pathname, userData, user]);
+
+    // Update indicator position based on active button
+    useEffect(() => {
+        if (navRef.current) {
+            const activeIndex = getCurrentActiveIndex();
+            if (activeIndex === -1) {
+                // Hide the indicator when no nav item should be active
+                setIndicatorStyle({ left: 0, width: 0 });
+            } else {
+                const activeButton = navRef.current.querySelector(`[data-nav-index="${activeIndex}"]`) as HTMLElement;
+                if (activeButton) {
+                    const navRect = navRef.current.getBoundingClientRect();
+                    const buttonRect = activeButton.getBoundingClientRect();
+                    const left = buttonRect.left - navRect.left;
+                    setIndicatorStyle({
+                      left: left,
+                      width: buttonRect.width
+                    });
+                }
+            }
+        }
+    }, [pathname, userData, getCurrentActiveIndex]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -91,79 +154,60 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
-              <div className="flex space-x-6">
-                <button
-                  onClick={(e) => handleNavigation(e, '/')}
-                  className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
+            {/* Enhanced Desktop Navigation */}
+            <nav className="hidden md:flex items-center">
+              <div ref={navRef} className="flex items-center bg-muted/50 rounded-full px-2 py-1 backdrop-blur-sm relative">
+                {/* Sliding indicator */}
+                <div 
+                  className={`absolute bg-primary/70  shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
+                    indicatorStyle.width === 0 ? 'opacity-0' : 'opacity-100'
                   }`}
-                  type="button"
-                >
-                  Home
-                </button>
-                <button 
-                  onClick={(e) => handleNavigation(e, '/clubSearch')}
-                  className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/clubSearch') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
-                  }`}
-                  type="button"
-                >
-                  Clubs
-                </button>
-                <button 
-                  onClick={(e) => handleNavigation(e, '/postFilter')}
-                  className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/postFilter') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
-                  }`}
-                  type="button"
-                >
-                  Posts
-                </button>
+                  style={{
+                    left: `${indicatorStyle.left}px`,
+                    width: `${indicatorStyle.width}px`,
+                    height: '32px',
+                    top: '7px',
+                  }}
+                />
+                
+                
+                <NavButton
+                  onClick={(e) => handleNavigation(e, "/clubSearch")}
+                  isActive={isActive("/clubSearch")}
+                  label="Clubs"
+                  index={0}
+                />
+                <NavButton
+                  onClick={(e) => handleNavigation(e, "/postFilter")}
+                  isActive={isActive("/postFilter")}
+                  label="Posts"
+                  index={1}
+                />
+                {user && (
+                  <NavButton
+                    onClick={(e) => handleNavigation(e, "/calendar")}
+                    isActive={isActive("/calendar")}
+                    label="Calendar"
+                    index={2}
+                  />
+                )}
                 {isAdmin && (
-                  <button 
-                    onClick={(e) => handleNavigation(e, '/admin')}
-                    className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                      isActive('/admin') 
-                        ? 'text-primary font-medium' 
-                        : 'text-muted-foreground hover:text-secondary'
-                    }`}
-                    type="button"
-                  >
-                    Admin
-                  </button>
+                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={user ? 3 : 2} />
                 )}
                 {isExecutive && (
-                  <button 
-                    onClick={(e) => handleNavigation(e, '/exec')}
-                    className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                      isActive('/exec') 
-                        ? 'text-primary font-medium' 
-                        : 'text-muted-foreground hover:text-secondary'
-                    }`}
-                    type="button"
-                  >
-                    Executive
-                  </button>
+                  <NavButton
+                    onClick={(e) => handleNavigation(e, "/exec")}
+                    isActive={isActive("/exec")}
+                    label="Executive"
+                    index={(user ? 3 : 2) + (isAdmin ? 1 : 0)}
+                  />
                 )}
-                <button 
-                  onClick={(e) => handleNavigation(e, '/pending-club-request')}
-                  className={`transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/pending-club-request') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
-                  }`}
-                  type="button"
-                >
-                  Request Club
-                </button>
+                <NavButton
+                  onClick={(e) => handleNavigation(e, "/pending-club-request")}
+                  isActive={isActive("/pending-club-request")}
+                  label="Request Club"
+                  index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
+                />
               </div>
             </nav>
 
@@ -280,6 +324,19 @@ export function Header() {
                 >
                   Posts
                 </button>
+                {user && (
+                  <button 
+                    onClick={(e) => handleNavigation(e, '/calendar')}
+                    className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+                      isActive('/calendar') 
+                        ? 'text-primary font-medium' 
+                        : 'text-muted-foreground hover:text-secondary'
+                    }`}
+                    type="button"
+                  >
+                    Calendar
+                  </button>
+                )}
                 {user && isAdmin && (
                   <button 
                     onClick={(e) => handleNavigation(e, '/admin')}
