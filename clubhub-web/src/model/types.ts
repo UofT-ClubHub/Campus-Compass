@@ -33,6 +33,7 @@ export interface Club {
         deadline?: string;
         status: 'open' | 'closed';
         positionId: string;
+        applicants?: Array<string>;
     }>;
     closedPositions?: Array<{
         title?: string;
@@ -43,7 +44,18 @@ export interface Club {
         deadline?: string;
         status: 'open' | 'closed';
         positionId: string;
+        applicants?: Array<string>;
     }>;
+}
+
+export interface SubmittedApplication {
+    id: string;
+    clubId: string;
+    positionId: string;
+    userId: string;
+    status: 'draft' | 'pending' | 'approved' | 'rejected';
+    submittedAt: string;
+    answers: { [question: string]: string };
 }
 
 export interface Post {

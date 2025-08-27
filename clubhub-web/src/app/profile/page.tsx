@@ -92,7 +92,7 @@ export default function ProfilePage() {
 
     if (authLoading || isLoading) {
         return (
-        <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="flex justify-center items-center min-h-screen bg-theme-gradient bg-animated-elements">
             <div className="flex flex-col items-center">
             <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4"></div>
             <p className="text-muted-foreground font-medium">Loading your profile...</p>
@@ -119,107 +119,113 @@ export default function ProfilePage() {
                 />
             ))}
             
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 py-12 max-w-6xl pt-20">
+            <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-6xl pt-4 sm:pt-12">
                 {/* Profile Header Card */}
-                <div className="mb-8 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 form-glow">
-                    <div className="relative flex flex-col items-center justify-center gap-6">
-                        {/* Settings Button - align with top of name, proportional spacing, color palette */}
+                <div className="mb-4 sm:mb-8 bg-card/30 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-4 sm:p-8 form-glow">
+                    <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-8">
+                        <div className="flex-1 space-y-4 sm:space-y-6 w-full">
+                            {/* Name and Title */}
+                            <div className="space-y-2 text-center">
+                                <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                                    {userData ? userData.name : "No Name Provided"}
+                                </h1>
+                            </div>
+
+                            {/* Contact Info */}
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-muted-foreground justify-center">
+                                <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 bg-muted/30 rounded-full px-3 sm:px-4 py-2 text-center">
+                                    <Mail size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
+                                    <span className="text-xs sm:text-sm font-medium truncate">{userData?.email?.trim() || "No Email Provided"}</span>
+                                </div>
+                                <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 bg-muted/30 rounded-full px-3 sm:px-4 py-2 text-center">
+                                    <MapPin size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
+                                    <span className="text-xs sm:text-sm font-medium truncate">{userData?.campus?.trim() || "No Campus Provided"}</span>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-3 sm:pt-4">
+                                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/80 rounded-lg sm:rounded-xl border border-border shadow-sm hover:bg-muted/90 transition-all duration-200" style={{ boxShadow: '0 0 0 1px rgb(59 130 246 / 0.2), 0 0 20px rgb(59 130 246 / 0.1)' }}>
+                                    <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg border border-blue-300/30">
+                                        <Users size={18} className="text-blue-600 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl sm:text-2xl font-bold text-foreground">
+                                            {userData ? userData.followed_clubs.length : "0"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground font-medium">Clubs Following</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/80 rounded-lg sm:rounded-xl border border-border shadow-sm hover:bg-muted/90 transition-all duration-200" style={{ boxShadow: '0 0 0 1px rgb(236 72 153 / 0.2), 0 0 20px rgb(236 72 153 / 0.1)' }}>
+                                    <div className="p-1.5 sm:p-2 bg-pink-500/10 rounded-lg border border-pink-300/30">
+                                        <Heart size={18} className="text-pink-600 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl sm:text-2xl font-bold text-foreground">
+                                            {userData ? userData.liked_posts.length : "0"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground font-medium">Posts Liked</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/80 rounded-lg sm:rounded-xl border border-border shadow-sm hover:bg-muted/90 transition-all duration-200" style={{ boxShadow: '0 0 0 1px rgb(245 158 11 / 0.2), 0 0 20px rgb(245 158 11 / 0.1)' }}>
+                                    <div className="p-1.5 sm:p-2 bg-amber-500/10 rounded-lg border border-amber-300/30">
+                                        <Star size={18} className="text-amber-600 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xl sm:text-2xl font-bold text-foreground">
+                                            {userData ? userData.managed_clubs.length : "0"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground font-medium">Clubs Managed</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>  
+
+                        {/* Settings Button */}
                         <button
                             onClick={handleSettingsClick}
-                            className="absolute right-6 top-0 group p-4 bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 rounded-xl cursor-pointer hover:scale-105"
-                            style={{ transform: 'translateY(-10%)' }}
+                            className="group p-3 sm:p-4 bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 rounded-lg sm:rounded-xl cursor-pointer hover:scale-105 w-full sm:w-auto flex justify-center lg:block"
                         >
-                            <Settings size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <Settings size={20} className="text-muted-foreground group-hover:text-primary transition-colors sm:w-6 sm:h-6" />
                         </button>
-                        {/* Name and Title */}
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                                {userData ? userData.name : "No Name Provided"}
-                            </h1>
-                        </div>
-                        {/* Contact Info */}
-                        <div className="flex flex-col sm:flex-row gap-4 text-muted-foreground justify-center">
-                            <div className="flex items-center gap-3 bg-muted/30 rounded-full px-4 py-2">
-                                <Mail size={18} className="text-primary" />
-                                <span className="text-sm font-medium">{userData?.email?.trim() || "No Email Provided"}</span>
-                            </div>
-                            <div className="flex items-center gap-3 bg-muted/30 rounded-full px-4 py-2">
-                                <MapPin size={18} className="text-primary" />
-                                <span className="text-sm font-medium">{userData?.campus?.trim() || "No Campus Provided"}</span>
-                            </div>
-                        </div>
-                        {/* Stats */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 w-full max-w-3xl">
-                            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-200 to-blue-300 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl border border-blue-500 dark:border-blue-800/50">
-                                <div className="p-2 bg-blue-700/30 rounded-lg">
-                                    <Users size={22} className="text-blue-950 dark:text-blue-300" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold text-blue-950 dark:text-blue-100">
-                                        {userData ? userData.followed_clubs.length : "0"}
-                                    </p>
-                                    <p className="text-xs font-bold text-blue-950 dark:text-blue-100">Clubs Following</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-rose-200 to-rose-300 dark:from-rose-950/30 dark:to-rose-900/30 rounded-xl border border-rose-500 dark:border-rose-800/50">
-                                <div className="p-2 bg-rose-700/30 rounded-lg">
-                                    <Heart size={22} className="text-rose-950 dark:text-rose-300" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold text-rose-950 dark:text-rose-100">
-                                        {userData ? userData.liked_posts.length : "0"}
-                                    </p>
-                                    <p className="text-xs font-bold text-rose-950 dark:text-rose-100">Posts Liked</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-amber-200 to-amber-300 dark:from-amber-950/30 dark:to-amber-900/30 rounded-xl border border-amber-500 dark:border-amber-800/50">
-                                <div className="p-2 bg-amber-700/30 rounded-lg">
-                                    <Star size={22} className="text-amber-950 dark:text-amber-300" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold text-amber-950 dark:text-amber-100">
-                                        {userData ? userData.managed_clubs.length : "0"}
-                                    </p>
-                                    <p className="text-xs font-bold text-amber-950 dark:text-amber-100">Clubs Managed</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 {/* Followed Clubs Section */}
-                <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 form-glow">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                                <Users size={24} className="text-primary" />
+                <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 form-glow">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-8 gap-2 sm:gap-0">
+                        <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+                            <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg">
+                                <Users size={20} className="text-primary sm:w-6 sm:h-6" />
                             </div>
                             Followed Clubs
-                            <span className="text-lg font-normal text-muted-foreground">
+                            <span className="text-base sm:text-lg font-normal text-muted-foreground">
                                 ({userData ? userData.followed_clubs.length : "0"})
                             </span>
                         </h2>
                     </div>
 
                     {followedClubs.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                             {followedClubs.map((club) => (
                                 <Link key={club.id} href={`/clubPage/${club.id}`} className="group block">
-                                    <div className="h-full p-6 bg-card border border-border rounded-lg hover:border-border/80 transition-all duration-200 hover:shadow-sm">
-                                        <div className="flex gap-4">
+                                    <div className="h-full p-4 sm:p-6 bg-card border border-border rounded-lg hover:border-border/80 transition-all duration-200 hover:shadow-sm">
+                                        <div className="flex gap-3 sm:gap-4">
                                             <div className="flex-shrink-0">
                                                 <img
                                                     src={club.image || "/default-club-image.png"}
                                                     alt={club.name}
-                                                    className="w-12 h-12 rounded-lg object-cover"
+                                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
                                                 />
                                             </div>
 
-                                            <div className="flex-1 min-w-0 space-y-2">
-                                                <h3 className="font-semibold text-foreground group-hover:text-foreground/80 transition-colors truncate">
+                                            <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                                                <h3 className="text-sm sm:text-base font-semibold text-foreground group-hover:text-foreground/80 transition-colors truncate">
                                                     {club.name}
                                                 </h3>
-                                                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{club.description}</p>
+                                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">{club.description}</p>
                                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                     <Users size={12} />
                                                     <span>{club.followers}</span>
@@ -231,11 +237,11 @@ export default function ProfilePage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12">
-                            <div className="p-4 bg-muted/30 rounded-full w-fit mx-auto mb-4">
-                                <Users size={32} className="text-muted-foreground" />
+                        <div className="text-center py-8 sm:py-12">
+                            <div className="p-3 sm:p-4 bg-muted/30 rounded-full w-fit mx-auto mb-3 sm:mb-4">
+                                <Users size={24} className="text-muted-foreground sm:w-8 sm:h-8" />
                             </div>
-                            <p className="text-muted-foreground text-lg">No clubs followed yet</p>
+                            <p className="text-muted-foreground text-base sm:text-lg">No clubs followed yet</p>
                             <p className="text-sm text-muted-foreground/80 mt-1">Start following clubs to see them here</p>
                         </div>
                     )}

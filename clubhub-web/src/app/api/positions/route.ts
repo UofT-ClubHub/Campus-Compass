@@ -2,6 +2,7 @@ import { Club } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore } from '../firebaseAdmin';
 import { v4 as uuidv4 } from 'uuid';
+import { withAuth } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
   try {
@@ -148,7 +149,8 @@ export async function GET(request: NextRequest) {
           clubName: club.name,
           clubCampus: club.campus,
           clubDepartment: club.department,
-          clubDescription: club.description
+          clubDescription: club.description,
+          clubImage: club.image
         };
         allPositions.push(positionWithClub);
       });
@@ -206,8 +208,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const clubId = searchParams.get("id");
         if (!clubId) {
@@ -217,6 +220,15 @@ export async function PATCH(request: NextRequest) {
         const clubDoc = await firestore.collection("Clubs").doc(clubId).get();
         if (!clubDoc.exists) {
             return NextResponse.json({ message: "Club not found" }, { status: 404 });
+        }
+
+        // Additional authorization check: admins can edit any club, executives can only edit their managed clubs
+        if (!authResult.isAdmin) {
+            const clubData = clubDoc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
 
         const clubData = clubDoc.data() as Club;
@@ -291,10 +303,11 @@ export async function PATCH(request: NextRequest) {
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request: NextRequest) => {
     try {
+        const authResult = (request as any).auth; // Added by middleware
         const { searchParams } = request.nextUrl;
         const positionId = searchParams.get("positionId");
         const clubId = searchParams.get("clubId");
@@ -311,6 +324,15 @@ export async function DELETE(request: NextRequest) {
         const clubDoc = await firestore.collection("Clubs").doc(clubId).get();
         if (!clubDoc.exists) {
             return NextResponse.json({ message: "Club not found" }, { status: 404 });
+        }
+
+        // Additional authorization check: admins can delete any club, executives can only delete their managed clubs
+        if (!authResult.isAdmin) {
+            const clubData = clubDoc.data() as Club;
+            const executives = clubData?.executives || [];
+            if (!executives.includes(authResult.uid)) {
+                return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
+            }
         }
         
 
@@ -345,4 +367,4 @@ export async function DELETE(request: NextRequest) {
     catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+});

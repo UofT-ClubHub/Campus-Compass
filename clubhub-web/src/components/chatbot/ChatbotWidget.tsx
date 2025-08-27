@@ -139,19 +139,21 @@ export default function ChatbotWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl touch-none"
+          className="group relative rounded-full p-4 shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 select-none"
           style={{
             background: `linear-gradient(to right, var(--primary), var(--accent))`,
-            color: 'var(--primary-foreground)'
+            color: 'var(--primary-foreground)',
+            touchAction: 'manipulation'
           }}
+          aria-label="Open ClubHub Assistant chat"
         >
-          <MessageCircle size={28} className="transition-transform group-hover:scale-110" />
+          <MessageCircle size={28} className="transition-transform" />
           
           {/* Notification dot */}
           <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: 'var(--destructive)' }}></div>
           
-          {/* Tooltip */}
-          <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-sm py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+          {/* Tooltip - Hidden on mobile, visible on desktop */}
+          <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-sm py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden md:block pointer-events-none"
                style={{ backgroundColor: 'var(--foreground)', color: 'var(--background)' }}>
             Chat with ClubHub Assistant
             <div className="absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent" style={{ borderLeftColor: 'var(--foreground)' }}></div>
