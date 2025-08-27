@@ -381,6 +381,17 @@ export function Header() {
                 >
                   Request Club
                 </button>
+                <button 
+                  onClick={(e) => handleNavigation(e, '/about')}
+                  className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+                    isActive('/about') 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground hover:text-secondary'
+                  }`}
+                  type="button"
+                >
+                  About Us
+                </button>
                 
                 <hr className="border-border" />
                 
