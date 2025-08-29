@@ -21,7 +21,7 @@ export interface Position {
     questions: { [key: string]: { [key: string]: string } };
     date_posted: string;
     deadline: string;
-    applicants: Array<string>;
+    applicants: string[];
 }
 
 export interface OpenPosition extends Position {
