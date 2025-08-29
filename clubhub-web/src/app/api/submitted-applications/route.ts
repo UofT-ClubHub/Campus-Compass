@@ -126,7 +126,7 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         // Check if position exists in the club's openPositions
         const clubData = clubDoc.data();
 
-        const openPositionRef = firestore.collection("Clubs").doc(clubId).collection("openPositions").doc(positionId);
+        const openPositionRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions").doc(positionId);
         const openPositionDoc = await openPositionRef.get();
 
         if (!openPositionDoc.exists) {
@@ -182,7 +182,7 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
                 await openPositionRef.update({
                   applicants: admin.firestore.FieldValue.arrayUnion(userId)
               });
-              
+
                 return NextResponse.json({ message: "Application submitted successfully" }, { status: 200 });
             }
         }
