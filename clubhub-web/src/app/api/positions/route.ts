@@ -1,7 +1,6 @@
-import { Club } from '@/model/types';
+import { Club, OpenPosition, ClosedPosition } from '@/model/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { firestore } from '../firebaseAdmin';
-import { v4 as uuidv4 } from 'uuid';
 import { withAuth } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
@@ -29,16 +28,35 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         );
       }
-      
+
       const clubData = doc.data() as Club;
       let positions: any[] = [];
-      
-      // Get positions from appropriate arrays based on show_open and show_closed
-      if (showOpen && clubData.openPositions) {
-        positions = positions.concat(clubData.openPositions);
+
+      // Get positions from subcollections based on show_open and show_closed
+      if (showOpen) {
+        try {
+          const openPositionsSnapshot = await clubsCollection.doc(documentId).collection("OpenPositions").get();
+          if (!openPositionsSnapshot.empty) {
+            const openPositions = openPositionsSnapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id }));
+            positions = positions.concat(openPositions);
+          }
+        } catch (error) {
+          // Subcollection might not exist yet, which is fine
+          console.log(`No openPositions subcollection found for club ${documentId}`);
+        }
       }
-      if (showClosed && clubData.closedPositions) {
-        positions = positions.concat(clubData.closedPositions);
+
+      if (showClosed) {
+        try {
+          const closedPositionsSnapshot = await clubsCollection.doc(documentId).collection("ClosedPositions").get();
+          if (!closedPositionsSnapshot.empty) {
+            const closedPositions = closedPositionsSnapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id }));
+            positions = positions.concat(closedPositions);
+          }
+        } catch (error) {
+          // Subcollection might not exist yet, which is fine
+          console.log(`No closedPositions subcollection found for club ${documentId}`);
+        }
       }
 
       // Sort positions by date_posted or deadline
@@ -73,7 +91,7 @@ export async function GET(request: NextRequest) {
             const numB = parseInt(b.replace(/\D/g, ''));
             return numA - numB;
           });
-          
+
           sortedQuestions = {};
           sortedKeys.forEach(key => {
             sortedQuestions[key] = position.questions[key];
@@ -92,7 +110,7 @@ export async function GET(request: NextRequest) {
       });
 
       const paginated = positionsWithClub.slice(offset, offset + limit);
-      
+
       return NextResponse.json(paginated, { status: 200 });
     }
 
@@ -110,50 +128,79 @@ export async function GET(request: NextRequest) {
     const snapshot = await query.get();
     let clubs: Club[] = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Club));
 
-    // Extract all positions from clubs
+    // Extract all positions from clubs using subcollections
     let allPositions: any[] = [];
-    
-    clubs.forEach((club) => {
-      // Get positions from appropriate arrays based on show_open and show_closed
-      let clubPositions: any[] = [];
-      
-      if (showOpen && club.openPositions && Array.isArray(club.openPositions)) {
-        clubPositions = clubPositions.concat(club.openPositions);
-      }
-      if (showClosed && club.closedPositions && Array.isArray(club.closedPositions)) {
-        clubPositions = clubPositions.concat(club.closedPositions);
-      }
-      
-      clubPositions.forEach((position: any) => {
-        // Sort questions if they exist
-        let sortedQuestions = position.questions;
-        if (position.questions && typeof position.questions === 'object') {
-          const sortedKeys = Object.keys(position.questions).sort((a, b) => {
-            // Extract numbers from Q1, Q2, etc. and sort numerically
-            const numA = parseInt(a.replace(/\D/g, ''));
-            const numB = parseInt(b.replace(/\D/g, ''));
-            return numA - numB;
-          });
-          
-          sortedQuestions = {};
-          sortedKeys.forEach(key => {
-            sortedQuestions[key] = position.questions[key];
-          });
-        }
 
-        // Add club information to each position
-        const positionWithClub = {
-          ...position,
-          questions: sortedQuestions,
-          clubId: club.id,
-          clubName: club.name,
-          clubCampus: club.campus,
-          clubDepartment: club.department,
-          clubDescription: club.description,
-          clubImage: club.image
-        };
-        allPositions.push(positionWithClub);
-      });
+    for (const club of clubs) {
+      // Get positions from subcollections based on show_open and show_closed
+      if (showOpen) {
+        try {
+          const openPositionsSnapshot = await clubsCollection.doc(club.id).collection("OpenPositions").get();
+          if (!openPositionsSnapshot.empty) {
+            const openPositions = openPositionsSnapshot.docs.map((doc: any) => ({ 
+              ...doc.data(), 
+              id: doc.id,
+              clubId: club.id,
+              clubName: club.name,
+              clubCampus: club.campus,
+              clubDepartment: club.department,
+              clubDescription: club.description,
+              clubImage: club.image
+            }));
+            allPositions.push(...openPositions);
+          }
+        }
+        catch (error) {
+          console.error(`Error fetching open positions for club ${club.id}:`, error);
+        }
+      }
+
+      if (showClosed) {
+        try {
+          const closedPositionsSnapshot = await clubsCollection.doc(club.id).collection("ClosedPositions").get();
+          if (!closedPositionsSnapshot.empty) {
+            const closedPositions = closedPositionsSnapshot.docs.map((doc: any) => ({ 
+              ...doc.data(), 
+              id: doc.id,
+              clubId: club.id,
+              clubName: club.name,
+              clubCampus: club.campus,
+              clubDepartment: club.department,
+              clubDescription: club.description,
+              clubImage: club.image
+            }));
+            allPositions.push(...closedPositions);
+          }
+        } catch (error) {
+          // Subcollection might not exist yet, which is fine
+          console.log(`No closedPositions subcollection found for club ${club.id}`);
+        }
+      }
+    }
+
+    // Process all positions at once: sort questions
+    allPositions = allPositions.map((position: any) => {
+      // Sort questions if they exist
+      let sortedQuestions = position.questions;
+      if (position.questions && typeof position.questions === 'object') {
+        const sortedKeys = Object.keys(position.questions).sort((a, b) => {
+          // Extract numbers from Q1, Q2, etc. and sort numerically
+          const numA = parseInt(a.replace(/\D/g, ''));
+          const numB = parseInt(b.replace(/\D/g, ''));
+          return numA - numB;
+        });
+
+        sortedQuestions = {};
+        sortedKeys.forEach(key => {
+          sortedQuestions[key] = position.questions[key];
+        });
+      }
+
+      // Return position with sorted questions
+      return {
+        ...position,
+        questions: sortedQuestions
+      };
     });
 
     // Apply filters to positions
@@ -166,15 +213,15 @@ export async function GET(request: NextRequest) {
           (position.clubDescription && position.clubDescription.toLowerCase().includes(searchFilter.toLowerCase())) ||
           (position.clubName && position.clubName.toLowerCase().includes(searchFilter.toLowerCase())) ||
           (position.requirements && position.requirements.some((requirement: string) => requirement.toLowerCase().includes(searchFilter.toLowerCase())));
-        
+
         // Handle exact match filters
         const matchesCampus = !campusFilter ||
           (position.clubCampus && position.clubCampus.toLowerCase() === campusFilter.toLowerCase());
         const matchesDepartment = !departmentFilter ||
           (position.clubDepartment && position.clubDepartment.toLowerCase() === departmentFilter.toLowerCase());
-        
 
-        
+
+
         return matchesSearch && matchesCampus && matchesDepartment;
       }
     );
@@ -201,7 +248,7 @@ export async function GET(request: NextRequest) {
     }
 
     const paginated = allPositions.slice(offset, offset + limit);
-    
+
     return NextResponse.json(paginated, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -231,69 +278,114 @@ export const PATCH = withAuth(async (request: NextRequest) => {
             }
         }
 
-        const clubData = clubDoc.data() as Club;
         const newPositionData = await request.json();
-        const { positionId, currentStatus, ...positionFields } = newPositionData;  // currentStatus is the current status of the position when PATCH route is called (either "open" or "closed")
+
+        // currentStatus is the current status (or the new status if status wanted to be changed) of the position when PATCH route is called (either "open" or "closed")
+        const { positionId, currentStatus, ...positionFields } = newPositionData; 
 
         if (!positionId) {
             return NextResponse.json({ message: "Position ID is required" }, { status: 400 });
         }
 
-        let openPositions = clubData.openPositions || [];
-        let closedPositions = clubData.closedPositions || [];
         let positionFound = false;
         let positionFoundInOpen = false;
         let positionFoundInClosed = false;
+        let existingPosition: any = null;
 
-        // Check if position exists in either array
-        const existingPositionInOpen = openPositions.find((position: any) => position.positionId === positionId);
-        const existingPositionInClosed = closedPositions.find((position: any) => position.positionId === positionId);
-
-        if (existingPositionInOpen) {
-            positionFound = true;
-            positionFoundInOpen = true;
-        } else if (existingPositionInClosed) {
-            positionFound = true;
-            positionFoundInClosed = true;
+        // Check if position exists in either subcollection
+        try {
+            const openPositionDoc = await firestore.collection("Clubs").doc(clubId).collection("OpenPositions").doc(positionId).get();
+            if (openPositionDoc.exists) {
+                positionFound = true;
+                positionFoundInOpen = true;
+                existingPosition = { ...openPositionDoc.data(), id: openPositionDoc.id };
+            }
+        } catch (error) {
+            // Subcollection might not exist, which is fine
         }
 
-        // Handle status change (moving between arrays)
+        if (!positionFound) {
+            try {
+                const closedPositionDoc = await firestore.collection("Clubs").doc(clubId).collection("ClosedPositions").doc(positionId).get();
+                if (closedPositionDoc.exists) {
+                    positionFound = true;
+                    positionFoundInClosed = true;
+                    existingPosition = { ...closedPositionDoc.data(), id: closedPositionDoc.id };
+                }
+            } catch (error) {
+                // Subcollection might not exist, which is fine
+            }
+        }
+
+        // Handle status change (moving between subcollections) or updates
         if (positionFound) {
+            const batch = firestore.batch();
+
             if (positionFoundInOpen && currentStatus === "closed") {
                 // Moving from open to closed
-                openPositions = openPositions.filter((position: any) => position.positionId !== positionId);
-                closedPositions.push({ ...existingPositionInOpen, ...positionFields, status: "closed" });
+                // Delete from openPositions
+                const openPositionRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions").doc(positionId);
+                batch.delete(openPositionRef);
+
+                // Create in closedPositions
+                const closedPositionRef = firestore.collection("Clubs").doc(clubId).collection("ClosedPositions").doc(positionId);
+                const positionData = {
+                    ...existingPosition,
+                    ...positionFields,
+                    status: "closed"
+                };
+                batch.set(closedPositionRef, positionData);
+
             } else if (positionFoundInClosed && currentStatus === "open") {
                 // Moving from closed to open
-                closedPositions = closedPositions.filter((position: any) => position.positionId !== positionId);
-                openPositions.push({ ...existingPositionInClosed, ...positionFields, status: "open" });
+                // Delete from closedPositions
+                const closedPositionRef = firestore.collection("Clubs").doc(clubId).collection("ClosedPositions").doc(positionId);
+                batch.delete(closedPositionRef);
+
+                // Create in openPositions
+                const openPositionRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions").doc(positionId);
+                const positionData = {
+                    ...existingPosition,
+                    ...positionFields,
+                    status: "open"
+                };
+                batch.set(openPositionRef, positionData);
+
             } else {
-                // Updating within same array
-                if (currentStatus === "open") {
-                    openPositions = openPositions.map((position: any) => 
-                        position.positionId === positionId ? { ...position, ...positionFields } : position
-                    );
-                } else {
-                    closedPositions = closedPositions.map((position: any) => 
-                        position.positionId === positionId ? { ...position, ...positionFields } : position
-                    );
-                }
+                // Updating within same subcollection
+                const positionRef = firestore.collection("Clubs").doc(clubId)
+                    .collection(currentStatus === "open" ? "OpenPositions" : "ClosedPositions")
+                    .doc(positionId);
+                
+                const positionData = {
+                    ...existingPosition,
+                    ...positionFields
+                };
+                batch.update(positionRef, positionData);
             }
+
+            await batch.commit();
+
         } else {
             // Position not found - only allow creating new open positions
             if (currentStatus === "open") {
-                const newPositionId = uuidv4();
-                openPositions.push({ positionId: newPositionId, ...positionFields });
+                const openPositionsRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions");
+                
+                const positionData = {
+                    ...positionFields,
+                    status: "open"
+                };
+                
+                const newPositionDoc = await openPositionsRef.add(positionData);
+                
+                return NextResponse.json({ 
+                    message: "Position added successfully",
+                    positionId: newPositionDoc.id
+                }, { status: 200 });
             } else {
                 return NextResponse.json({ message: "Cannot create new closed positions" }, { status: 400 });
             }
         }
-
-        // Update the club with both arrays
-        await firestore.collection("Clubs").doc(clubId).update({
-            openPositions,
-            closedPositions
-        });
         
         return NextResponse.json({ 
             message: positionFound ? "Position updated successfully" : "Position added successfully",
@@ -334,33 +426,20 @@ export const DELETE = withAuth(async (request: NextRequest) => {
                 return NextResponse.json({ error: 'Forbidden - Not an executive of this club' }, { status: 403 });
             }
         }
-        
 
-        const clubData = clubDoc.data() as Club;
-        let positions: any[] = [];
+        // Determine which subcollection to check based on isOpenPosition
+        const subcollectionName = isOpenPosition ? "openPositions" : "closedPositions";
+        const positionRef = firestore.collection("Clubs").doc(clubId).collection(subcollectionName).doc(positionId);
 
-        if (isOpenPosition) {
-            positions = clubData.openPositions || [];
-        } else {
-            positions = clubData.closedPositions || [];
-        }
-
-
-        
-        // Check if position exists in this club
-        const positionExists = positions.some((position: any) => position.positionId === positionId);
-        if (!positionExists) {
+        // Check if position exists in the subcollection
+        const positionDoc = await positionRef.get();
+        if (!positionDoc.exists) {
             const status = isOpenPosition ? "open" : "closed";
             return NextResponse.json({ message: `Position not found in this club's ${status} positions` }, { status: 404 });
         }
 
-        const newPositions = positions.filter((position: any) => position.positionId !== positionId);
-
-        if (isOpenPosition) {
-            await firestore.collection("Clubs").doc(clubId).update({ openPositions: newPositions });
-        } else {
-            await firestore.collection("Clubs").doc(clubId).update({ closedPositions: newPositions });
-        }
+        // Delete the position from the subcollection
+        await positionRef.delete();
 
         return NextResponse.json({ message: "Position deleted successfully" }, { status: 200 });
     }
