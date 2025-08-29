@@ -103,6 +103,7 @@ export async function GET(request: NextRequest) {
           questions: sortedQuestions,
           clubId: doc.id,
           clubName: clubData.name,
+          clubImage: clubData.image,
           clubCampus: clubData.campus,
           clubDepartment: clubData.department,
           clubDescription: clubData.description

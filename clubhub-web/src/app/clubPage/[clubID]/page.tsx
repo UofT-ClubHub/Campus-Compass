@@ -7,8 +7,9 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
 import { PostCard } from "@/components/post-card"
+import { PositionCard } from "@/components/position-card"
 import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink, Building2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface PageProps {
   params: Promise<{
@@ -16,7 +17,7 @@ interface PageProps {
   }>
 }
 
-async function getClubPosts(clubID: string) {
+async function getClubData(clubID: string) {
   try {
     const firestore = getFirestore(db)
     //Get name of the club
@@ -39,10 +40,12 @@ async function getClubPosts(clubID: string) {
       ...doc.data(),
     })) as Post[]
 
-    return { clubData, posts }
+
+
+    return { clubData, posts, positions: [] }
   } catch (error) {
-    console.error("Error fetching club posts:", error)
-    return { clubData: null, posts: [] }
+    console.error("Error fetching club data:", error)
+    return { clubData: null, posts: [], positions: [] }
   }
 }
 
@@ -50,6 +53,7 @@ export default function ClubPage({ params }: PageProps) {
   const [clubID, setClubID] = useState<string>("")
   const [clubData, setClubData] = useState<any>(null)
   const [posts, setPosts] = useState<Post[]>([])
+  const [positions, setPositions] = useState<any[]>([])
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
@@ -60,8 +64,12 @@ export default function ClubPage({ params }: PageProps) {
   const [executivesLoading, setExecutivesLoading] = useState(false)
   const [ig, setIg] = useState("");
   const [links, setLinks] = useState<{ [key: string]: string }>({})
-  const [activeTab, setActiveTab] = useState<'posts' | 'positions'>('posts');
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // Get initial tab from URL or default to posts
+  const initialTab = searchParams.get('tab') as 'posts' | 'positions' || 'posts'
+  const [activeTab, setActiveTab] = useState<'posts' | 'positions'>(initialTab)
 
   // Initialize component
   useEffect(() => {
@@ -70,7 +78,7 @@ export default function ClubPage({ params }: PageProps) {
       const id = resolvedParams.clubID
       setClubID(id)
 
-      const { clubData: fetchedClubData, posts: fetchedPosts } = await getClubPosts(id)
+      const { clubData: fetchedClubData, posts: fetchedPosts } = await getClubData(id)
       setClubData(fetchedClubData)
       setPosts(fetchedPosts)
       setFollowerCount(fetchedClubData?.followers || 0)
@@ -81,6 +89,29 @@ export default function ClubPage({ params }: PageProps) {
 
     initializeComponent()
   }, [params])
+
+  // Fetch positions when positions tab is active
+  useEffect(() => {
+    const fetchPositions = async () => {
+      if (activeTab === 'positions' && clubID) {
+        try {
+          const response = await fetch(`/api/positions?id=${clubID}&show_open=true&show_closed=false`);
+          if (response.ok) {
+            const positionsData = await response.json();
+            setPositions(positionsData);
+          } else {
+            console.error('Failed to fetch positions');
+            setPositions([]);
+          }
+        } catch (error) {
+          console.error('Error fetching positions:', error);
+          setPositions([]);
+        }
+      }
+    };
+
+    fetchPositions();
+  }, [activeTab, clubID]);
 
   // Listen for auth changes
   useEffect(() => {
@@ -255,7 +286,7 @@ export default function ClubPage({ params }: PageProps) {
 
   // Handle post refresh
   const handlePostRefresh = async () => {
-    const { posts: refreshedPosts } = await getClubPosts(clubID);
+    const { posts: refreshedPosts } = await getClubData(clubID);
     setPosts(refreshedPosts);
   };
 
@@ -455,14 +486,20 @@ export default function ClubPage({ params }: PageProps) {
             <button
               className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'posts' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
               style={{ minWidth: 0 }}
-              onClick={() => setActiveTab('posts')}
+              onClick={() => {
+                setActiveTab('posts')
+                router.push(`/clubPage/${clubID}?tab=posts`)
+              }}
             >
               Posts
             </button>
             <button
               className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'positions' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
               style={{ minWidth: 0 }}
-              onClick={() => setActiveTab('positions')}
+              onClick={() => {
+                setActiveTab('positions')
+                router.push(`/clubPage/${clubID}?tab=positions`)
+              }}
             >
               Open Positions
             </button>
@@ -509,19 +546,38 @@ export default function ClubPage({ params }: PageProps) {
               )}
             </div>
           ) : (
-            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow flex flex-col items-center justify-center min-h-[300px]">
-              <svg
-                className="w-16 h-16 text-muted-foreground mb-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <h3 className="text-xl font-semibold text-card-foreground mb-2">Open Positions</h3>
-              <p className="text-muted-foreground">Check out available positions and application forms for {clubData?.name}.</p>
+            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
+              {positions.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="mb-6">
+                    <svg
+                      className="w-16 h-16 text-muted-foreground mx-auto mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-card-foreground mb-2">No open positions</h3>
+                  <p className="text-muted-foreground">This club doesn't have any open positions at the moment</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                  {positions.map((position) => (
+                    <PositionCard 
+                      key={position.id} 
+                      position={position}
+                      className="max-w-s"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
