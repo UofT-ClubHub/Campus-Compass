@@ -37,6 +37,15 @@ function PositionSearchContent() {
 
   const hasFilters = campusFilter || sort_by || departmentFilter
 
+  // Handle position updates
+  const handlePositionUpdate = (updatedPosition: any) => {
+    setPositions(prevPositions => 
+      prevPositions.map(pos => 
+        pos.positionId === updatedPosition.positionId ? updatedPosition : pos
+      )
+    );
+  };
+
   useEffect(() => {
     setShowSortOrder(sort_by !== "");
     // If sort_by is selected and sort_order is empty, default to 'desc'
@@ -457,6 +466,7 @@ function PositionSearchContent() {
                       <PositionCard
                         key={position.positionId || index}
                         position={position}
+                        onPositionUpdate={handlePositionUpdate}
                       />
                     );
                   })}
