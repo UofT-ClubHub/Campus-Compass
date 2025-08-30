@@ -38,7 +38,7 @@ export const API_PERMISSIONS: Record<string, APIPermission> = {
     'DELETE /api/posts': { requiresExecOrAdmin: true },
     
     // Pending clubs endpoints
-    'GET /api/pending-clubs': { requiresAdmin: true },
+    'GET /api/pending-clubs': { requiresAuth: true },
     'POST /api/pending-clubs': { requiresAuth: true },
     'DELETE /api/pending-clubs': { requiresAdmin: true },
     
