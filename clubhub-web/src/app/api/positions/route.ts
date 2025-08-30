@@ -333,8 +333,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
                 const positionData = {
                     ...existingPosition,
                     ...positionFields,
-                    status: "closed"
-                };
+                    status: "closed"                };
                 batch.set(closedPositionRef, positionData);
 
             } else if (positionFoundInClosed && currentStatus === "open") {
@@ -348,8 +347,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
                 const positionData = {
                     ...existingPosition,
                     ...positionFields,
-                    status: "open"
-                };
+                    status: "open"                };
                 batch.set(openPositionRef, positionData);
 
             } else {
@@ -360,8 +358,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
                 
                 const positionData = {
                     ...existingPosition,
-                    ...positionFields
-                };
+                    ...positionFields                };
                 batch.update(positionRef, positionData);
             }
 
@@ -371,13 +368,18 @@ export const PATCH = withAuth(async (request: NextRequest) => {
             // Position not found - only allow creating new open positions
             if (currentStatus === "open") {
                 const openPositionsRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions");
+                // Create new position in openPosition
                 
                 const positionData = {
                     ...positionFields,
-                    status: "open"
+                    status: "open",
+                    date_posted: new Date().toISOString(),
                 };
                 
                 const newPositionDoc = await openPositionsRef.add(positionData);
+
+                // add positionID to new position
+                await newPositionDoc.update({ id: newPositionDoc.id });
                 
                 return NextResponse.json({ 
                     message: "Position added successfully",
@@ -429,7 +431,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
         }
 
         // Determine which subcollection to check based on isOpenPosition
-        const subcollectionName = isOpenPosition ? "openPositions" : "closedPositions";
+        const subcollectionName = isOpenPosition ? "OpenPositions" : "ClosedPositions";
         const positionRef = firestore.collection("Clubs").doc(clubId).collection(subcollectionName).doc(positionId);
 
         // Check if position exists in the subcollection

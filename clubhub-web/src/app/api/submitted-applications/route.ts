@@ -99,6 +99,8 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         const authResult = (request as any).auth; // Added by middleware
 
         const body = await request.json();
+
+        // dont pass in isFinalSubmission in query params if you want to save as draft. pass in as true if u want to save it as final submission
         const { answers, clubId, userId, positionId, isFinalSubmission = false } = body; // isFinalSubmission is true if they click submit button. its false if they click the save application button
 
         if (!clubId || !userId || !positionId || !answers) {
