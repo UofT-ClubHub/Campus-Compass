@@ -5,7 +5,7 @@ import { auth } from "@/model/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import type { User, Club, Post } from "@/model/types";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -568,7 +568,7 @@ export default function ExecPage() {
                             showAddExecForm === club.id ? null : club.id
                           )
                         }
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
                       </button>
@@ -588,7 +588,7 @@ export default function ExecPage() {
                             showEditClubForm === club.id ? null : club.id
                           );
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         {showEditClubForm === club.id ? "Cancel" : "Edit"}
                       </button>
@@ -605,9 +605,16 @@ export default function ExecPage() {
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       disabled={deletingClubId === club.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-destructive hover:bg-destructive/90 disabled:bg-destructive/60 text-destructive-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-destructive hover:bg-destructive/90 disabled:bg-destructive/60 text-destructive-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
                     >
                       {deletingClubId === club.id ? "Deleting..." : "Delete"}
+                    </button>
+                    <button
+                      onClick={() => router.push(`/applicationsPage/${club.id}`)}
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      <Users className="h-3 w-3" />
+                      View Applications
                     </button>
                   </div>
                 </div>

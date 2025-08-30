@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { firestore } from "@/app/api/firebaseAdmin";
 import { withAuth } from "@/lib/auth-middleware";
+import * as admin from 'firebase-admin';
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
@@ -98,6 +99,8 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         const authResult = (request as any).auth; // Added by middleware
 
         const body = await request.json();
+
+        // dont pass in isFinalSubmission in query params if you want to save as draft. pass in as true if u want to save it as final submission
         const { answers, clubId, userId, positionId, isFinalSubmission = false } = body; // isFinalSubmission is true if they click submit button. its false if they click the save application button
 
         if (!clubId || !userId || !positionId || !answers) {
@@ -124,10 +127,11 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         
         // Check if position exists in the club's openPositions
         const clubData = clubDoc.data();
-        const openPositions = clubData?.openPositions || [];
-        
-        const positionExists = openPositions.some((pos: any) => pos.positionId === positionId);
-        if (!positionExists) {
+
+        const openPositionRef = firestore.collection("Clubs").doc(clubId).collection("OpenPositions").doc(positionId);
+        const openPositionDoc = await openPositionRef.get();
+
+        if (!openPositionDoc.exists) {
             return NextResponse.json({ error: "Position not found in open positions" }, { status: 404 });
         }
         
@@ -177,15 +181,9 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
                 });
 
                 // add userId to the clubs openPositions applicants array
-                const openPositions = clubData?.openPositions || [];
-                const positionIndex = openPositions.findIndex((pos: any) => pos.positionId === positionId);
-                if (positionIndex !== -1) {
-                    if (!openPositions[positionIndex].applicants) {
-                        openPositions[positionIndex].applicants = [];
-                    }
-                    openPositions[positionIndex].applicants.push(userId);
-                    await firestore.collection("Clubs").doc(clubId).update({ openPositions });
-                }
+                await openPositionRef.update({
+                  applicants: admin.firestore.FieldValue.arrayUnion(userId)
+              });
 
                 return NextResponse.json({ message: "Application submitted successfully" }, { status: 200 });
             }
@@ -201,6 +199,7 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
             status: isFinalSubmission ? "pending" : "draft",
             submittedAt: new Date().toISOString(),
             answers: answers,
+            applicants: []
         };
 
         // Create application in Club's subcollection
@@ -213,17 +212,10 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
 
         if (isFinalSubmission) {
             // add userId to the clubs openPositions applicants array
-            const openPositions = clubData?.openPositions || [];
-            const positionIndex = openPositions.findIndex((pos: any) => pos.positionId === positionId);
-            if (positionIndex !== -1) {
-                if (!openPositions[positionIndex].applicants) {
-                    openPositions[positionIndex].applicants = [];
-                }
-                openPositions[positionIndex].applicants.push(userId);
-                await firestore.collection("Clubs").doc(clubId).update({ openPositions });
-            }
+            await openPositionRef.update({
+                applicants: admin.firestore.FieldValue.arrayUnion(userId)
+            });
         }
-
         return NextResponse.json({ message: "Application submitted/saved successfully" }, { status: 200 });
     } catch (error: any) {
         return NextResponse.json(

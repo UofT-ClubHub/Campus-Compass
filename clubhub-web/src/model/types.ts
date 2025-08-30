@@ -13,6 +13,25 @@ export interface User {
     managed_clubs: string[];
 }
 
+export interface Position {
+    id: string;
+    title: string;
+    description: string;
+    requirements: string[];
+    questions: { [key: string]: { [key: string]: string } };
+    date_posted: string;
+    deadline: string;
+    applicants: string[];
+}
+
+export interface OpenPosition extends Position {
+    status: 'open';
+}
+
+export interface ClosedPosition extends Position {
+    status: 'closed';
+}
+
 export interface Club {
     id: string;
     name: string;
@@ -24,28 +43,6 @@ export interface Club {
     executives: string[];
     department: string;
     links: { [key: string]: string };
-    openPositions?: Array<{
-        title?: string;
-        description?: string;
-        requirements?: string[];
-        questions?: { [key: string]: { [key: string]: string } };
-        date_posted?: string;
-        deadline?: string;
-        status: 'open' | 'closed';
-        positionId: string;
-        applicants?: Array<string>;
-    }>;
-    closedPositions?: Array<{
-        title?: string;
-        description?: string;
-        requirements?: string[];
-        questions?: { [key: string]: { [key: string]: string } };
-        date_posted?: string;
-        deadline?: string;
-        status: 'open' | 'closed';
-        positionId: string;
-        applicants?: Array<string>;
-    }>;
 }
 
 export interface SubmittedApplication {
