@@ -2,7 +2,7 @@ name: Nightly Instagram Scraper
 
 on:
   schedule:
-    - cron: '5 5 * * *'  # 12:00 AM EST every day
+    - cron: '10 4 * * *'  # 12:10 AM EDT / 11:10 PM EST
   workflow_dispatch: # Allow manual triggering
   # push:
   #   branches: [ main, develop ]  # Run on push to these branches
