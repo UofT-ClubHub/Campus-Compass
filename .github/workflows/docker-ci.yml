@@ -3,9 +3,7 @@ name: CI/CD Pipeline - Build and Deploy Docker Image
 on:
   workflow_dispatch: # Allow manual triggering
   push:
-    branches: [ main ]
-  # push:
-  #   branches: [ main, develop ] # develop branch is for testing
+    branches: [ deployment ]
 
 jobs:
   ci-pipeline:
@@ -56,13 +54,13 @@ jobs:
           VERSION=$(git log -1 --pretty=%B | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
           if [ -z "$VERSION" ]; then
             echo "No version found in commit message, generating timestamp version"
-            if [ "$BRANCH_NAME" != "main" ]; then
+            if [ "$BRANCH_NAME" != "deployment" ]; then
               VERSION="v$(date +%Y.%m.%d-%H%M%S)-$BRANCH_NAME"
             else
               VERSION="v$(date +%Y.%m.%d-%H%M%S)"
             fi
           else
-            if [ "$BRANCH_NAME" != "main" ]; then
+            if [ "$BRANCH_NAME" != "deployment" ]; then
               VERSION="$VERSION-$BRANCH_NAME"
             fi
           fi
@@ -104,4 +102,3 @@ jobs:
           echo "Images pushed successfully:"
           echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}"
           echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
-          
