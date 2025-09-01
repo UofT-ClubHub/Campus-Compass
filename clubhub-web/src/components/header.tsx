@@ -18,16 +18,18 @@ interface NavButtonProps {
 
 const NavButton = ({ onClick, isActive, label, index }: NavButtonProps) => (
   <button
+  
     onClick={onClick}
     data-nav-index={index}
-    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer bg-transparent border-0 relative z-10 ${
+    className={`px-2 sm:px-3 lg:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer bg-transparent border-0 relative z-10 whitespace-nowrap overflow-hidden text-ellipsis max-w-24 sm:max-w-32 lg:max-w-none ${
       isActive 
         ? 'text-gray-900 dark:text-gray-100 font-semibold' 
         : 'text-muted-foreground hover:text-foreground hover:scale-102'
     }`}
     type="button"
+    title={label}
   >
-    {label}
+    <span className="truncate">{label}</span>
   </button>
 );
 
@@ -145,8 +147,8 @@ export function Header() {
 
     return (
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-between h-16 min-w-0">
             
             {/* Logo */}
             <div className="flex items-center">
@@ -156,8 +158,8 @@ export function Header() {
             </div>
 
             {/* Enhanced Desktop Navigation */}
-            <nav className="hidden md:flex items-center">
-              <div ref={navRef} className="flex items-center bg-muted/50 rounded-full px-2 py-1 backdrop-blur-sm relative">
+            <nav className="hidden xl:flex items-center flex-1 justify-center min-w-0 mx-1 lg:mx-4">
+              <div ref={navRef} className="flex items-center bg-muted/50 rounded-full px-1 py-1 backdrop-blur-sm relative overflow-x-auto max-w-full scrollbar-hide">
                 {/* Sliding indicator */}
                 <div 
                   className={`absolute bg-primary/70  shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
@@ -199,14 +201,14 @@ export function Header() {
                   <NavButton
                     onClick={(e) => handleNavigation(e, "/exec")}
                     isActive={isActive("/exec")}
-                    label="Executive"
+                    label="Exec"
                     index={(user ? 3 : 2) + (isAdmin ? 1 : 0)}
                   />
                 )}
                 <NavButton
                   onClick={(e) => handleNavigation(e, "/pending-club-request")}
                   isActive={isActive("/pending-club-request")}
-                  label="Request Club"
+                  label="Request"
                   index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
                 />
                 <NavButton
@@ -219,7 +221,7 @@ export function Header() {
             </nav>
 
             {/* Desktop User Menu */}
-            <nav className="hidden md:flex items-center gap-4">
+            <nav className="hidden xl:flex items-center gap-2 lg:gap-4 flex-shrink-0">
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -238,34 +240,38 @@ export function Header() {
               {!loading && !user && (
                 <button 
                   onClick={(e) => handleNavigation(e, '/auth')}
-                  className="bg-primary hover:bg-secondary text-primary-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
+                  className="bg-primary hover:bg-secondary text-primary-foreground px-2 sm:px-3 lg:px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer text-xs sm:text-sm whitespace-nowrap"
                   type="button"
+                  title="Login / Register"
                 >   
-                  Login / Register
+                  <span className="hidden lg:inline">Login / Register</span>
+                  <span className="lg:hidden">Login</span>
                 </button>
               )}
               {!loading && user && (
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={(e) => handleNavigation(e, '/profile')}
-                    className="text-muted-foreground hover:text-secondary transition-colors cursor-pointer bg-transparent border-0 p-0"
+                    className="text-muted-foreground hover:text-secondary transition-colors cursor-pointer bg-transparent border-0 p-0 text-xs sm:text-sm whitespace-nowrap"
                     type="button"
                   >
                     Profile
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
+                    className="bg-destructive hover:bg-destructive/80 text-destructive-foreground px-2 sm:px-3 lg:px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer text-xs sm:text-sm whitespace-nowrap"
                     type="button"
+                    title="Sign Out"
                   >
-                    Sign Out
+                    <span className="hidden sm:inline">Sign Out</span>
+                    <span className="sm:hidden">Out</span>
                   </button>
                 </div>
               )}
             </nav>        
                 
             {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center gap-2">
+            <div className="xl:hidden flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Mobile Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -281,7 +287,7 @@ export function Header() {
               {/* Always show mobile menu button */}
               <button
                 onClick={toggleMobileMenu}
-                className="p-2 text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
                 aria-label="Toggle mobile menu"
                 type="button"
               >
@@ -296,7 +302,7 @@ export function Header() {
             </div>
           </div>          {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden bg-card border-t border-border">
+            <div className="xl:hidden bg-card border-t border-border">
               <nav className="px-4 py-4 space-y-4">
                 <button
                   onClick={(e) => handleNavigation(e, '/')}
