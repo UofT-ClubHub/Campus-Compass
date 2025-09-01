@@ -503,15 +503,17 @@ useEffect(() => {
 
   return (
     <div 
-      className="min-h-screen bg-theme-gradient bg-animated-elements relative" 
+      className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" 
       data-theme={theme}
     >
       {/* Animated background elements */}
-      {Array.from({ length: 12 }, (_, i) => (
-        <div key={i} className={`element-${i + 1}`}></div>
-      ))}
+      <div className="absolute inset-0 bg-animated-elements">
+        {Array.from({ length: 12 }, (_, i) => (
+          <div key={i} className={`element-${i + 1}`}></div>
+        ))}
+      </div>
       
-      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-0 px-4">
+      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-10 sm:pb-16 px-4">
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <button
@@ -1019,18 +1021,17 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Image Expansion Modal */}
-      {isImageExpanded && post.image && (
+      {isImageExpanded && ((post?.image ?? '').trim().length > 0) && (
         <div 
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setIsImageExpanded(false)}
         >
           <div className="relative max-w-4xl max-h-[80vh] w-full h-full flex items-center justify-center">
             <img 
-              src={post.image} 
-              alt={post.title}
+              src={post?.image || ''} 
+              alt={post?.title || 'Event image'}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
