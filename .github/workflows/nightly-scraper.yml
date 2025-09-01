@@ -15,7 +15,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.ref_name }}
+        ref: deployment
       
     - name: Set up Python
       uses: actions/setup-python@v4
