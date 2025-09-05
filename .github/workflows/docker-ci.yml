@@ -109,17 +109,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Step 1: Install Tailscale
+      - name: "Step 1: Install Tailscale"
         run: curl -fsSL https://tailscale.com/install.sh | sh
 
-      - name: Step 2: Connect to Tailscale
+      - name: "Step 2: Connect to Tailscale"
         run: |
           sudo tailscaled --tun=userspace-networking &
           sleep 5
           sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --ssh
           tailscale status
 
-      - name: Step 3: Deploy to Kubernetes via SSH
+      - name: "Step 3: Deploy to Kubernetes via SSH"  
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: 100.115.224.113
