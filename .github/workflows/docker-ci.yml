@@ -131,14 +131,14 @@ jobs:
             # export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
             # Create/update Kubernetes Secret for private Firebase keys
-            sudo k3s kubectl create secret generic firebase-secrets \
+            sudo kubectl create secret generic firebase-secrets \
               --from-literal=ADMIN_FIREBASE_PROJECT_ID='${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}' \
               --from-literal=ADMIN_FIREBASE_CLIENT_EMAIL='${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}' \
               --from-literal=ADMIN_FIREBASE_PRIVATE_KEY='${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}' \
-              -n default --dry-run=client -o yaml | sudo k3s kubectl apply -f -
+              -n default --dry-run=client -o yaml | sudo kubectl apply -f -
 
             # Apply Deployment
-            sudo k3s kubectl apply -n default -f - <<EOF
+            sudo kubectl apply -n default -f - <<EOF
             apiVersion: apps/v1
             kind: Deployment
             metadata:
@@ -165,4 +165,4 @@ jobs:
                         name: firebase-secrets
             EOF
 
-            sudo k3s kubectl rollout status deployment/clubhub-deployment -n default
+            sudo kubectl rollout status deployment/clubhub-deployment -n default
