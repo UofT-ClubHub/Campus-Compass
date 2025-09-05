@@ -102,3 +102,67 @@ jobs:
           echo "Images pushed successfully:"
           echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.branch }}"
           echo "  - ${{ secrets.DOCKER_USERNAME }}/clubhub:${{ steps.version.outputs.version }}"
+
+
+  cd-pipeline:
+    needs: ci-pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step 1: Install Tailscale
+        run: curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Step 2: Connect to Tailscale
+        run: |
+          sudo tailscaled --tun=userspace-networking &
+          sleep 5
+          sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --ssh
+          tailscale status
+
+      - name: Step 3: Deploy to Kubernetes via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: 100.115.224.113
+          username: oskip123
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            echo "Deploying new image to Kubernetes..."
+            export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+            # Create/update Kubernetes Secret for private Firebase keys
+            kubectl create secret generic firebase-secrets \
+              --from-literal=ADMIN_FIREBASE_PROJECT_ID='${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}' \
+              --from-literal=ADMIN_FIREBASE_CLIENT_EMAIL='${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}' \
+              --from-literal=ADMIN_FIREBASE_PRIVATE_KEY='${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}' \
+              -n default --dry-run=client -o yaml | kubectl apply -f -
+
+            # Apply Deployment
+            kubectl apply -n default -f - <<EOF
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: clubhub-deployment
+              namespace: default
+            spec:
+              replicas: 5
+              selector:
+                matchLabels:
+                  app: clubhub
+              template:
+                metadata:
+                  labels:
+                    app: clubhub
+                spec:
+                  containers:
+                  - name: clubhub
+                    image: ${{ secrets.DOCKER_USERNAME }}/clubhub:deployment
+                    imagePullPolicy: Always
+                    ports:
+                    - containerPort: 3000
+                    envFrom:
+                    - secretRef:
+                        name: firebase-secrets
+            EOF
+
+            kubectl rollout status deployment/clubhub-deployment -n default
