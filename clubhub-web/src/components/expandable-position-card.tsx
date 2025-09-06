@@ -25,9 +25,8 @@ export function ExpandablePositionCard({ position, onClose }: ExpandablePosition
     }
   };
 
-  const handleLinkClick = (e: React.MouseEvent, link: string) => {
-    e.stopPropagation();
-    window.open(link, '_blank', 'noopener,noreferrer');
+  const handleLinkClick = () => {
+    router.push(`/apply/${position.clubId}/${position.id}`);
   };
 
   const requirements = position.requirements || [];
@@ -144,10 +143,7 @@ export function ExpandablePositionCard({ position, onClose }: ExpandablePosition
           {/* TODO: Change to a link to the application form */}
           <div className="pt-4 border-t border-border">
             <button
-              onClick={() => {
-                // Navigate to application form
-                router.push(`/clubPage/${position.clubId}`);
-              }}
+              onClick={handleLinkClick}
               className="cursor-pointer w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
             >
               Apply for this Position
