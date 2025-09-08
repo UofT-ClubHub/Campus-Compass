@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const documentId = searchParams.get("id");
+    const positionId = searchParams.get("positionId");
     const searchFilter = searchParams.get("search"); // Combined search parameter
     const campusFilter = searchParams.get("campus");
     const departmentFilter = searchParams.get("department");
@@ -18,6 +19,65 @@ export async function GET(request: NextRequest) {
     const showOpen = searchParams.get("show_open") !== "false"; // Default to true if not specified
 
     const clubsCollection = firestore.collection("Clubs");
+
+    //Fetch by club id and position id
+    if (documentId && positionId) {
+      const doc = await clubsCollection.doc(documentId).get();
+      if (!doc.exists) {
+        return NextResponse.json(
+          { message: "Club not found" },
+          { status: 404 }
+        );
+      }
+    
+      const openRef = clubsCollection.doc(documentId).collection("OpenPositions").doc(positionId);
+      const openSnap = await openRef.get();
+
+      let position: any = null;
+
+      if (openSnap.exists) {
+        position = { id: openSnap.id, ...openSnap.data() };
+      } else {
+        const closedRef = clubsCollection.doc(documentId).collection("ClosedPositions").doc(positionId);
+        const closedSnap = await closedRef.get();
+        if (closedSnap.exists) {
+          position = { id: closedSnap.id, ...closedSnap.data() };
+        }
+      }
+
+      if (!position) {
+        return NextResponse.json({ message: "Position not found in this club" }, { status: 404 });
+      }
+
+      if (position.questions && typeof position.questions === "object") {
+        const sorted: Record<string, any> = {};
+        Object.keys(position.questions)
+          .sort((a, b) => parseInt(a.replace(/\D/g, "")) - parseInt(b.replace(/\D/g, "")))
+          .forEach((k) => (sorted[k] = position.questions[k]));
+        position.questions = sorted;
+      }
+    
+      const clubData = doc.data() as Club;
+
+      return NextResponse.json(
+        {
+          club: {
+            id: clubData.id,
+            name: clubData.name,
+            image: clubData.image,
+            campus: clubData.campus,
+            department: clubData.department,
+            description: clubData.description,
+            followers: clubData.followers,
+            executives: clubData.executives,
+            instagram: clubData.instagram,
+            links: clubData.links,
+          },
+          position,
+        },
+        { status: 200 }
+      );
+    }
 
     // Fetch by ID (returns all positions for that club)
     if (documentId) {
