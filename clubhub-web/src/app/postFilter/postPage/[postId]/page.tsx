@@ -1019,7 +1019,6 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Image Expansion Modal */}
       {isImageExpanded && post.image && (
