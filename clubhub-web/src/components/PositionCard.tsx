@@ -581,31 +581,14 @@ export default function PositionCard({ position }: PositionCardProps) {
                           })}
 
                         <div className="flex gap-4 pt-6">
-                          <button
-                            type="submit"
-                            disabled={isSubmitting || !position.questions || Object.keys(position.questions).length === 0}
-                            className="group/submit relative px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all duration-300 shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02] disabled:transform-none text-sm backdrop-blur-md border border-blue-400/40 hover:border-blue-300/60 disabled:border-gray-400/30 overflow-hidden"
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-white/20 opacity-0 group-hover/submit:opacity-100 transition-opacity duration-300"></div>
-                            <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover/submit:left-[100%] transition-all duration-700"></div>
-                            <span className="relative flex items-center gap-2 font-bold tracking-wide">
-                              {isSubmitting ? (
-                                <>
-                                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                  <span className="animate-pulse">Submitting...</span>
-                                </>
-                              ) : (
-                                "Submit Application"
-                              )}
-                            </span>
-                          </button>
+                          {/* Submit Application button removed as requested */}
                           <button
                             type="button"
                             onClick={() => {
                               setFormData({})
                               setIsExpanded(false)
                             }}
-                            className="group/btn relative px-8 py-3 bg-white/10 hover:bg-white/20 dark:bg-gray-800/30 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl font-semibold transition-all duration-300 text-base backdrop-blur-md border border-white/20 hover:border-white/40 dark:border-gray-600/30 dark:hover:border-gray-500/50 shadow-md hover:shadow-lg overflow-hidden"
+                            className="group/btn relative px-8 py-3 bg-white/10 hover:bg-white/20 dark:bg-gray-800/30 dark:hover:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl font-semibold transition-all duration-300 text-base backdrop-blur-md border border-white/20 hover:border-white/40 dark:border-gray-600/30 dark:hover:border-gray-500/50 shadow-md hover:shadow-lg overflow-hidden cursor-pointer"
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                             <span className="relative">Cancel</span>
