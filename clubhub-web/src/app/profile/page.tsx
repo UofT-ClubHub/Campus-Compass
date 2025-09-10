@@ -102,24 +102,14 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-theme-gradient bg-animated-elements relative">
-            {/* Animated background elements */}
-            {Array.from({ length: 12 }, (_, i) => (
-                <div
-                    key={i}
-                    className={`element-${i + 1}`}
-                    style={{
-                        position: 'absolute',
-                        borderRadius: '50%',
-                        filter: 'blur(48px)',
-                        willChange: 'opacity, transform',
-                        transform: 'translateZ(0)',
-                        backfaceVisibility: 'hidden',
-                    }}
-                />
-            ))}
+        <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements">
+            <div className="absolute inset-0 bg-animated-elements">
+                {Array.from({ length: 12 }, (_, i) => (
+                    <div key={i} className={`element-${i + 1}`}></div>
+                ))}
+            </div>
             
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 py-4 sm:py-8 max-w-6xl pt-4 sm:pt-12">
+            <div className="relative z-10 max-w-6xl mx-auto pt-8 pb-0 px-4">
                 {/* Profile Header Card */}
                 <div className="mb-4 sm:mb-8 bg-card/30 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-4 sm:p-8 form-glow">
                     <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-8">

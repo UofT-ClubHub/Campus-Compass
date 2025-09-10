@@ -470,14 +470,16 @@ export default function ExecPage() {
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+    <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
       {/* Animated background elements */}
-      {Array.from({ length: 12 }, (_, i) => (
+      <div className="absolute inset-0 bg-animated-elements">
+        {Array.from({ length: 12 }, (_, i) => (
           <div key={i} className={`element-${i + 1}`}></div>
         ))}
+      </div>
       
-      <div className="relative z-10 p-4 md:p-6">
-        <div className="max-w-5xl mx-auto">
+      <div className="relative z-10 max-w-5xl mx-auto pt-8 pb-8 px-4">
+        <div>
           <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Executive Dashboard</h1>
           <p className="text-muted-foreground text-lg mb-2">
@@ -592,14 +594,13 @@ export default function ExecPage() {
                       </button>
                     )}
                     <button
-                      onClick={() =>
-                        setShowCreatePostForm(
-                          showCreatePostForm === club.id ? null : club.id
-                        )
-                      }
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      onClick={() => {
+                        // Route to new post page, passing club id as query param for prefill
+                        router.push(`/postFilter/postPage/new?clubId=${club.id}`);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
-                      {showCreatePostForm === club.id ? "Cancel" : "Post"}
+                      Post
                     </button>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}

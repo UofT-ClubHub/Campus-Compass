@@ -32,8 +32,38 @@ export default function PostPage() {
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null)
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
 
-  // Fetch post data
-  useEffect(() => {
+  // Fetch post data or initialize for new post
+useEffect(() => {
+    if (postId === "new") {
+      // Get clubId from query string
+      const searchParams = new URL(window.location.href).searchParams;
+      const clubIdFromQuery = searchParams.get('clubId');
+
+      // If clubId is present, assign it to the blank post's club field
+      const now = new Date().toISOString();
+      const blankPost: Post = {
+        id: "",
+        title: "",
+        details: "",
+        club: clubIdFromQuery || "",
+        campus: "",
+        category: "",
+        date_posted: now,
+        date_occuring: "",
+        image: "",
+        likes: 0,
+        hashtags: [],
+        links: [],
+        department: "",
+        location: "",
+      };
+      setPost(blankPost);
+      setEditedPost(blankPost);
+      setIsEditing(true);
+      setLoading(false);
+      setLikes(0);
+      return;
+    }
     const fetchPostData = async () => {
       try {
         const response = await fetch(`/api/posts?id=${postId}`)
@@ -51,7 +81,6 @@ export default function PostPage() {
         setLoading(false)
       }
     }
-
     if (postId) {
       fetchPostData()
     }
@@ -244,40 +273,55 @@ export default function PostPage() {
   }
 
   const handleSave = async () => {
-    if (!editedPost) return
-    
-    setIsSaving(true)
+    if (!editedPost) return;
+    setIsSaving(true);
     try {
-      const user = auth.currentUser
+      const user = auth.currentUser;
       if (!user) {
-        setError('Please log in to edit posts')
-        return
+        setError('Please log in to edit posts');
+        return;
       }
-
-      const token = await user.getIdToken()
-      const response = await fetch(`/api/posts?id=${post?.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(editedPost),
-      })
-
-      if (response.ok) {
-        const updatedPost = await response.json()
-        setPost(updatedPost)
-        setEditedPost(updatedPost)
-        setIsEditing(false)
-        setError(null)
+      const token = await user.getIdToken();
+      let response;
+      if (postId === "new") {
+        // POST to create new post
+        response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(editedPost),
+        });
       } else {
-        const errorData = await response.json()
-        setError(errorData.error || 'Failed to update post')
+        // PUT to update existing post
+        response = await fetch(`/api/posts?id=${post?.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(editedPost),
+        });
+      }
+      if (response.ok) {
+        const updatedPost = await response.json();
+        setPost(updatedPost);
+        setEditedPost(updatedPost);
+        setIsEditing(false);
+        setError(null);
+        // If new post, redirect to its page
+        if (postId === "new" && updatedPost.id) {
+          router.replace(`/postFilter/postPage/${updatedPost.id}`);
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || (postId === "new" ? 'Failed to create post' : 'Failed to update post'));
       }
     } catch (error) {
-      setError('Error occurred while updating post')
+      setError(postId === "new" ? 'Error occurred while creating post' : 'Error occurred while updating post');
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -387,11 +431,13 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -405,11 +451,13 @@ export default function PostPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center max-w-md">
@@ -430,11 +478,13 @@ export default function PostPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
         {/* Animated background elements */}
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
+        <div className="absolute inset-0 bg-animated-elements">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div key={i} className={`element-${i + 1}`}></div>
+          ))}
+        </div>
         
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -461,8 +511,7 @@ export default function PostPage() {
         <div key={i} className={`element-${i + 1}`}></div>
       ))}
       
-      <div className="relative z-10 p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-0 px-4">
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <button
@@ -472,10 +521,12 @@ export default function PostPage() {
               <div className="p-2 rounded-full bg-card border border-border group-hover:border-primary/20 group-hover:bg-primary/5 transition-all duration-200">
                 <ArrowLeft size={18} />
               </div>
-              <span className="font-medium">Back to Posts</span>
+                <span className="font-medium">
+                {postId === "new" ? "Back to Exec Page" : "Back to Posts"}
+                </span>
             </button>
             
-            {isClubAdmin && (
+            {(isClubAdmin || postId === "new") && (
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {isEditing ? (
                   <>
@@ -497,20 +548,24 @@ export default function PostPage() {
                   </>
                 ) : (
                   <>
-                    <button 
-                      onClick={handleEdit}
-                      className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-card hover:bg-secondary border border-border hover:border-secondary-foreground/20 text-foreground rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
-                    >
-                      <Edit size={14} className="sm:size-4 group-hover:text-primary transition-colors" />
-                      <span className="font-medium">Edit Event</span>
-                    </button>
-                    <button 
-                      onClick={handleDelete}
-                      className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 text-destructive rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
-                    >
-                      <Trash2 size={14} className="sm:size-4" />
-                      <span className="font-medium">Delete</span>
-                    </button>
+                    {postId !== "new" && (
+                      <>
+                        <button 
+                          onClick={handleEdit}
+                          className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-card hover:bg-secondary border border-border hover:border-secondary-foreground/20 text-foreground rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
+                        >
+                          <Edit size={14} className="sm:size-4 group-hover:text-primary transition-colors" />
+                          <span className="font-medium">Edit Event</span>
+                        </button>
+                        <button 
+                          onClick={handleDelete}
+                          className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 text-destructive rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
+                        >
+                          <Trash2 size={14} className="sm:size-4" />
+                          <span className="font-medium">Delete</span>
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -913,25 +968,25 @@ export default function PostPage() {
               {((post?.hashtags && post.hashtags.length > 0) || isEditing) && (
                 <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
                   <div className="text-center mb-4 sm:mb-6">
-                    <div className="flex items-center justify-center gap-2 sm:gap-3">
-                      <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Event Tags</h2>
-                      {isEditing && (
-                        <button
-                          onClick={addHashtag}
-                          className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
-                        >
-                          <Plus className="h-3 w-3" />
-                          <span className="hidden sm:inline">Add Tag</span>
-                        </button>
-                      )}
-                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Event Tags</h2>
                     <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-secondary to-secondary/50 rounded-full mx-auto"></div>
                   </div>
+                  {isEditing && (
+                    <div className="flex justify-center mb-2">
+                      <button
+                        onClick={addHashtag}
+                        className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span className="hidden sm:inline">Add Tag</span>
+                      </button>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
                     {isEditing ? (
-                      <div className="w-full space-y-2">
+                      <div className="w-full space-y-2 flex flex-col items-center">
                         {editedPost?.hashtags?.map((tag, index) => (
-                          <div key={index} className="flex gap-2">
+                          <div key={index} className="flex gap-2 w-full max-w-xs">
                             <input
                               type="text"
                               value={tag}
@@ -964,7 +1019,6 @@ export default function PostPage() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Image Expansion Modal */}
       {isImageExpanded && post.image && (
