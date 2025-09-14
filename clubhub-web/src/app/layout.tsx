@@ -19,8 +19,9 @@ const geistMono = Geist_Mono({
 });
   
 export const metadata: Metadata = {
-  title: "ClubHub",
+  title: "UofT ClubHub",
   description: "Your guide to campus clubs and events",
+  icons: "/favicon.ico",
 };
 
 export default function RootLayout({
