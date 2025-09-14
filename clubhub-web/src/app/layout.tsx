@@ -7,6 +7,7 @@ import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,6 +80,7 @@ export default function RootLayout({
             <ChatbotWidget />
           </MantineProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
