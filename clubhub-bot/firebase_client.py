@@ -100,8 +100,10 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                 if src_key == "url":
                     doc_data["club"] = mapping.get(owner_url, {}).get("id")
                     doc_data["campus"] = mapping.get(owner_url, {}).get("campus")
-                    doc_data["category"] = llm_utils.classify_post(item.get("caption"))
-                    doc_data["title"] = llm_utils.get_title(item.get("caption"))
+                    hashtags = item.get('hashtags') or []
+                    post_context = f"Club: {doc_data['club']}\nCaption: {item.get('caption')}\nHashtags: {', '.join(hashtags)}"
+                    doc_data["category"] = llm_utils.classify_post(post_context)
+                    doc_data["title"] = llm_utils.get_title(post_context)
                     doc_data["links"] = [post_url]
                 elif src_key == "displayUrl":
                     # Upload image to Firebase Storage
