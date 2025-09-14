@@ -310,15 +310,17 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
-      {/* Animated background elements */}
-      {Array.from({ length: 12 }, (_, i) => (
-        <div key={i} className={`element-${i + 1}`}></div>
-      ))}
-      
+    <div className="min-h-screen overflow-x-hidden bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
+      {/* Animated background elements - constrained to viewport */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 12 }, (_, i) => (
+          <div key={i} className={`element-${i + 1}`}></div>
+        ))}
+      </div>
+
       <div className="relative z-10">
         {/* Hero Section */}
-        <section className="relative min-h-[500px] overflow-hidden">
+        <section className="relative min-h-[500px] overflow-hidden w-full max-w-full">
         {/* Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br z-10 ${
           theme === 'light'
@@ -336,7 +338,7 @@ export default function HomePage() {
         />
 
         {/* Content */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 sm:px-12 lg:px-16">
           <div className="text-center max-w-5xl mx-auto">
             {/* Main Title with Icons */}
             <div className="mb-8 flex items-center justify-center gap-8 md:gap-12 lg:gap-16">
@@ -415,8 +417,8 @@ export default function HomePage() {
 
       {/* Clubs Section */}
       {clubs.length <= 4 && (
-        <section className="py-12 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-12 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -457,7 +459,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
@@ -469,7 +471,7 @@ export default function HomePage() {
                     ></div>
                   </div>
 
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]">
                     {clubs.map((club: Club, index: any) => (
                       <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
                         <ClubCard
@@ -488,8 +490,8 @@ export default function HomePage() {
       )}
 
       {clubs.length > 4 && (
-        <section className="py-12 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-12 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -517,7 +519,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
                   <div className="flex flex-col items-center justify-center">
                     <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
                     <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading clubs...</p>
@@ -544,7 +546,7 @@ export default function HomePage() {
 
                   <div
                     ref={clubScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-4"
+                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
                     onTouchMove={handleUserScroll}
@@ -586,8 +588,8 @@ export default function HomePage() {
 
       {/* General Events Section - Only show for non-logged-in users */}
       {posts.length <= 4 && !currentUser && (
-        <section className="py-12 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-12 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -628,7 +630,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
@@ -640,7 +642,7 @@ export default function HomePage() {
                     ></div>
                   </div>
 
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]">
                     {posts.map((post: Post, index: any) => (
                       <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
@@ -663,8 +665,8 @@ export default function HomePage() {
 
       {/* Fading Line Separator */}
       {!currentUser && (
-        <div className="py-8">
-          <div className="container mx-auto px-6">
+        <div className="py-8 w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
             </div>
@@ -674,8 +676,8 @@ export default function HomePage() {
 
       {/* Auto-scrolling General Events Section - Only show for non-logged-in users */}
       {posts.length > 4 && !currentUser && (
-        <section className="py-12 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-12 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -703,7 +705,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
                   <div className="flex flex-col items-center justify-center">
                     <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
                     <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading events...</p>
@@ -730,7 +732,7 @@ export default function HomePage() {
 
                   <div
                     ref={postScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-4"
+                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
                     onTouchMove={handleUserScroll}
@@ -775,8 +777,8 @@ export default function HomePage() {
 
       {/* Simple Line Divider */}
       {currentUser && (
-        <div className="py-8">
-          <div className="container mx-auto px-6">
+        <div className="py-8 w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
             </div>
@@ -786,8 +788,8 @@ export default function HomePage() {
 
       {/* User Events Section */}
       {posts.length <= 4 && currentUser && (
-        <section className="py-8 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-8 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -828,7 +830,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-4 shadow-2xl overflow-hidden">
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
                   {/* Subtle Pattern Overlay */}
                   <div className="absolute inset-0 opacity-5">
                     <div
@@ -840,7 +842,7 @@ export default function HomePage() {
                     ></div>
                   </div>
 
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide" data-testid="posts-container">
+                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]" data-testid="posts-container">
                     {posts.map((post: Post, index: any) => (
                       <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
                         <PostCard
@@ -862,8 +864,8 @@ export default function HomePage() {
       )}
 
       {posts.length > 4 && currentUser && (
-        <section className="py-8 relative">
-          <div className="container mx-auto px-6">
+        <section className="py-8 relative w-full max-w-full">
+          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             {/* Section Header */}
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
@@ -891,7 +893,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
 
                 {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8">
+                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
                   <div className="flex flex-col items-center justify-center">
                     <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
                     <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading your events...</p>
@@ -918,7 +920,7 @@ export default function HomePage() {
 
                   <div
                     ref={followedScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-4"
+                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
                     onScroll={handleUserScroll}
                     onTouchStart={handleUserScroll}
                     onTouchMove={handleUserScroll}
