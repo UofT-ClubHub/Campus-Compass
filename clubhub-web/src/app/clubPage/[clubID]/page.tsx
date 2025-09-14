@@ -50,7 +50,7 @@ export default function ClubPage({ params }: PageProps) {
   const [clubID, setClubID] = useState<string>("")
   const [clubData, setClubData] = useState<any>(null)
   const [posts, setPosts] = useState<Post[]>([])
-  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null) 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
@@ -281,7 +281,7 @@ export default function ClubPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative">
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative overflow-hidden">
       {/* Animated background elements */}
       {Array.from({ length: 12 }, (_, i) => (
         <div

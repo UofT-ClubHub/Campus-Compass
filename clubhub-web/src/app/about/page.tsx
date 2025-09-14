@@ -55,7 +55,7 @@ function AboutUsContent() {
             <div className="flex items-center justify-center gap-3 mb-4">
               <Info className="w-8 h-8 text-foreground" />
               <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                About Campus Compass
+                About UofT ClubHub
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -72,7 +72,7 @@ function AboutUsContent() {
             </h2>
             <div className="max-w-4xl mx-auto">
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                Campus Compass is dedicated to revolutionizing the way students discover, connect, and engage with campus life. We believe that every student deserves access to meaningful opportunities that shape their university experience.
+                ClubHub is dedicated to revolutionizing the way students discover, connect, and engage with campus life. We believe that every student deserves access to meaningful opportunities that shape their university experience.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 Through our innovative platform, we're building bridges between students and the vibrant communities that make university life extraordinary. From academic clubs to social organizations, from career development to cultural events, we're creating a comprehensive ecosystem that empowers students to make the most of their time on campus.
@@ -118,10 +118,7 @@ function AboutUsContent() {
                 <span className="text-2xl font-bold text-white">OP</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Oscar Pang</h3>
-              <p className="text-muted-foreground text-sm mb-3">Title</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Tech Lead</p>
             </div>
 
             {/* Team Member 2 */}
@@ -130,10 +127,7 @@ function AboutUsContent() {
                 <span className="text-2xl font-bold text-white">IA</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Imran Aziz</h3>
-              <p className="text-muted-foreground text-sm mb-3">Title</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Tech Lead</p>
             </div>
 
             {/* Team Member 3 */}
@@ -142,10 +136,7 @@ function AboutUsContent() {
                 <span className="text-2xl font-bold text-white">DG</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Dibya Goswami</h3>
-              <p className="text-muted-foreground text-sm mb-3">Title</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Tech Lead</p> 
             </div>
 
             {/* Team Member 4 */}
@@ -154,10 +145,7 @@ function AboutUsContent() {
                 <span className="text-2xl font-bold text-white">EA</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Eishan Ashraf</h3>
-              <p className="text-muted-foreground text-sm mb-3">Infinite Scrolling Lead</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Tech Lead</p>
             </div>
 
             {/* Team Member 5 */}
@@ -166,22 +154,16 @@ function AboutUsContent() {
                 <span className="text-2xl font-bold text-white">HL</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-foreground">Hong Yu Lin</h3>
-              <p className="text-muted-foreground text-sm mb-3">Title</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Tech Lead</p>
             </div>
 
             {/* Team Member 6 */}
             <div className="bg-card/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:bg-card/70 text-center">
               <div className="w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">R</span>
+                <span className="text-2xl font-bold text-white">RS</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">Rishi</h3>
-              <p className="text-muted-foreground text-sm mb-3">Title</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Bio
-              </p>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Rishi Shah</h3>
+              <p className="text-muted-foreground text-sm mb-3">Co-Founder, Marketing Lead</p>
             </div>
           </div>
         </div>

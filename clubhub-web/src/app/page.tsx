@@ -374,7 +374,7 @@ export default function HomePage() {
                     `
                   }}
                 >
-                  Campus Compass
+                  UofT ClubHub
                 </span>
               </h1>
               

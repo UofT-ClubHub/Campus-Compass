@@ -17,9 +17,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
+  
 export const metadata: Metadata = {
-  title: "Campus Compass",
+  title: "ClubHub",
   description: "Your guide to campus clubs and events",
 };
 
