@@ -96,7 +96,7 @@ function AboutUsContent() {
       </div>
 
       <div className="relative z-10">
-        <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-12 max-w-6xl pt-20 max-w-full">
+        <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-12 max-w-6xl pt-10 max-w-full">
         {/* Header Section */}
         <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
           <div className="text-center">
@@ -130,7 +130,7 @@ function AboutUsContent() {
         </div>
 
         {/* Our Values Section */}
-        <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
+        <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
           <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Our Values
           </h2>
