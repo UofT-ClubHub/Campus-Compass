@@ -7,8 +7,6 @@ import { Mail, MapPin, Users, Heart, Star, Settings, FileText, Building2, Calend
 import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
 import Link from 'next/link';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import db from '@/model/firebase';
 
 export default function ProfilePage() {
     const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -88,28 +86,27 @@ export default function ProfilePage() {
 
     // Fetch user applications
     useEffect(() => {
-        if (!authUser) return;
+        if (!authUser || !token) return;
 
         const fetchUserApplications = async () => {
             setApplicationsLoading(true);
             try {
-                const firestore = getFirestore(db);
-                const applicationsRef = collection(firestore, 'submittedApplications');
-                const applicationsQuery = query(applicationsRef, where('userId', '==', authUser.uid));
-                const applicationsSnapshot = await getDocs(applicationsQuery);
-
-                const applications = applicationsSnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        ...data,
-                        applicationId: doc.id,
-                        submittedAt: data.submittedAt?.toDate?.() || data.submittedAt || new Date(),
-                    };
+                // Use existing submitted-applications endpoint
+                const response = await fetch(`/api/submitted-applications?userId=${authUser.uid}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
 
+                if (!response.ok) {
+                    throw new Error('Failed to fetch applications');
+                }
+
+                const applications = await response.json();
+
                 // Sort by submission date (most recent first)
-                applications.sort((a, b) => {
+                applications.sort((a: any, b: any) => {
                     const dateA = new Date(a.submittedAt).getTime();
                     const dateB = new Date(b.submittedAt).getTime();
                     return dateB - dateA;
@@ -124,7 +121,7 @@ export default function ProfilePage() {
         };
 
         fetchUserApplications();
-    }, [authUser]);
+    }, [authUser, token]);
 
     const handleSettingsClick = () => {
         setSettings(!settings);

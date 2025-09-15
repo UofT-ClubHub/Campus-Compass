@@ -183,6 +183,7 @@ html {
   background: var(--background);
   min-height: 100%;
   overscroll-behavior: none; /* Prevent overscroll effects */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 body {
@@ -191,6 +192,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh; /* Ensure body fills viewport */
   overscroll-behavior: none; /* Prevent overscroll effects */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
   position: relative;
 }
 
