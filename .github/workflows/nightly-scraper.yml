@@ -4,8 +4,9 @@ on:
   schedule:
     - cron: '10 4 * * *'  # 12:10 AM EDT / 11:10 PM EST
   workflow_dispatch: # Allow manual triggering
-  # push:
-  #   branches: [ main, develop ]  # Run on push to these branches
+  push:
+    branches:
+      - deployment
 
 jobs:
   run-bot:
@@ -15,7 +16,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.ref_name }}
+        ref: deployment
       
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -28,7 +29,14 @@ jobs:
       
     - name: Run execute.sh script
       env:
-        APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
+        APIFY_KEY_1: ${{ secrets.APIFY_KEY_1 }}
+        APIFY_KEY_2: ${{ secrets.APIFY_KEY_2 }}
+        APIFY_KEY_3: ${{ secrets.APIFY_KEY_3 }}
+        APIFY_KEY_4: ${{ secrets.APIFY_KEY_4 }}
+        APIFY_KEY_5: ${{ secrets.APIFY_KEY_5 }}
+        APIFY_KEY_6: ${{ secrets.APIFY_KEY_6 }}
+        APIFY_KEY_7: ${{ secrets.APIFY_KEY_7 }}
+        APIFY_KEY_8: ${{ secrets.APIFY_KEY_8 }}
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
         ADMIN_FIREBASE_PROJECT_ID: ${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
         ADMIN_FIREBASE_PRIVATE_KEY: ${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
