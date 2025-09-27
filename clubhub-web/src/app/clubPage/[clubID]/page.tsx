@@ -7,9 +7,8 @@ import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
 import { PostCard } from "@/components/post-card"
-import { PositionCard } from "@/components/position-card"
 import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink, Building2 } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 interface PageProps {
   params: Promise<{
@@ -40,12 +39,10 @@ async function getClubData(clubID: string) {
       ...doc.data(),
     })) as Post[]
 
-
-
-    return { clubData, posts, positions: [] }
+    return { clubData, posts }
   } catch (error) {
     console.error("Error fetching club data:", error)
-    return { clubData: null, posts: [], positions: [] }
+    return { clubData: null, posts: [] }
   }
 }
 
@@ -53,8 +50,7 @@ export default function ClubPage({ params }: PageProps) {
   const [clubID, setClubID] = useState<string>("")
   const [clubData, setClubData] = useState<any>(null)
   const [posts, setPosts] = useState<Post[]>([])
-  const [positions, setPositions] = useState<any[]>([])
-  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null)
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(null) 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
@@ -65,12 +61,7 @@ export default function ClubPage({ params }: PageProps) {
   const [ig, setIg] = useState("");
   const [links, setLinks] = useState<{ [key: string]: string }>({})
   const router = useRouter()
-  const searchParams = useSearchParams()
   
-  // Get initial tab from URL or default to posts
-  const initialTab = searchParams.get('tab') as 'posts' | 'positions' || 'posts'
-  const [activeTab, setActiveTab] = useState<'posts' | 'positions'>(initialTab)
-
   // Initialize component
   useEffect(() => {
     const initializeComponent = async () => {
@@ -89,29 +80,6 @@ export default function ClubPage({ params }: PageProps) {
 
     initializeComponent()
   }, [params])
-
-  // Fetch positions when positions tab is active
-  useEffect(() => {
-    const fetchPositions = async () => {
-      if (activeTab === 'positions' && clubID) {
-        try {
-          const response = await fetch(`/api/positions?id=${clubID}&show_open=true&show_closed=false`);
-          if (response.ok) {
-            const positionsData = await response.json();
-            setPositions(positionsData);
-          } else {
-            console.error('Failed to fetch positions');
-            setPositions([]);
-          }
-        } catch (error) {
-          console.error('Error fetching positions:', error);
-          setPositions([]);
-        }
-      }
-    };
-
-    fetchPositions();
-  }, [activeTab, clubID]);
 
   // Listen for auth changes
   useEffect(() => {
@@ -313,7 +281,7 @@ export default function ClubPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative">
+    <div className="min-h-screen bg-theme-gradient bg-animated-elements relative overflow-hidden">
       {/* Animated background elements */}
       {Array.from({ length: 12 }, (_, i) => (
         <div
@@ -465,121 +433,49 @@ export default function ClubPage({ params }: PageProps) {
                        </div>
                      )}
                      </button>
-                     <button
-                       onClick={() => router.push(`/applicationsPage/${clubID}`)}
-                       className="cursor-pointer px-6 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium transition-all duration-200 border border-accent"
-                     >
-                       View Open Applications
-                     </button>
                  </div>
                )}
           </div>
         </header>
 
-
-
-        
-
-        {/* Tab Buttons Section */}
-        <div className="flex justify-center mb-6">
-          <div className="flex gap-4 w-full max-w-xs">
-            <button
-              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'posts' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
-              style={{ minWidth: 0 }}
-              onClick={() => {
-                setActiveTab('posts')
-                router.push(`/clubPage/${clubID}?tab=posts`)
-              }}
-            >
-              Posts
-            </button>
-            <button
-              className={`flex-1 py-2 px-0 rounded-lg font-semibold text-base shadow focus:outline-none transition-all duration-200 text-center border border-white/20 backdrop-blur-xl ${activeTab === 'positions' ? 'bg-primary/20 text-primary border-primary/40' : 'bg-card/30 text-primary hover:bg-primary/20'} hover:scale-105`}
-              style={{ minWidth: 0 }}
-              onClick={() => {
-                setActiveTab('positions')
-                router.push(`/clubPage/${clubID}?tab=positions`)
-              }}
-            >
-              Open Positions
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Content Section */}
+        {/* Posts Section */}
         <div className="mb-8">
-          {activeTab === 'posts' ? (
-            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
-              {posts.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="mb-6">
-                    <svg
-                      className="w-16 h-16 text-muted-foreground mx-auto mb-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-card-foreground mb-2">No posts found</h3>
-                  <p className="text-muted-foreground">This club hasn't posted anything yet</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {posts.map((post) => (
-                    <PostCard 
-                      key={post.id} 
-                      post={post} 
-                      currentUser={currentUser}
-                      onLikeUpdate={handleLikeUpdate}
-                      onDelete={handlePostDelete}
-                      onRefresh={handlePostRefresh}
+          <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
+            {posts.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="mb-6">
+                  <svg
+                    className="w-16 h-16 text-muted-foreground mx-auto mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
-                  ))}
+                  </svg>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8 form-glow">
-              {positions.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="mb-6">
-                    <svg
-                      className="w-16 h-16 text-muted-foreground mx-auto mb-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-card-foreground mb-2">No open positions</h3>
-                  <p className="text-muted-foreground">This club doesn't have any open positions at the moment</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                  {positions.map((position) => (
-                    <PositionCard 
-                      key={position.id} 
-                      position={position}
-                      className="max-w-s"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                <h3 className="text-xl font-semibold text-card-foreground mb-2">No posts found</h3>
+                <p className="text-muted-foreground">This club hasn't posted anything yet</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post) => (
+                  <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    currentUser={currentUser}
+                    onLikeUpdate={handleLikeUpdate}
+                    onDelete={handlePostDelete}
+                    onRefresh={handlePostRefresh}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       </main>

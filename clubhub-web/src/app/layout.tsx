@@ -7,6 +7,8 @@ import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,10 +19,11 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
+  
 export const metadata: Metadata = {
-  title: "Campus Compass",
+  title: "UofT ClubHub",
   description: "Your guide to campus clubs and events",
+  icons: "/favicon.ico",
 };
 
 export default function RootLayout({
@@ -78,6 +81,8 @@ export default function RootLayout({
             <ChatbotWidget />
           </MantineProvider>
         </ThemeProvider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
