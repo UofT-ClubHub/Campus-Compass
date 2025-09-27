@@ -1,0 +1,15 @@
+services:
+  web:
+    container_name: clubhub-web
+    image: clubhub_web
+    build:
+      context: ./clubhub-web
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    restart: always
+    environment:
+      # Admin Firebase variables needed at runtime for API routes
+      - ADMIN_FIREBASE_PROJECT_ID=${ADMIN_FIREBASE_PROJECT_ID}
+      - ADMIN_FIREBASE_CLIENT_EMAIL=${ADMIN_FIREBASE_CLIENT_EMAIL}
+      - ADMIN_FIREBASE_PRIVATE_KEY=${ADMIN_FIREBASE_PRIVATE_KEY}

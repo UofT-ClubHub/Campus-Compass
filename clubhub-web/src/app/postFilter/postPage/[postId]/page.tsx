@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User, Club } from "@/model/types"
-import { MapPin, Heart, HeartOff, ExternalLink, Calendar, Clock, Edit, Trash2, ArrowLeft, Save, X, Plus } from "lucide-react"
+import { Users, UserCheck, Instagram, MapPin, Heart, HeartOff, ExternalLink, Calendar, Clock, Edit, Trash2, ArrowLeft, Save, X, Plus } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
 
 export default function PostPage() {
@@ -31,35 +31,6 @@ export default function PostPage() {
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null)
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null)
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
-
-  // Close expanded image on Escape
-  useEffect(() => {
-    if (!isImageExpanded) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsImageExpanded(false)
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [isImageExpanded])
-
-  // Helper function to determine event status
-  const getEventStatus = (dateOccuring: string | undefined) => {
-    if (!dateOccuring) {
-      return null
-    }
-
-    const eventDate = new Date(dateOccuring)
-    const now = new Date()
-    
-    // If event date is before now, it's closed
-    if (eventDate < now) {
-      return 'closed'
-    }
-    
-    return 'upcoming'
-  }
 
   // Fetch post data or initialize for new post
 useEffect(() => {
@@ -241,7 +212,7 @@ useEffect(() => {
     e.stopPropagation()
 
     if (!post?.date_occuring) {
-      setError('No Post Date Specified')
+      setError('No Event Date Specified')
       return
     }
 
@@ -301,26 +272,6 @@ useEffect(() => {
     setIsEditing(true)
   }
 
-  const uploadImage = async (file: File, token: string): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to upload image');
-    }
-    
-    const result = await response.json();
-    return result.imageUrl || result.url;
-  };
-
   const handleSave = async () => {
     if (!editedPost) return;
     setIsSaving(true);
@@ -331,19 +282,6 @@ useEffect(() => {
         return;
       }
       const token = await user.getIdToken();
-      
-      let postDataToSave = { ...editedPost };
-      
-      // Handle image upload if there's a new file
-      if (uploadedImageFile) {
-        try {
-          const imageUrl = await uploadImage(uploadedImageFile, token);
-          postDataToSave.image = imageUrl;
-        } catch (uploadError) {
-          setError('Failed to upload image. Please try again.');
-          return;
-        }
-      }
       let response;
       if (postId === "new") {
         // POST to create new post
@@ -565,17 +503,15 @@ useEffect(() => {
 
   return (
     <div 
-      className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" 
+      className="min-h-screen bg-theme-gradient bg-animated-elements relative" 
       data-theme={theme}
     >
       {/* Animated background elements */}
-      <div className="absolute inset-0 bg-animated-elements">
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`element-${i + 1}`}></div>
-        ))}
-      </div>
+      {Array.from({ length: 12 }, (_, i) => (
+        <div key={i} className={`element-${i + 1}`}></div>
+      ))}
       
-      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-10 sm:pb-16 px-4">
+      <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-0 px-4">
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <button
@@ -616,10 +552,10 @@ useEffect(() => {
                       <>
                         <button 
                           onClick={handleEdit}
-                          className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-card border border-border text-foreground rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
+                          className="group flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-card hover:bg-secondary border border-border hover:border-secondary-foreground/20 text-foreground rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-sm sm:text-base flex-1 sm:flex-none justify-center"
                         >
                           <Edit size={14} className="sm:size-4 group-hover:text-primary transition-colors" />
-                          <span className="font-medium">Edit Post</span>
+                          <span className="font-medium">Edit Event</span>
                         </button>
                         <button 
                           onClick={handleDelete}
@@ -646,7 +582,7 @@ useEffect(() => {
                     value={editedPost?.title || ''}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 leading-tight w-full bg-card/60 border-2 border-primary/40 hover:border-primary/60 focus:border-primary focus:outline-none rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-lg transition-all duration-200 focus:bg-card/80"
-                    placeholder="Click to edit post title..."
+                    placeholder="Click to edit event title..."
                   />
                   <div className="absolute top-2 right-2 sm:right-3 text-primary/60 text-xs sm:text-sm font-medium pointer-events-none">
                      Editing
@@ -738,11 +674,7 @@ useEffect(() => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Status</p>
-                  {getEventStatus(post.date_occuring) === 'upcoming' ? (
-                    <p className="font-bold text-emerald-700 dark:text-green-400 text-sm sm:text-base">Upcoming</p>
-                  ) : (
-                    <p className="font-bold text-red-700 dark:text-red-400 text-sm sm:text-base">Closed</p>
-                  )}
+                  <p className="font-bold text-emerald-700 dark:text-green-400 text-sm sm:text-base">Upcoming</p>
                 </div>
               </div>
               </div>
@@ -815,7 +747,7 @@ useEffect(() => {
                   className="group flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-secondary-foreground px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
                 >
                   <ExternalLink size={18} className="sm:size-5 group-hover:rotate-12 transition-transform" />
-                  <span className="hidden sm:inline">Instagram Link</span>
+                  <span className="hidden sm:inline">Event Link</span>
                   <span className="sm:hidden">Link</span>
                 </a>
               )}
@@ -828,7 +760,7 @@ useEffect(() => {
               {/* Enhanced Gallery */}
               <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Post Gallery</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Event Gallery</h2>
                   <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent"></div>
                 </div>
                 
@@ -839,7 +771,7 @@ useEffect(() => {
                         {/* Image Upload Input */}
                         <div>
                           <label className="block text-sm font-medium text-foreground mb-2">
-                            Post Image
+                            Event Image
                           </label>
                           <div className="flex items-center gap-3">
                             <input
@@ -928,7 +860,7 @@ useEffect(() => {
               {(post?.details || isEditing) && (
                 <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground">About This Post</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground">About This Event</h3>
                     <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent"></div>
                   </div>
                   <div className="prose prose-neutral dark:prose-invert max-w-none">
@@ -938,7 +870,7 @@ useEffect(() => {
                         onChange={(e) => handleInputChange('details', e.target.value)}
                         rows={4}
                         className="w-full text-muted-foreground leading-relaxed text-sm sm:text-base bg-transparent border border-border rounded-lg p-3 sm:p-4 focus:border-primary focus:outline-none resize-vertical"
-                        placeholder="Post description..."
+                        placeholder="Event description..."
                       />
                     ) : (
                       <div className="text-muted-foreground leading-relaxed text-sm sm:text-base whitespace-pre-wrap">
@@ -955,7 +887,7 @@ useEffect(() => {
               {/* Enhanced Event Details */}
               <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="text-center mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Post Details</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Event Details</h2>
                   <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-primary to-primary/50 rounded-full mx-auto"></div>
                 </div>
                 
@@ -976,8 +908,14 @@ useEffect(() => {
                         >
                           <option value="">Select category</option>
                           <option value="Event">Event</option>
-                          <option value="General Announcement">General Announcement</option>
+                          <option value="Meeting">Meeting</option>
+                          <option value="Workshop">Workshop</option>
+                          <option value="Social">Social</option>
+                          <option value="Competition">Competition</option>
+                          <option value="Fundraiser">Fundraiser</option>
+                          <option value="Volunteer Opportunity">Volunteer Opportunity</option>
                           <option value="Hiring Opportunity">Hiring Opportunity</option>
+                          <option value="General Announcement">General Announcement</option>
                           <option value="Survey">Survey</option>
                         </select>
                       ) : (
@@ -1030,7 +968,7 @@ useEffect(() => {
               {((post?.hashtags && post.hashtags.length > 0) || isEditing) && (
                 <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300">
                   <div className="text-center mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Post Tags</h2>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Event Tags</h2>
                     <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-secondary to-secondary/50 rounded-full mx-auto"></div>
                   </div>
                   {isEditing && (
@@ -1083,15 +1021,15 @@ useEffect(() => {
         </div>
 
       {/* Image Expansion Modal */}
-      {isImageExpanded && post?.image && (
+      {isImageExpanded && post.image && (
         <div 
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setIsImageExpanded(false)}
         >
           <div className="relative max-w-4xl max-h-[80vh] w-full h-full flex items-center justify-center">
             <img 
-              src={post?.image || ''} 
-              alt={post?.title || 'Post image'}
+              src={post.image} 
+              alt={post.title}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
