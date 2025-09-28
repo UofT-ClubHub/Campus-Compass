@@ -86,7 +86,7 @@ export default function ApplicationsPage({ params }: PageProps) {
   }, [authUser])
 
   const handleBackToClub = () => {
-    router.push(`/clubPage/${clubID}`)
+    router.push('/exec')
   }
 
   if (loading) {
@@ -144,7 +144,7 @@ export default function ApplicationsPage({ params }: PageProps) {
               className="flex items-center gap-2 px-4 py-2 bg-card/30 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
             >
               <ArrowLeft className="w-4 h-4 text-primary" />
-              <span className="text-primary font-medium">Back to Club</span>
+              <span className="text-primary font-medium">Back to Executive Page</span>
             </button>
           </div>
 
