@@ -14,15 +14,30 @@ last_scraped_date = scrape_time - timedelta(days=1)
 
 instagram_links, mapping = firebase_client.get_instagram_links()
 
-# Initialize the ApifyClient with your API token
-apify_api_key = os.getenv("APIFY_API_KEY")
+def _select_apify_key():
+    """Select APIFY key based on day rotation, with fallback."""
+    today_utc = datetime.now(timezone.utc).date()
+    day_of_year = today_utc.timetuple().tm_yday
+    index = ((day_of_year - 1) % 8) + 1
+
+    selected_env_name = f"APIFY_KEY_{index}"
+    selected_key = os.getenv(selected_env_name)
+
+    if not selected_key:
+        raise RuntimeError("No APIFY key found in environment. Set APIFY_KEY_1..8")
+
+    print(f"Rotating APIFY key: using {selected_env_name} (index {index})")
+    return selected_key
+
+# Initialize the ApifyClient with the selected API token
+apify_api_key = _select_apify_key()
 client = ApifyClient(apify_api_key)
 
 # Prepare the Actor input
 run_input = {
     "directUrls": instagram_links,
     "resultsType": "posts",
-    "resultsLimit": 1,
+    "resultsLimit": 10,
     "searchType": "hashtag",
     "searchLimit": 1,
     "addParentData": False,
@@ -38,8 +53,6 @@ run_input = {
 run = client.actor("RB9HEZitC8hIUXAha").call(run_input=run_input)
 items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
 items = [item for item in items if "error" not in item]
-
-
 
 print(f"Last scraped date: {last_scraped_date}")
 print(f"Current scrape time: {scrape_time}")
@@ -78,4 +91,3 @@ if new_items:
     
 else:
     print("No new posts to add")
-
