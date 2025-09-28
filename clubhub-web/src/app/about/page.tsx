@@ -64,15 +64,15 @@ function AboutUsContent() {
       name: "Hong Yu Lin",
       title: "Co-Founder, Tech Lead",
       bgGradient: "from-teal-400 to-green-500",
-      linkedin: "https://www.linkedin.com/in/hong-yu-lin"
+      linkedin: "https://www.linkedin.com/in/hong-yu-lin-79a78932a/"
     },
     {
-      image: "RS",
-      name: "Rishi Shah",
-      title: "Co-Founder, Marketing Lead",
-      bgGradient: "from-indigo-400 to-purple-500",
-      linkedin: "https://www.linkedin.com/in/rishiishah/"
-    }
+      image: "",
+      name: "",
+      title: "",
+      bgGradient: "",
+      linkedin: ""
+    },
   ]
 
   return (
@@ -96,9 +96,9 @@ function AboutUsContent() {
       </div>
 
       <div className="relative z-10">
-        <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-12 max-w-6xl pt-10 max-w-full">
+        <div className="container mx-auto px-6 sm:px-8 lg:px-8 xl:px-10 py-12 max-w-6xl pt-10 max-w-full">
         {/* Header Section */}
-        <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
+        <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 sm:p-10 lg:p-8 form-glow mx-4 sm:mx-8 lg:mx-8 xl:mx-10">
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Info className="w-8 h-8 text-foreground" />
@@ -112,48 +112,65 @@ function AboutUsContent() {
           </div>
         </div>
 
-        {/* Our Mission Section */}
-        <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-              Our Mission
+        {/* Mission and Values - side by side on large screens */}
+        <div className="mb-12 grid lg:grid-cols-2 sm:gap-8 mx-4 sm:mx-8 lg:mx-8 xl:mx-10">
+          {/* Our Mission */}
+          <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-8 form-glow">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                Our Mission
+              </h2>
+              <div className="max-w-4xl mx-auto">
+                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                  ClubHub is dedicated to revolutionizing the way students discover, connect, and engage with campus life. We believe that every student deserves access to meaningful opportunities that shape their university experience.
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Through our innovative platform, we're building bridges between students and the vibrant communities that make university life extraordinary. From academic clubs to social organizations, from career development to cultural events, we're creating a comprehensive ecosystem that empowers students to make the most of their time on campus.
+                </p>
+              </div>
+              <div className="flex justify-center mt-8">
+                <div
+                  className="w-30 h-30 rounded-full bg-card/70 border border-white/10 flex items-center justify-center"
+                  style={{
+                    boxShadow: "0 8px 40px 0 rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <img
+                    src="/favicon.ico"
+                    alt="ClubHub"
+                    className="w-30 h-30"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Our Values */}
+          <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-8 form-glow">
+            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+              Our Values
             </h2>
-            <div className="max-w-4xl mx-auto">
-              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                ClubHub is dedicated to revolutionizing the way students discover, connect, and engage with campus life. We believe that every student deserves access to meaningful opportunities that shape their university experience.
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Through our innovative platform, we're building bridges between students and the vibrant communities that make university life extraordinary. From academic clubs to social organizations, from career development to cultural events, we're creating a comprehensive ecosystem that empowers students to make the most of their time on campus.
-              </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6 sm:gap-8">
+              {values.map((value, index) => (
+                <div 
+                  key={index} 
+                  className="bg-card/70 backdrop-blur-sm border border-white/10 rounded-xl p-6 sm:p-8"
+                >
+                  <div className="text-center">
+                    <div className="flex justify-center mb-4">
+                      {value.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3 text-foreground">{value.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{value.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Our Values Section */}
-        <div className="mb-12 bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
-          <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Our Values
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {values.map((value, index) => (
-              <div 
-                key={index} 
-                className="bg-card/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 sm:p-8 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:bg-card/70"
-              >
-                <div className="text-center">
-                  <div className="flex justify-center mb-4">
-                    {value.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-foreground">{value.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{value.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Our Team Section */}
-        <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-12 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
+        <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 lg:p-8 form-glow mx-4 sm:mx-8 lg:mx-8 xl:mx-10">
           <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Our Team
           </h2>
@@ -205,8 +222,8 @@ function AboutUsLoading() {
       </div>
 
       <div className="relative z-10">
-        <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-12 max-w-6xl pt-20 max-w-full">
-        <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 form-glow mx-4 sm:mx-8 lg:mx-12 xl:mx-16">
+        <div className="container mx-auto px-6 sm:px-8 lg:px-8 xl:px-10 py-12 max-w-6xl pt-20 max-w-full">
+        <div className="bg-card/30 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-8 sm:p-10 form-glow mx-4 sm:mx-8 lg:mx-8 xl:mx-10">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Info className="w-8 h-8 text-foreground" />

@@ -282,6 +282,29 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   filter: invert(0.5) sepia(1) saturate(5) hue-rotate(30deg);
 }
 
+/* Select dropdown styling for all themes */
+select {
+  background-color: var(--input);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+select option {
+  background-color: var(--input);
+  color: var(--foreground);
+}
+
+/* Ensure proper contrast for select options in dark themes */
+[data-theme="deep-dark"] select option {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+[data-theme="vibrant-dark"] select option {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
 /* Optimized fade animation for background elements */
 @keyframes fade {
   0% {

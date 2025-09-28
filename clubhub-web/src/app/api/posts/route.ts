@@ -142,7 +142,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         const postsCollection = firestore.collection('Posts');
 
         // Validate required fields
-        if (!data.title || !data.details || !data.campus || !data.club || !data.category || !data.date_occuring || !data.date_posted) {
+        if (!data.title || !data.details || !data.campus || !data.club || !data.category || !data.date_posted) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 

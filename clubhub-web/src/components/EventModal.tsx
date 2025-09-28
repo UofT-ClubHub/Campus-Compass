@@ -102,9 +102,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
+        <div className="flex justify-between items-center p-6 pb-4 flex-shrink-0">
           <h2 className="text-xl font-bold text-foreground">
             {mode === "add" ? "Create New Event" : "Edit Event"}
           </h2>
@@ -116,7 +116,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="space-y-4 px-6 overflow-y-auto flex-1">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Event Title *</label>
             <input
@@ -135,7 +136,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-              rows={2}
+              rows={4}
               placeholder="Add event description (optional)"
             />
           </div>
@@ -197,8 +198,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
               placeholder="Add location (optional)"
             />
           </div>
+          </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 p-6 mt-4 border-t border-border/50 flex-shrink-0">
             <button
               type="button"
               onClick={handleClose}

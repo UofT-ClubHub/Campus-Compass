@@ -971,22 +971,6 @@ export default function ExecPage() {
               (c) => c.id === showCreatePostForm
             );
             if (!clubForPost) return null;
-
-            const initialPostForCreation: Post = {
-              id: "",
-              title: "",
-              details: "",
-              club: clubForPost.id,
-              campus: "", // Default to empty string so user must select
-              category: "",
-              date_posted: new Date().toISOString(),
-              date_occuring: "",
-              image: "",
-              likes: 0,
-              hashtags: [],
-              links: [],
-              department: clubForPost.department,
-            };
           })()}
         </div>
       </div>

@@ -152,7 +152,7 @@ export function Header() {
             
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-primary hover:text-secondary transition-colors">
+              <Link href="/" onClick={(e) => handleNavigation(e, '/')} className="text-2xl font-bold text-primary hover:text-secondary transition-colors">
                 UofT ClubHub
               </Link>
             </div>
@@ -304,17 +304,6 @@ export function Header() {
           {isMobileMenuOpen && (
             <div className="xl:hidden bg-card border-t border-border">
               <nav className="px-4 py-4 space-y-4">
-                <button
-                  onClick={(e) => handleNavigation(e, '/')}
-                  className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                    isActive('/') 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground hover:text-secondary'
-                  }`}
-                  type="button"
-                >
-                  Home
-                </button>
                 <button 
                   onClick={(e) => handleNavigation(e, '/clubSearch')}
                   className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
