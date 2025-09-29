@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { auth } from "@/model/firebase"
-import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
+import { onAuthStateChanged } from "firebase/auth"
 import type { Post, User, Club } from "@/model/types"
-import { MapPin, Heart, HeartOff, ExternalLink, Calendar, Clock, Edit, Trash2, ArrowLeft, Save, X, Plus } from "lucide-react"
+import { MapPin, Heart, HeartOff, ExternalLink, Calendar, Edit, Trash2, ArrowLeft, Save, X, Plus } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
 
 export default function PostPage() {
@@ -31,6 +31,27 @@ export default function PostPage() {
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null)
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null)
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  // Auto-dismiss notifications
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Close expanded image on Escape
   useEffect(() => {
@@ -299,87 +320,156 @@ useEffect(() => {
 
   const handleEdit = () => {
     setIsEditing(true)
+    setError(null)
+    setSuccessMessage(null)
   }
 
-  const uploadImage = async (file: File, token: string): Promise<string> => {
+  const uploadImage = async (file: File, token: string, targetPostId: string): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    
+    formData.append('folder', 'posts');
+    formData.append('postId', targetPostId);
+
+    if (editedPost?.image) {
+      formData.append('originalImageUrl', editedPost.image);
+    }
+
     const response = await fetch("/api/upload", {
       method: "POST",
-      headers: {
+      headers: {  
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to upload image');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to upload image');
     }
-    
+
     const result = await response.json();
-    return result.imageUrl || result.url;
+    return result.downloadURL;
   };
+
 
   const handleSave = async () => {
     if (!editedPost) return;
     setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+    setImageUploadError(null);
+
     try {
       const user = auth.currentUser;
       if (!user) {
-        setError('Please log in to edit posts');
+        setError('Please log in to save posts');
         return;
       }
       const token = await user.getIdToken();
-      
-      let postDataToSave = { ...editedPost };
-      
-      // Handle image upload if there's a new file
-      if (uploadedImageFile) {
-        try {
-          const imageUrl = await uploadImage(uploadedImageFile, token);
-          postDataToSave.image = imageUrl;
-        } catch (uploadError) {
-          setError('Failed to upload image. Please try again.');
-          return;
-        }
+
+      // Validate required fields before processing
+      if (!editedPost.title || !editedPost.details || !editedPost.campus || !editedPost.club || !editedPost.category) {
+        setError('Please fill in all required fields (title, details, campus, club, category)');
+        return;
       }
-      let response;
+
+      let finalPost;
+      let imageUrl: string | null = null;
+
       if (postId === "new") {
-        // POST to create new post
-        response = await fetch('/api/posts', {
+        // Create post first
+        const postToCreate = {
+          ...editedPost,
+          date_posted: new Date().toISOString(),
+        };
+
+        const response = await fetch('/api/posts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(editedPost),
+          body: JSON.stringify(postToCreate),
         });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          setError(errorData.error || errorData.message || 'Failed to create post');
+          return;
+        }
+
+        finalPost = await response.json();
+
+        // Upload image if provided
+        if (uploadedImageFile) {
+          try {
+            imageUrl = await uploadImage(uploadedImageFile, token, finalPost.id);
+
+            // Update post with image URL
+            const updateResponse = await fetch(`/api/posts?id=${finalPost.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify({ ...finalPost, image: imageUrl }),
+            });
+
+            if (updateResponse.ok) {
+              finalPost = await updateResponse.json();
+            }
+          } catch (uploadError: any) {
+            setImageUploadError(uploadError.message || 'Failed to upload image');
+          }
+        }
+
+        setSuccessMessage('Post created successfully!');
+        router.replace(`/postFilter/postPage/${finalPost.id}`);
+
       } else {
-        // PUT to update existing post
-        response = await fetch(`/api/posts?id=${post?.id}`, {
+        // Handle image upload for existing post
+        if (uploadedImageFile) {
+          try {
+            imageUrl = await uploadImage(uploadedImageFile, token, postId);
+          } catch (uploadError: any) {
+            setError(uploadError.message || 'Failed to upload image. Please try again.');
+            return;
+          }
+        }
+
+        const postToUpdate = {
+          ...editedPost,
+          ...(imageUrl && { image: imageUrl }),
+          date_posted: new Date().toISOString(),
+        };
+
+        const response = await fetch(`/api/posts?id=${postId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(editedPost),
+          body: JSON.stringify(postToUpdate),
         });
-      }
-      if (response.ok) {
-        const updatedPost = await response.json();
-        setPost(updatedPost);
-        setEditedPost(updatedPost);
-        setIsEditing(false);
-        setError(null);
-        // If new post, redirect to its page
-        if (postId === "new" && updatedPost.id) {
-          router.replace(`/postFilter/postPage/${updatedPost.id}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          setError(errorData.error || errorData.message || 'Failed to update post');
+          return;
         }
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || (postId === "new" ? 'Failed to create post' : 'Failed to update post'));
+
+        finalPost = await response.json();
+        setSuccessMessage('Post updated successfully!');
       }
+
+      // Update state and clean up
+      setPost(finalPost);
+      setEditedPost(finalPost);
+      setIsEditing(false);
+      setError(null);
+      setUploadedImageFile(null);
+      setImageUploadError(null);
+
     } catch (error) {
       setError(postId === "new" ? 'Error occurred while creating post' : 'Error occurred while updating post');
     } finally {
@@ -457,18 +547,24 @@ useEffect(() => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      let errorMessage = null
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file')
-        return
+        errorMessage = 'Please select a valid image file'
       }
-      
       // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image file size must be less than 5MB')
+      else if (file.size > 5 * 1024 * 1024) {
+        errorMessage = 'Image file size must be less than 5MB'
+      }
+
+      if (errorMessage) {
+        setImageUploadError(errorMessage)
+        event.target.value = ''
         return
       }
 
+      setImageUploadError(null)
       setUploadedImageFile(file)
       
       // Create preview URL
@@ -486,6 +582,7 @@ useEffect(() => {
   const removeUploadedImage = () => {
     setUploadedImageFile(null)
     setUploadedImagePreview(null)
+    setImageUploadError(null)
     handleInputChange('image', '')
   }
 
@@ -511,32 +608,6 @@ useEffect(() => {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements" data-theme={theme}>
-        {/* Animated background elements */}
-        <div className="absolute inset-0 bg-animated-elements">
-          {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className={`element-${i + 1}`}></div>
-          ))}
-        </div>
-        
-        <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <div className="text-center max-w-md">
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-6 py-4 rounded-lg mb-4">
-              <strong>Error:</strong> {error}
-            </div>
-            <button 
-              onClick={() => router.push('/postFilter')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-lg transition-colors"
-            >
-              Back to Posts
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   if (!post) {
     return (
@@ -576,6 +647,21 @@ useEffect(() => {
       </div>
       
       <div className="relative z-10 max-w-7xl mx-auto pt-8 pb-10 sm:pb-16 px-4">
+          {/* Notifications */}
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-6">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+          {successMessage && (
+            <div
+              className="bg-success/10 border border-success/20 text-success p-4 mb-4 text-sm rounded-lg"
+              role="alert"
+            >
+              {successMessage}
+            </div>
+          )}
+
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <button
@@ -686,10 +772,12 @@ useEffect(() => {
                     />
                   ) : (
                     <p className="font-semibold text-foreground text-sm sm:text-base">
-                      {post?.date_occuring ? new Date(post.date_occuring).toLocaleDateString('en-US', { 
+                      {post?.date_occuring ? new Date(post.date_occuring).toLocaleString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
-                        year: 'numeric'
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
                       }) : 'TBD'}
                     </p>
                   )}
@@ -704,27 +792,18 @@ useEffect(() => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Location</p>
                   {isEditing ? (
-                    <div className="grid grid-cols-1 gap-2">
-                      <select
-                        value={editedPost?.campus || ''}
-                        onChange={(e) => handleInputChange('campus', e.target.value)}
-                        className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
-                      >
-                        <option value="">Select campus</option>
-                        <option value="UTSG">UTSG</option>
-                        <option value="UTSC">UTSC</option>
-                        <option value="UTM">UTM</option>
-                      </select>
-                      <input
-                        type="text"
-                        value={editedPost?.location || ''}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
-                        placeholder="Building/Room or Address (optional)"
-                        className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
-                      />
-                    </div>
+                    <select
+                      value={editedPost?.campus || ''}
+                      onChange={(e) => handleInputChange('campus', e.target.value)}
+                      className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
+                    >
+                      <option value="">Select campus</option>
+                      <option value="UTSG">UTSG</option>
+                      <option value="UTSC">UTSC</option>
+                      <option value="UTM">UTM</option>
+                    </select>
                   ) : (
-                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.location ? `${post.location} • ${post?.campus || ''}` : (post?.campus || 'TBD')}</p>
+                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.campus || 'TBD'}</p>
                   )}
                 </div>
               </div>
@@ -861,6 +940,11 @@ useEffect(() => {
                           <p className="text-xs text-muted-foreground mt-1">
                             Supported formats: JPG, PNG, GIF, WebP (Max: 5MB)
                           </p>
+                          {imageUploadError && (
+                            <p className="text-xs text-destructive mt-2 font-medium">
+                              {imageUploadError}
+                            </p>
+                          )}
                         </div>
                         
                         {/* Image Preview */}

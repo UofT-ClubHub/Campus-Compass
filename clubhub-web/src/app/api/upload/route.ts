@@ -17,6 +17,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     // Additional authorization checks for specific resources
     if (folder === 'posts') {
       const postId = formData.get('postId') as string;
+      if (!postId) {
+        return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+      }
       const { authorized, error, status } = await checkPostPermissions(request, postId);
       if (!authorized) {
         return NextResponse.json({ error: error || 'Forbidden' }, { status: status || 403 });
