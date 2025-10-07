@@ -3,7 +3,7 @@
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useEffect, useState } from 'react';
-import { Mail, MapPin, Users, Heart, Star, Settings, FileText, Building2, Calendar, Clock } from 'lucide-react';
+import { Mail, MapPin, Users, Heart, Star, Settings, FileText, Building2, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
 import Link from 'next/link';
@@ -18,6 +18,19 @@ export default function ProfilePage() {
     const [followedClubs, setFollowedClubs] = useState<Club[]>([]);
     const [userApplications, setUserApplications] = useState<any[]>([]);
     const [applicationsLoading, setApplicationsLoading] = useState(false);
+    const [expandedApplications, setExpandedApplications] = useState<Set<string>>(new Set());
+
+    const toggleApplicationExpansion = (applicationId: string) => {
+        setExpandedApplications(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(applicationId)) {
+                newSet.delete(applicationId);
+            } else {
+                newSet.add(applicationId);
+            }
+            return newSet;
+        });
+    };
     
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -105,14 +118,46 @@ export default function ProfilePage() {
 
                 const applications = await response.json();
 
+                // Fetch position and club details for each application
+                const enrichedApplications = await Promise.all(
+                    applications.map(async (app: any) => {
+                        try {
+                            // Fetch position details
+                            const positionResponse = await fetch(`/api/positions?id=${app.clubId}&positionId=${app.positionId}`, {
+                                headers: { 
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+
+                            if (positionResponse.ok) {
+                                const positionData = await positionResponse.json();
+                                return {
+                                    ...app,
+                                    positionTitle: positionData.position?.title || 'Unknown Position',
+                                    clubName: positionData.club?.name || 'Unknown Club'
+                                };
+                            }
+                        } catch (error) {
+                            console.error('Error fetching position details for application:', app.id, error);
+                        }
+                        
+                        return {
+                            ...app,
+                            positionTitle: 'Unknown Position',
+                            clubName: 'Unknown Club'
+                        };
+                    })
+                );
+
                 // Sort by submission date (most recent first)
-                applications.sort((a: any, b: any) => {
+                enrichedApplications.sort((a: any, b: any) => {
                     const dateA = new Date(a.submittedAt).getTime();
                     const dateB = new Date(b.submittedAt).getTime();
                     return dateB - dateA;
                 });
 
-                setUserApplications(applications);
+                setUserApplications(enrichedApplications);
             } catch (error) {
                 console.error('Error fetching user applications:', error);
             } finally {
@@ -310,58 +355,88 @@ export default function ProfilePage() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {userApplications.map((application: any) => (
-                                <div 
-                                    key={application.applicationId}
-                                    className="bg-background/50 rounded-lg border border-border/50 p-4 hover:bg-background/70 transition-all duration-200"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <h3 className="font-semibold text-foreground">
-                                                    {application.positionTitle || 'Unknown Position'}
-                                                </h3>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    application.status === 'pending' 
-                                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                                        : application.status === 'accepted'
-                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                                        : application.status === 'rejected'
-                                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                                                }`}>
-                                                    {application.status || 'Pending'}
-                                                </span>
+                            {userApplications.map((application: any) => {
+                                const isExpanded = expandedApplications.has(application.id);
+                                return (
+                                    <div 
+                                        key={application.id || `app-${application.clubId}-${application.positionId}`}
+                                        className="bg-background/50 rounded-lg border border-border/50 p-4 hover:bg-background/70 transition-all duration-200"
+                                    >
+                                        <div 
+                                            className="flex items-start justify-between cursor-pointer"
+                                            onClick={() => toggleApplicationExpansion(application.id)}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h3 className="font-semibold text-foreground">
+                                                        {application.positionTitle || 'Unknown Position'}
+                                                    </h3>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        application.status === 'pending' 
+                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                                            : application.status === 'accepted'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                            : application.status === 'rejected'
+                                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                                                    }`}>
+                                                        {application.status || 'Pending'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                                                    <div className="flex items-center gap-1">
+                                                        <Building2 className="w-4 h-4" />
+                                                        <span>{application.clubName || 'Unknown Club'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Calendar className="w-4 h-4" />
+                                                        <span>Applied {new Date(application.submittedAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                {application.deadline && (
+                                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                        <Clock className="w-4 h-4" />
+                                                        <span>Deadline: {new Date(application.deadline).toLocaleDateString()}</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                                <div className="flex items-center gap-1">
-                                                    <Building2 className="w-4 h-4" />
-                                                    <span>{application.clubName || 'Unknown Club'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar className="w-4 h-4" />
-                                                    <span>Applied {new Date(application.submittedAt).toLocaleDateString()}</span>
+                                            <div className="flex items-center gap-2">
+                                                {/* Link to Club */}
+                                                <Link
+                                                    href={`/clubPage/${application.clubId}`}
+                                                    className="px-3 py-1 text-xs bg-secondary/10 text-secondary-foreground rounded-md hover:bg-secondary/20 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    View Club
+                                                </Link>
+                                                {/* Expand/Collapse Button */}
+                                                <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                                                    {isExpanded ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Expanded Content */}
+                                        {isExpanded && application.answers && (
+                                            <div className="mt-4 pt-4 border-t border-border/50">
+                                                <h4 className="font-medium text-foreground mb-3">Your Responses:</h4>
+                                                <div className="space-y-3">
+                                                    {Object.entries(application.answers).map(([question, answer]: [string, any]) => (
+                                                        <div key={question} className="bg-background/30 rounded-md p-3">
+                                                            <p className="font-medium text-sm text-foreground/80 mb-2">{question}</p>
+                                                            <p className="text-sm text-muted-foreground">{answer}</p>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                            {application.deadline && (
-                                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>Deadline: {new Date(application.deadline).toLocaleDateString()}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {/* Link to Club */}
-                                            <Link
-                                                href={`/clubPage/${application.clubId}`}
-                                                className="px-3 py-1 text-xs bg-secondary/10 text-secondary-foreground rounded-md hover:bg-secondary/20 transition-colors"
-                                            >
-                                                View Club
-                                            </Link>
-                                        </div>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
