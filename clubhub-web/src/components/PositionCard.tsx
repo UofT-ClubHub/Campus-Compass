@@ -27,7 +27,7 @@ interface PositionCardProps {
   onPositionUpdate?: (updatedPosition: any) => void
 }
 
-export default function PositionCard({ position }: PositionCardProps) {
+export default function PositionCard({ position, onPositionUpdate }: PositionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,15 +75,19 @@ export default function PositionCard({ position }: PositionCardProps) {
             const userData = await response.json();
             setCurrentUser(userData);
             
-            const isAdmin = userData.is_admin;
-            const isExecutive = userData.is_executive;
-            // For testing: Allow any executive to edit any position
-            setCanEdit(isAdmin || isExecutive);
+            // Only allow editing if user is executive of THIS SPECIFIC club
+            const isClubExecutive = userData.managed_clubs?.includes(position.clubId) || false;
+            setCanEdit(isClubExecutive);
+            
+            console.log('Position edit permissions:', {
+              clubId: position.clubId,
+              managedClubs: userData.managed_clubs,
+              isClubExecutive
+            });
           }
         } catch (error) {
           console.error('Error checking permissions:', error);
-          // For testing: Allow editing on error
-          setCanEdit(true);
+          setCanEdit(false);
         }
       } else {
         setCanEdit(false);
@@ -158,6 +162,9 @@ export default function PositionCard({ position }: PositionCardProps) {
         
         setIsEditing(false);
         alert('Position updated successfully!');
+        if (onPositionUpdate) {
+          onPositionUpdate(position);
+        }
       } else {
         const errorData = await response.json();
         console.error('Error updating position:', errorData);
@@ -168,6 +175,38 @@ export default function PositionCard({ position }: PositionCardProps) {
       alert('Failed to update position. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  const handleDeletePosition = async () => {
+    if (!authUser || !canEdit) return;
+
+    const confirmed = window.confirm(`Are you sure you want to delete the position "${position.title}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const token = await authUser.getIdToken();
+      const isOpenPosition = position.status === 'open';
+      const response = await fetch(`/api/positions?positionId=${position.positionId}&clubId=${position.clubId}&isOpenPosition=${isOpenPosition}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (response.ok) {
+        alert('Position deleted successfully!');
+        if (onPositionUpdate) {
+          onPositionUpdate(null); // Signal deletion
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Error deleting position:', errorData);
+        alert('Failed to delete position. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting position:', error);
+      alert('Failed to delete position. Please try again.');
     }
   }
 
@@ -215,21 +254,38 @@ export default function PositionCard({ position }: PositionCardProps) {
     setIsSubmitting(true)
 
     try {
-      // TODO: Implement application submission API call
-      console.log("Submitting application:", {
-        positionId: position.positionId,
-        clubId: position.clubId,
-        answers: formData,
+      if (!authUser) {
+        alert("Please log in to submit an application")
+        return
+      }
+
+      const token = await authUser.getIdToken()
+      const response = await fetch('/api/submitted-applications', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          answers: formData,
+          clubId: position.clubId,
+          userId: authUser.uid,
+          positionId: position.positionId,
+          isFinalSubmission: true
+        })
       })
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      alert("Application submitted successfully!")
-      setFormData({})
-      setIsExpanded(false)
-    } catch (error) {
-      alert("Error submitting application")
+      if (response.ok) {
+        alert("Application submitted successfully!")
+        setFormData({})
+        setIsExpanded(false)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to submit application')
+      }
+    } catch (error: any) {
+      console.error('Error submitting application:', error)
+      alert(`Error submitting application: ${error.message}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -314,18 +370,30 @@ export default function PositionCard({ position }: PositionCardProps) {
                       </div>
                     )}
 
-                    {/* Edit/Save/Cancel Buttons */}
+                    {/* Edit/Save/Cancel/Delete Buttons */}
                     {canEdit && !isEditing && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartEdit();
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/20"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                        Edit
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartEdit();
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/20"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePosition();
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors border border-destructive/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
                     )}
 
                     {isEditing && (
@@ -354,20 +422,7 @@ export default function PositionCard({ position }: PositionCardProps) {
                       </div>
                     )}
 
-                    {/* Test Edit Button for debugging */}
-                    {!canEdit && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartEdit();
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 text-orange-600 rounded-lg hover:bg-orange-500/20 transition-colors border border-orange-500/20"
-                        title="Test edit functionality"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                        🚧 Test
-                      </button>
-                    )}
+
                   </div>
                 </div>
 
@@ -397,7 +452,15 @@ export default function PositionCard({ position }: PositionCardProps) {
                       <input
                         type="date"
                         value={editDeadline ? new Date(editDeadline).toISOString().split('T')[0] : ''}
-                        onChange={(e) => setEditDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            // Create date at noon local time to avoid timezone issues
+                            const selectedDate = new Date(e.target.value + 'T12:00:00')
+                            setEditDeadline(selectedDate.toISOString())
+                          } else {
+                            setEditDeadline('')
+                          }
+                        }}
                         className="bg-white/50 dark:bg-input border border-border rounded px-2 py-1 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-black dark:text-white"
                       />
                     </div>
@@ -581,7 +644,27 @@ export default function PositionCard({ position }: PositionCardProps) {
                           })}
 
                         <div className="flex gap-4 pt-6">
-                          {/* Submit Application button removed as requested */}
+                          {/* Submit Application button - only show for regular users (non-executives) */}
+                          {!canEdit && (
+                            <button
+                              type="submit"
+                              disabled={isSubmitting}
+                              className="group/btn relative px-8 py-3 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all duration-300 text-base shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none overflow-hidden cursor-pointer"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-white/20 animate-pulse"></div>
+                              <span className="relative flex items-center gap-2">
+                                {isSubmitting ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    Submitting...
+                                  </>
+                                ) : (
+                                  "Submit Application"
+                                )}
+                              </span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
