@@ -3,7 +3,7 @@
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useEffect, useState } from 'react';
-import { Mail, MapPin, Users, Heart, Star, Settings } from 'lucide-react';
+import { Mail, MapPin, Users, Heart, Star, Settings, FileText, Building2, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { Profile } from '@/components/profile';
 import type { User, Club } from "@/model/types";
 import Link from 'next/link';
@@ -16,6 +16,21 @@ export default function ProfilePage() {
     const [settings, setSettings] = useState(false);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [followedClubs, setFollowedClubs] = useState<Club[]>([]);
+    const [userApplications, setUserApplications] = useState<any[]>([]);
+    const [applicationsLoading, setApplicationsLoading] = useState(false);
+    const [expandedApplications, setExpandedApplications] = useState<Set<string>>(new Set());
+
+    const toggleApplicationExpansion = (applicationId: string) => {
+        setExpandedApplications(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(applicationId)) {
+                newSet.delete(applicationId);
+            } else {
+                newSet.add(applicationId);
+            }
+            return newSet;
+        });
+    };
     
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -82,6 +97,77 @@ export default function ProfilePage() {
         fetchFollowedClubs();
     }, [userData, token]);
 
+    // Fetch user applications
+    useEffect(() => {
+        if (!authUser || !token) return;
+
+        const fetchUserApplications = async () => {
+            setApplicationsLoading(true);
+            try {
+                // Use existing submitted-applications endpoint
+                const response = await fetch(`/api/submitted-applications?userId=${authUser.uid}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch applications');
+                }
+
+                const applications = await response.json();
+
+                // Fetch position and club details for each application
+                const enrichedApplications = await Promise.all(
+                    applications.map(async (app: any) => {
+                        try {
+                            // Fetch position details
+                            const positionResponse = await fetch(`/api/positions?id=${app.clubId}&positionId=${app.positionId}`, {
+                                headers: { 
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+
+                            if (positionResponse.ok) {
+                                const positionData = await positionResponse.json();
+                                return {
+                                    ...app,
+                                    positionTitle: positionData.position?.title || 'Unknown Position',
+                                    clubName: positionData.club?.name || 'Unknown Club'
+                                };
+                            }
+                        } catch (error) {
+                            console.error('Error fetching position details for application:', app.id, error);
+                        }
+                        
+                        return {
+                            ...app,
+                            positionTitle: 'Unknown Position',
+                            clubName: 'Unknown Club'
+                        };
+                    })
+                );
+
+                // Sort by submission date (most recent first)
+                enrichedApplications.sort((a: any, b: any) => {
+                    const dateA = new Date(a.submittedAt).getTime();
+                    const dateB = new Date(b.submittedAt).getTime();
+                    return dateB - dateA;
+                });
+
+                setUserApplications(enrichedApplications);
+            } catch (error) {
+                console.error('Error fetching user applications:', error);
+            } finally {
+                setApplicationsLoading(false);
+            }
+        };
+
+        fetchUserApplications();
+    }, [authUser, token]);
+
     const handleSettingsClick = () => {
         setSettings(!settings);
     };
@@ -109,7 +195,7 @@ export default function ProfilePage() {
                 ))}
             </div>
             
-            <div className="relative z-10 max-w-6xl mx-auto pt-8 pb-0 px-4">
+            <div className="relative z-10 max-w-6xl mx-auto pt-8 pb-8 px-4">
                 {/* Profile Header Card */}
                 <div className="mb-4 sm:mb-8 bg-card/30 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-4 sm:p-8 form-glow">
                     <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-8">
@@ -233,6 +319,124 @@ export default function ProfilePage() {
                             </div>
                             <p className="text-muted-foreground text-base sm:text-lg">No clubs followed yet</p>
                             <p className="text-sm text-muted-foreground/80 mt-1">Start following clubs to see them here</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Applications Section */}
+                <div className="mt-6 bg-card/30 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 form-glow">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                        <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg">
+                            <FileText size={20} className="text-primary sm:w-6 sm:h-6" />
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">My Applications</h2>
+                        <span className="text-base sm:text-lg font-normal text-muted-foreground">
+                            ({userApplications.length})
+                        </span>
+                    </div>
+
+                    {applicationsLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                        </div>
+                    ) : userApplications.length === 0 ? (
+                        <div className="text-center py-8 sm:py-12">
+                            <div className="p-3 sm:p-4 bg-muted/30 rounded-full w-fit mx-auto mb-3 sm:mb-4">
+                                <FileText size={24} className="text-muted-foreground sm:w-8 sm:h-8 opacity-50" />
+                            </div>
+                            <p className="text-muted-foreground text-base sm:text-lg">No applications submitted yet</p>
+                            <p className="text-sm text-muted-foreground/80 mt-1">
+                                Browse{' '}
+                                <Link href="/positionsPage" className="text-primary hover:underline">
+                                    open positions
+                                </Link>{' '}
+                                to get started
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {userApplications.map((application: any) => {
+                                const isExpanded = expandedApplications.has(application.id);
+                                return (
+                                    <div 
+                                        key={application.id || `app-${application.clubId}-${application.positionId}`}
+                                        className="bg-background/50 rounded-lg border border-border/50 p-4 hover:bg-background/70 transition-all duration-200"
+                                    >
+                                        <div 
+                                            className="flex items-start justify-between cursor-pointer"
+                                            onClick={() => toggleApplicationExpansion(application.id)}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h3 className="font-semibold text-foreground">
+                                                        {application.positionTitle || 'Unknown Position'}
+                                                    </h3>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        application.status === 'pending' 
+                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                                            : application.status === 'accepted'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                            : application.status === 'rejected'
+                                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                                                    }`}>
+                                                        {application.status || 'Pending'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                                                    <div className="flex items-center gap-1">
+                                                        <Building2 className="w-4 h-4" />
+                                                        <span>{application.clubName || 'Unknown Club'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Calendar className="w-4 h-4" />
+                                                        <span>Applied {new Date(application.submittedAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                {application.deadline && (
+                                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                        <Clock className="w-4 h-4" />
+                                                        <span>Deadline: {new Date(application.deadline).toLocaleDateString()}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {/* Link to Club */}
+                                                <Link
+                                                    href={`/clubPage/${application.clubId}`}
+                                                    className="px-3 py-1 text-xs bg-secondary/10 text-secondary-foreground rounded-md hover:bg-secondary/20 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    View Club
+                                                </Link>
+                                                {/* Expand/Collapse Button */}
+                                                <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                                                    {isExpanded ? (
+                                                        <ChevronUp className="w-4 h-4" />
+                                                    ) : (
+                                                        <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Expanded Content */}
+                                        {isExpanded && application.answers && (
+                                            <div className="mt-4 pt-4 border-t border-border/50">
+                                                <h4 className="font-medium text-foreground mb-3">Your Responses:</h4>
+                                                <div className="space-y-3">
+                                                    {Object.entries(application.answers).map(([question, answer]: [string, any]) => (
+                                                        <div key={question} className="bg-background/30 rounded-md p-3">
+                                                            <p className="font-medium text-sm text-foreground/80 mb-2">{question}</p>
+                                                            <p className="text-sm text-muted-foreground">{answer}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
