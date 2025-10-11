@@ -88,8 +88,7 @@ export default function CalendarPage() {
       const eventData = {
         ...formData,
         date: formData.date,
-        startTime: formData.isAllDay ? undefined : formData.startTime,
-        endTime: formData.isAllDay ? undefined : formData.endTime,
+        startTime: formData.startTime || undefined,
       }
 
       if (modalMode === "add") {
@@ -362,7 +361,7 @@ export default function CalendarPage() {
                           {/* Show first event as preview - mobile gets dot, desktop gets full preview */}
                           {isMobileView ? (
                             <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-primary"></div>
+                              <div className={`w-2 h-2 rounded-full ${dayEvents[0].postDeleted ? 'bg-red-600' : 'bg-primary'}`}></div>
                               {dayEvents.length > 1 && (
                                 <span className="text-xs text-muted-foreground font-medium">
                                   {dayEvents.length}
@@ -371,7 +370,11 @@ export default function CalendarPage() {
                             </div>
                           ) : (
                             <>
-                              <div className="text-xs p-2 rounded-lg bg-primary/10 text-primary font-medium truncate border border-primary/20">
+                              <div className={`text-xs p-2 rounded-lg font-medium truncate border ${
+                                dayEvents[0].postDeleted 
+                                  ? 'bg-red-500/20 text-red-700 border-red-500' 
+                                  : 'bg-primary/10 text-primary border-primary/20'
+                              }`}>
                                 {dayEvents[0].title}
                               </div>
                               {/* Show count if more events */}
@@ -439,63 +442,96 @@ export default function CalendarPage() {
             ) : (
               openDropdowns.has(selectedDate.toISOString().split("T")[0]) && (
                 <div className="grid gap-3 sm:gap-4">
-                  {getEventsForDate(selectedDate).map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0"
-                    >
-                      <div className="flex-1 w-full">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                          <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-gradient-to-r from-primary to-accent shadow-sm"></div>
-                          <h4 className="font-semibold text-foreground text-base sm:text-lg">{event.title}</h4>
-                        </div>
+                  {getEventsForDate(selectedDate).map((event) => {
+                    const isClickable = event.postId && !event.postDeleted;
+                    const cardClassName = `flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0 ${
+                      isClickable ? 'cursor-pointer' : ''
+                    }`;
+                    
+                    const cardContent = (
+                      <>
+                        <div className="flex-1 w-full">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-gradient-to-r from-primary to-accent shadow-sm"></div>
+                            <h4 className="font-semibold text-foreground text-base sm:text-lg">{event.title}</h4>
+                          </div>
 
-                        {event.description && (
-                          <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base">
-                            {event.description}
-                          </p>
-                        )}
+                          {event.description && (
+                            <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base">
+                              {event.description}
+                            </p>
+                          )}
 
-                        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
-                          {!event.isAllDay && event.startTime && (
-                            <div className="flex items-center gap-2">
-                              <Clock size={14} className="sm:hidden" />
-                              <Clock size={16} className="hidden sm:block" />
-                              <span>
-                                {event.startTime}
-                                {event.endTime && ` - ${event.endTime}`}
+                          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                            {event.startTime && (
+                              <div className="flex items-center gap-2">
+                                <Clock size={14} className="sm:hidden" />
+                                <Clock size={16} className="hidden sm:block" />
+                                <span>
+                                  {event.startTime}
+                                </span>
+                              </div>
+                            )}
+
+                            {event.location && (
+                              <div className="flex items-center gap-2">
+                                <MapPin size={14} className="sm:hidden" />
+                                <MapPin size={16} className="hidden sm:block" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {event.postId && event.postDeleted && (
+                            <div className="mt-3 sm:mt-4">
+                              <span className="inline-flex items-center px-3 py-2 text-xs sm:text-sm rounded-lg bg-red-500/20 text-red-700 border border-red-500">
+                                Original Post Deleted
                               </span>
                             </div>
                           )}
-
-                          {event.location && (
-                            <div className="flex items-center gap-2">
-                              <MapPin size={14} className="sm:hidden" />
-                              <MapPin size={16} className="hidden sm:block" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                          )}
                         </div>
-                      </div>
 
-                      <div className="flex gap-2 w-full sm:w-auto justify-end">
-                        <button
-                          onClick={() => openEditModal(event)}
-                          className="p-2.5 sm:p-3 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
-                        >
-                          <Edit size={16} className="sm:hidden mx-auto" />
-                          <Edit size={18} className="hidden sm:block" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="p-2.5 sm:p-3 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
-                        >
-                          <Trash2 size={16} className="sm:hidden mx-auto" />
-                          <Trash2 size={18} className="hidden sm:block" />
-                        </button>
+                        <div className="flex gap-2 w-full sm:w-auto justify-end items-center">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openEditModal(event);
+                            }}
+                            className="p-2.5 sm:p-3 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
+                          >
+                            <Edit size={16} className="sm:hidden mx-auto" />
+                            <Edit size={18} className="hidden sm:block" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteEvent(event.id);
+                            }}
+                            className="p-2.5 sm:p-3 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
+                          >
+                            <Trash2 size={16} className="sm:hidden mx-auto" />
+                            <Trash2 size={18} className="hidden sm:block" />
+                          </button>
+                        </div>
+                      </>
+                    );
+
+                    return isClickable ? (
+                      <Link
+                        key={event.id}
+                        href={`/postFilter/postPage/${event.postId}`}
+                        className={cardClassName}
+                      >
+                        {cardContent}
+                      </Link>
+                    ) : (
+                      <div key={event.id} className={cardClassName}>
+                        {cardContent}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             )}

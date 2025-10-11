@@ -263,6 +263,29 @@ export const DELETE = withAuth(async (request: NextRequest) => {
             }
         }
 
+        // Before deleting the post, mark any related calendar events across all users as postDeleted: true
+        const usersCollection = firestore.collection('Users');
+        const usersSnapshot = await usersCollection.get();
+
+        const batch = firestore.batch();
+        usersSnapshot.docs.forEach(userDoc => {
+            const calendarEventsRef = usersCollection.doc(userDoc.id).collection('CalendarEvents');
+            // We cannot run queries inside a batch directly; collect updates separately
+        });
+
+        // Query all user events referencing this post and update them
+        for (const userDoc of usersSnapshot.docs) {
+            const calendarEventsRef = usersCollection.doc(userDoc.id).collection('CalendarEvents');
+            const matchingEvents = await calendarEventsRef.where('postId', '==', postId).get();
+            matchingEvents.docs.forEach(eventDoc => {
+                batch.update(eventDoc.ref, { postDeleted: true, updatedAt: new Date().toISOString() });
+            });
+        }
+
+        // Commit all event updates first
+        await batch.commit();
+
+        // Finally, delete the post
         await docRef.delete();
         return NextResponse.json({ message: 'post deleted successfully' }, { status: 200 });
     }
