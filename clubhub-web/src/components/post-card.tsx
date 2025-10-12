@@ -14,6 +14,7 @@ interface PostCardProps {
   onDelete?: (postId: string) => void; // Callback for post deletion
   onRefresh?: () => void; // Callback to refresh parent component's post list
   className?: string;
+  onHashtagClick?: (hashtag: string) => void;
 }
 
 export function PostCard({ 
@@ -24,6 +25,7 @@ export function PostCard({
   onLikeUpdate,
   onDelete,
   onRefresh,
+  onHashtagClick,
   className = "" 
 }: PostCardProps) {
   const [clubName, setClubName] = useState("");
@@ -104,12 +106,16 @@ export function PostCard({
         {post.hashtags && post.hashtags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {post.hashtags.slice(0, 3).map((hashtag, index) => (
-              <span
+              <button
                 key={index}
-                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHashtagClick?.(hashtag);
+                }}
               >
                 #{hashtag}
-              </span>
+              </button>
             ))}
             {post.hashtags.length > 3 && (
               <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-full">
