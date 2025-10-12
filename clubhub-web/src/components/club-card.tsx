@@ -29,13 +29,17 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
     >
       <div className="relative z-10">
         {/* Image Container */}
-        <div className="h-48 overflow-hidden">
+        <div className="h-48 overflow-hidden relative">
           {club.image ? (
-            <img
-              src={club.image}
-              alt={club.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
+            <>
+              <img
+                src={club.image}
+                alt={club.name}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              {/* Fade overlay */}
+              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-club-card-bg to-transparent group-hover:scale-110 transition-transform duration-500"></div>
+            </>
           ) : (
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
               <div className="text-gray-400">
