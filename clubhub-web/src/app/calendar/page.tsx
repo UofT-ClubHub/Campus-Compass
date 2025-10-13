@@ -300,15 +300,15 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        <div className="flex items-center justify-between mb-4 sm:mb-8 bg-card border border-border rounded-2xl p-3 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-2 sm:mb-4 bg-card border border-border rounded-2xl p-2 sm:p-3 shadow-sm">
           <button
             onClick={() => navigateMonth("prev")}
-            className="p-2 sm:p-3 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
+            className="p-2 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
           >
-            <ChevronLeft size={20} className="text-foreground sm:hidden" />
-            <ChevronLeft size={24} className="text-foreground hidden sm:block" />
+            <ChevronLeft size={18} className="text-foreground sm:hidden" />
+            <ChevronLeft size={20} className="text-foreground hidden sm:block" />
           </button>
-          <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight text-center">
+          <h2 className="text-lg sm:text-2xl font-bold text-foreground tracking-tight text-center">
             {isMobileView ? 
               `${monthNames[currentMonth.getMonth()].slice(0, 3)} ${currentMonth.getFullYear()}` :
               `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`
@@ -316,10 +316,10 @@ export default function CalendarPage() {
           </h2>
           <button
             onClick={() => navigateMonth("next")}
-            className="p-2 sm:p-3 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
+            className="p-2 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
           >
-            <ChevronRight size={20} className="text-foreground sm:hidden" />
-            <ChevronRight size={24} className="text-foreground hidden sm:block" />
+            <ChevronRight size={18} className="text-foreground sm:hidden" />
+            <ChevronRight size={20} className="text-foreground hidden sm:block" />
           </button>
         </div>
 
@@ -343,7 +343,7 @@ export default function CalendarPage() {
               return (
                 <div
                   key={index}
-                  className={`min-h-[80px] sm:min-h-[140px] p-1.5 sm:p-3 border-r border-b border-border/50 relative z-10 transition-all duration-200 ${
+                  className={`min-h-[80px] sm:min-h-[125px] p-1 sm:p-2 border-r border-b border-border/50 relative z-10 transition-all duration-200 ${
                     !date ? "bg-muted/20" : "hover:bg-accent/20 cursor-pointer"
                   } ${date && isToday(date) ? "bg-primary/5 border-primary/20" : ""} ${date && isSelectedDate(date) ? "bg-primary/10 border-primary/30" : ""}`}
                   onClick={() => date && setSelectedDate(date)}
@@ -433,13 +433,7 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {getEventsForDate(selectedDate).length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <Calendar className="w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-3 sm:mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground text-base sm:text-lg">No events scheduled for this date</p>
-                <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1 sm:mt-2">Click "New Event" to create your first event</p>
-              </div>
-            ) : (
+            {getEventsForDate(selectedDate).length === 0 ? null : (
               openDropdowns.has(selectedDate.toISOString().split("T")[0]) && (
                 <div className="grid gap-3 sm:gap-4">
                   {getEventsForDate(selectedDate).map((event) => {

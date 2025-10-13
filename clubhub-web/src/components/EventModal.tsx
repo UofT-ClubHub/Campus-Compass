@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import type { CalendarEvent } from "@/model/types"
 
@@ -106,8 +107,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[1000] overflow-y-auto">
       <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
         <div className="flex justify-between items-center p-6 pb-4 flex-shrink-0">
           <h2 className="text-xl font-bold text-foreground">
@@ -186,6 +187,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 } 
