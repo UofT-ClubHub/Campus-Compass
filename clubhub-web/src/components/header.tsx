@@ -159,7 +159,7 @@ export function Header() {
 
             {/* Enhanced Desktop Navigation */}
             <nav className="hidden xl:flex items-center flex-1 justify-center min-w-0 mx-1 lg:mx-4">
-              <div ref={navRef} className="flex items-center bg-muted/50 rounded-full px-1 py-1 backdrop-blur-sm relative overflow-x-auto max-w-full scrollbar-hide">
+              <div ref={navRef} className="flex items-center bg-muted/100 rounded-full px-1 py-1 backdrop-blur-sm relative overflow-x-auto max-w-full scrollbar-hide">
                 {/* Sliding indicator */}
                 <div 
                   className={`absolute bg-primary/70  shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
@@ -168,8 +168,8 @@ export function Header() {
                   style={{
                     left: `${indicatorStyle.left}px`,
                     width: `${indicatorStyle.width}px`,
-                    height: '32px',
-                    top: '7px',
+                    height: '37px',
+                    top: '6px',
                   }}
                 />
                 
