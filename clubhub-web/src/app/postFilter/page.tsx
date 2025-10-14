@@ -277,6 +277,11 @@ function PostFilterContent() {
     });
   };
 
+  const handleHashtagClick = (hashtag: string) => {
+    setQuery(hashtag); // Update query state
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Handle post deletion
   const handleDeletePost = (postId: string) => {
     setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
@@ -543,6 +548,7 @@ function PostFilterContent() {
                       onLikeUpdate={handleLikeUpdate}
                       onDelete={handleDeletePost}
                       onRefresh={refreshPosts}
+                      onHashtagClick={handleHashtagClick}
                     />
                   ))}
                 </div>

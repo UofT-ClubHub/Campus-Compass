@@ -41,8 +41,6 @@ export const POST = withAuth(async (request: NextRequest) => {
         // Extract date and time from post's date_occuring
         let eventDate = '';
         let startTime: string | undefined = undefined;
-        let endTime: string | undefined = undefined;
-        let isAllDay = true;
 
         if (post.date_occuring) {
             const eventDateTime = new Date(post.date_occuring);
@@ -61,12 +59,6 @@ export const POST = withAuth(async (request: NextRequest) => {
                 if (hours !== 0 || minutes !== 0) {
                     // Event has a specific time
                     startTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    isAllDay = false;
-                    
-                    // Set end time to 1 hour after start time by default
-                    const endDateTime = new Date(eventDateTime);
-                    endDateTime.setHours(endDateTime.getHours() + 1);
-                    endTime = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
                 }
             }
         }
@@ -82,10 +74,10 @@ export const POST = withAuth(async (request: NextRequest) => {
             title: post.title || 'Untitled Event',
             description: post.details || '',
             date: eventDate,
-            isAllDay: isAllDay,
             postId: data.postId,
+            postDeleted: false,
             clubId: post.club || '',
-            color: data.color || '#3B82F6',
+            location: post.campus || undefined,
             createdAt: now,
             updatedAt: now,
         };
@@ -93,13 +85,6 @@ export const POST = withAuth(async (request: NextRequest) => {
         // Only add optional fields if they have values
         if (startTime) {
             eventData.startTime = startTime;
-        }
-        if (endTime) {
-            eventData.endTime = endTime;
-        }
-        const resolvedLocation = post?.location;
-        if (resolvedLocation) {
-            eventData.location = resolvedLocation;
         }
 
         const userEventsCollectionForAdd = firestore.collection('Users').doc(authResult.uid).collection('CalendarEvents');

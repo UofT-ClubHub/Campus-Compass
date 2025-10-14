@@ -14,6 +14,7 @@ interface PostCardProps {
   onDelete?: (postId: string) => void; // Callback for post deletion
   onRefresh?: () => void; // Callback to refresh parent component's post list
   className?: string;
+  onHashtagClick?: (hashtag: string) => void;
 }
 
 export function PostCard({ 
@@ -24,6 +25,7 @@ export function PostCard({
   onLikeUpdate,
   onDelete,
   onRefresh,
+  onHashtagClick,
   className = "" 
 }: PostCardProps) {
   const [clubName, setClubName] = useState("");
@@ -119,12 +121,17 @@ export function PostCard({
         {post.hashtags && post.hashtags.length > 0 && (
           <div className="flex flex-nowrap gap-2 pt-2 border-t border-border items-center justify-center px-2">
             {post.hashtags.slice(0, 3).map((hashtag, index) => (
-              <span
+              <button
                 key={index}
                 className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer flex-shrink-0 whitespace-nowrap"
+                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHashtagClick?.(hashtag);
+                }}
               >
                 #{hashtag}
-              </span>
+              </button>
             ))}
             {post.hashtags.length > 3 && (
               <span className="px-3 py-1 rounded-full border border-border bg-background text-foreground text-xs font-medium flex-shrink-0 whitespace-nowrap">
