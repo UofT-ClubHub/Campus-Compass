@@ -59,17 +59,17 @@ export function PostCard({
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-post-card-bg rounded-xl shadow-md border-2 border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer ${className}`}
+      className={`bg-post-card-bg rounded-xl shadow-sm border-2 border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer ${className}`}
     >
       {/* Image Section */}
-      <div className="relative h-80 bg-muted overflow-hidden">
+      <div className="relative h-64 bg-muted overflow-hidden">
         <img
           src={post.image || "/placeholder.jpg"}
           alt={post.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Fade overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-post-card-bg to-transparent group-hover:scale-105 transition-transform duration-300"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-post-card-bg to-transparent group-hover:scale-105 transition-transform duration-500"></div>
         <div className="absolute top-3 right-3 bg-background/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
           <Heart className="h-4 w-4 text-red-500 fill-red-500" />
           <span className="text-sm font-semibold text-foreground">{post.likes || 0}</span>
@@ -77,22 +77,22 @@ export function PostCard({
       </div>
 
       {/* Content Section */}
-      <div className="p-6 space-y-5">
-        <h3 className="text-xl font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors text-center">
+      <div className="p-4 space-y-3">
+        <h3 className="text-lg font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors text-center">
           {post.title}
         </h3>
 
-        <hr className="border-border mb-4" />
+        <hr className="border-border" />
 
         {/* Info Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
             <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Calendar className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground font-medium">Category</p>
-              <p className="text-sm text-foreground font-semibold truncate">{post.category}</p>
+              <p className="text-sm text-muted-foreground truncate">{post.category}</p>
             </div>
           </div>
 
@@ -102,7 +102,7 @@ export function PostCard({
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground font-medium">Campus</p>
-              <p className="text-sm text-foreground font-semibold truncate">{post.campus}</p>
+              <p className="text-sm text-muted-foreground truncate">{post.campus}</p>
             </div>
           </div>
 
@@ -112,18 +112,17 @@ export function PostCard({
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground font-medium">Organized by</p>
-              <p className="text-sm text-foreground font-semibold truncate">{clubName || "Loading..."}</p>
+              <p className="text-sm text-muted-foreground truncate">{clubName || "Loading..."}</p>
             </div>
           </div>
         </div>
 
         {/* Hashtags */}
         {post.hashtags && post.hashtags.length > 0 && (
-          <div className="flex flex-nowrap gap-2 pt-2 border-t border-border items-center justify-center px-2">
+          <div className="flex flex-nowrap gap-1 pt-2 pb-1 items-center justify-center px-2">
             {post.hashtags.slice(0, 3).map((hashtag, index) => (
               <button
                 key={index}
-                className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer flex-shrink-0 whitespace-nowrap"
                 className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();

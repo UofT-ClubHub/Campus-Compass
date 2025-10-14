@@ -834,14 +834,14 @@ useEffect(() => {
                 disabled={isLiking || !currentUser}
                 className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm sm:text-base ${
                   isLiked
-                    ? "bg-gradient-to-r from-red-50 to-pink-50 text-red-600 border-2 border-red-200 hover:border-red-300 hover:from-red-100 hover:to-pink-100"
+                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/30 dark:border-red-500/40 hover:border-red-500/50 dark:hover:border-red-500/60 hover:bg-red-500/20 dark:hover:bg-red-500/30"
                     : "bg-gradient-to-r from-card to-muted/50 hover:from-muted hover:to-card text-foreground border-2 border-border hover:border-primary/30"
                 } ${(isLiking || !currentUser) ? 'opacity-50 cursor-not-allowed transform-none hover:scale-100' : 'cursor-pointer'}`}
                 title={!currentUser ? 'Please log in to like posts' : ''}
               >
                 <div className="relative">
                   {isLiked ? (
-                    <Heart size={18} className="sm:size-5 fill-current text-red-500" />
+                    <Heart size={18} className="sm:size-5 fill-red-500 dark:fill-red-400 text-red-500 dark:text-red-400" />
                   ) : (
                     <HeartOff size={18} className="sm:size-5 group-hover:text-red-500 transition-colors" />
                   )}
@@ -1151,12 +1151,16 @@ useEffect(() => {
                       </div>
                     ) : (
                       post?.hashtags?.map((tag, index) => (
-                        <span
+                        <button
                           key={index}
-                          className="group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-primary border border-primary/20 hover:border-primary/30 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 cursor-default"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/postFilter?q=${encodeURIComponent(tag)}`);
+                          }}
+                          className="group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-primary border border-primary/20 hover:border-primary/30 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 cursor-pointer"
                         >
                           #{tag}
-                        </span>
+                        </button>
                       ))
                     )}
                   </div>
