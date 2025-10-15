@@ -6,9 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Only scrape this one Instagram account
+# Get all Instagram links and mapping from Firebase
+instagram_links, mapping = firebase_client.get_instagram_links()
+print(f"Found {len(instagram_links)} Instagram accounts to scrape")
+
+# Filter to only scrape specific account(s) if desired
 instagram_links = ["https://www.instagram.com/ds3.utsc/"]
-mapping = {"ds3.utsc": "ds3.utsc"}
 
 # Initialize the ApifyClient with the API token from .env
 apify_api_key = os.getenv("APIFY_KEY")
@@ -20,7 +23,7 @@ client = ApifyClient(apify_api_key)
 run_input = {
     "directUrls": instagram_links,
     "resultsType": "posts",
-    "resultsLimit": 5,
+    "resultsLimit": 2,
     "searchType": "hashtag",
     "searchLimit": 1,
     "addParentData": False,

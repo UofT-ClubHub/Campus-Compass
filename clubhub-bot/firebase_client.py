@@ -105,8 +105,8 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                     hashtags = item.get('hashtags') or []
                     post_context = f"Caption: {item.get('caption')}\nHashtags: {', '.join(hashtags)}"
                     doc_data["category"] = llm_utils.classify_post(post_context)
-                    doc_data["title"] = llm_utils.get_title(post_context, item.get("displayUrl"))
-                    doc_data["date_occurring"] = llm_utils.extract_event_date(post_context, item.get("displayUrl"))
+                    doc_data["title"] = llm_utils.get_title(post_context)
+                    doc_data["date_occurring"] = llm_utils.extract_event_date(post_context)
                     doc_data["links"] = [post_url]
                 elif src_key == "displayUrl":
                     # Upload image to Firebase Storage

@@ -6,6 +6,7 @@ from io import BytesIO
 from transformers import pipeline
 from huggingface_hub import login
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -34,10 +35,21 @@ def classify_post(text: str, labels: list[str] | None = None) -> str:
     return result["labels"][0]
 
 def get_title(text: str, image_url: str = None) -> str:
-    prompt = f"Generate a concise, clear title for the following post:\n\n{text}"
+    prompt = f"""
+    Generate a concise, clear title for the following post:
+
+    Text content:
+    {text}"""
+
+    if image_url:
+        prompt += f"""Also consider the image content when generating the title."""
+
+    prompt += f"""
+    Your response must be exactly in this format: 'Title' and NOTHING ELSE.
+    """
 
     # Create the model
-    model = genai.GenerativeModel('gemini-1.5-m')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite')
     
     content = [prompt]
     
@@ -49,8 +61,6 @@ def get_title(text: str, image_url: str = None) -> str:
             response.raise_for_status()
             img = Image.open(BytesIO(response.content))
             content.append(img)
-            prompt = f"Generate a concise, clear title for this post. Consider both the text and image content:\n\nText: {text}"
-            content[0] = prompt
         except Exception as e:
             print(f"Error loading image: {e}")
             # Continue without image
@@ -66,16 +76,32 @@ def extract_event_date(text: str, image_url: str = None) -> str:
     Extract event date from post text and image.
     Returns ISO format date string or None if no date found.
     """
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    
     prompt = f"""Extract the event date from the following post content. Look for:
-- Specific dates (e.g., "January 15", "Dec 3rd", "March 22, 2024")
-- Days of the week with context (e.g., "this Friday", "next Tuesday")
-- Time expressions that indicate when an event occurs
+            - Specific dates
+            - Days of the week with context
+            - Time expressions that indicate when an event occurs
+            
+    Current date (today): {current_date}
+    Use this to interpret relative dates like "tomorrow", "next week", etc."""
+                
+    # Add image-specific instructions if image is provided
+    if image_url:
+        prompt += """
+        - Calendar elements or date displays in the image
+        - Any dates visible in the image content"""
+    
+    prompt += f"""
+    Only return the date if you can determine a specific date.
+    If no specific date can be determined, return 'None'.
+    
+    Text content:
+    {text}"""
 
-Only return the date in ISO format (YYYY-MM-DD) if you can determine a specific date. 
-If no specific date can be determined, return "None".
-
-Post content:
-{text}"""
+    prompt += f"""
+    Your response must be exactly in this format: '%Y-%m-%dT%H:%M:%S.000Z' or 'None' and NOTHING ELSE.
+    """
 
     # Create the model
     model = genai.GenerativeModel('gemini-2.5-flash-lite')
@@ -85,41 +111,25 @@ Post content:
     # Add image if provided
     if image_url:
         try:
-            import requests
-            from PIL import Image
-            from io import BytesIO
-            
             # Download image from URL
             response = requests.get(image_url)
             response.raise_for_status()
             img = Image.open(BytesIO(response.content))
             content.append(img)
-            prompt = f"""Extract the event date from both the text and image content. Look for:
-- Specific dates in text or visible in the image
-- Days of the week with context
-- Calendar elements or date displays in the image
-- Time expressions that indicate when an event occurs
-
-Only return the date in the following format "%Y-%m-%dT%H:%M:%S.000Z if you can determine a specific date.
-If no specific date can be determined, return "None".
-
-Text content:
-{text}"""
-            content[0] = prompt
         except Exception as e:
             print(f"Error loading image for date extraction: {e}")
             # Continue without image
 
     try:
-        response = model.generate_content(content, generation_config=genai.types.GenerationConfig(temperature=0.1))
+        response = model.generate_content(content, generation_config=genai.types.GenerationConfig(temperature=0.25))
         extracted_date = response.text.strip()
         
         # Validate the response
         if extracted_date.lower() == "none" or not extracted_date:
             print(f"No event date found in post")
             return None
-        
-        # Try to parse the date and convert to ISO 8601 with time and Z
+
+        print(f"Extracted event date: {extracted_date}")
         return extracted_date
         
     except Exception as e:

@@ -29,7 +29,7 @@ function ClubSearchContent() {
   const [initialLoading, setInitialLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
-  const limit = 4;
+  const limit = 3;
   const loadingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -401,7 +401,7 @@ function ClubSearchContent() {
                 <p className="text-muted-foreground text-sm">Try adjusting your filters to find more clubs</p>
               </div>            ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {clubs.map((club: Club) => (
                       <ClubCard
                         key={club.id} 
