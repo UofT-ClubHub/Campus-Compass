@@ -408,7 +408,7 @@ export default function ClubPage({ params }: PageProps) {
                      </button>
                    )}
                    <button
-                     onClick={() => router.push(`/applicationsPage/${clubID}`)}
+                     onClick={() => router.push(`/applicationsPage/${clubID}?from=club`)}
                      className="cursor-pointer px-6 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium transition-all duration-200 border border-accent"
                    >
                      View Open Positions

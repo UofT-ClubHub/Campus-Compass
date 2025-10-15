@@ -594,17 +594,17 @@ export default function ExecPage() {
                       </button>
                     )}
                     <button
-                      onClick={() => router.push(`/applicationsPage/${club.id}`)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      onClick={() => router.push(`/applicationsPage/${club.id}?from=exec`)}
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
-                      View Applications
+                      View Forms
                     </button>
                     <button
                       onClick={() => {
                         // Route to new post page, passing club id as query param for prefill
                         router.push(`/postFilter/postPage/new?clubId=${club.id}`);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       Post
                     </button>

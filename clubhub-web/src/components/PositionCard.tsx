@@ -376,9 +376,19 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            window.location.href = `/applicationsPage/${position.clubId}/${position.positionId}`;
+                          }}
+                          className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors border border-accent/20"
+                        >
+                          <Users className="h-4 w-4" />
+                          View Applications
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleStartEdit();
                           }}
-                          className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/20"
+                          className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/20"
                         >
                           <Edit3 className="h-4 w-4" />
                           Edit
@@ -388,7 +398,7 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
                             e.stopPropagation();
                             handleDeletePosition();
                           }}
-                          className="flex items-center gap-2 px-3 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors border border-destructive/20"
+                          className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors border border-destructive/20"
                         >
                           <Trash2 className="h-4 w-4" />
                           Delete
