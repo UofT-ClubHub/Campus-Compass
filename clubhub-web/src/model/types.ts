@@ -63,7 +63,7 @@ export interface Post {
     club: string;
     category: string;
     hashtags: string[];
-    date_occuring: string;
+    date_occurring: string;
     date_posted: string;
     likes: number;
     image: string;

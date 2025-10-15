@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Apply sorting with index support
-        if (sortBy && ['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {
+        if (sortBy && ['date_posted', 'date_occurring', 'likes'].includes(sortBy)) {
             const order = sortOrder === 'asc' ? 'asc' : 'desc';
             query = query.orderBy(sortBy, order);
         } else {
@@ -116,8 +116,8 @@ export async function GET(request: NextRequest) {
         });
 
         // Apply sorting in memory if not already sorted by Firestore
-        if (!sortBy || !['date_posted', 'date_occuring', 'likes'].includes(sortBy)) {
-            if (sortBy && ['likes', 'date_occuring', 'date_posted'].includes(sortBy)) {
+        if (!sortBy || !['date_posted', 'date_occurring', 'likes'].includes(sortBy)) {
+            if (sortBy && ['likes', 'date_occurring', 'date_posted'].includes(sortBy)) {
                 const order = sortOrder === 'asc' ? 1 : -1;
                 allPosts.sort((a, b) => {
                     const aVal = a[sortBy as keyof Post];

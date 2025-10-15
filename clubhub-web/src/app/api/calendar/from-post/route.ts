@@ -20,8 +20,8 @@ export const POST = withAuth(async (request: NextRequest) => {
 
         const post = postDoc.data() as Post;
         
-        // Validate that the post has a date_occuring field
-        if (!post.date_occuring) {
+        // Validate that the post has a date_occurring field
+        if (!post.date_occurring) {
             return NextResponse.json({ message: 'Post does not have an event date' }, { status: 400 });
         }
         
@@ -38,12 +38,12 @@ export const POST = withAuth(async (request: NextRequest) => {
             }, { status: 409 });
         }
 
-        // Extract date and time from post's date_occuring
+        // Extract date and time from post's date_occurring
         let eventDate = '';
         let startTime: string | undefined = undefined;
 
-        if (post.date_occuring) {
-            const eventDateTime = new Date(post.date_occuring);
+        if (post.date_occurring) {
+            const eventDateTime = new Date(post.date_occurring);
             
             if (!isNaN(eventDateTime.getTime())) {
                 // Extract date in YYYY-MM-DD format

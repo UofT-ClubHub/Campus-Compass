@@ -99,7 +99,7 @@ useEffect(() => {
         campus: "",
         category: "",
         date_posted: now,
-        date_occuring: "",
+        date_occurring: "",
         image: "",
         likes: 0,
         hashtags: [],
@@ -119,6 +119,8 @@ useEffect(() => {
         const response = await fetch(`/api/posts?id=${postId}`)
         if (response.ok) {
           const postData = await response.json()
+          console.log('DEBUG: Post data from API:', postData)
+          console.log('DEBUG: date_occurring value:', postData.date_occurring)
           setPost(postData)
           setEditedPost(postData) // Initialize edited post
           setLikes(postData.likes || 0)
@@ -261,7 +263,7 @@ useEffect(() => {
   const handleExportToCalendar = async (e: React.MouseEvent) => {
     e.stopPropagation()
 
-    if (!post?.date_occuring) {
+    if (!post?.date_occurring) {
       setError('No Post Date Specified')
       return
     }
@@ -587,6 +589,7 @@ useEffect(() => {
   }
 
   const isClubAdmin = currentUser?.managed_clubs?.includes(clubId || '') || false
+  const isAdmin = currentUser?.is_admin || false
 
   if (loading) {
     return (
@@ -676,7 +679,7 @@ useEffect(() => {
                 </span>
             </button>
             
-            {(isClubAdmin || postId === "new") && (
+            {(isClubAdmin || isAdmin || postId === "new") && (
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {isEditing ? (
                   <>
@@ -757,8 +760,8 @@ useEffect(() => {
                   {isEditing ? (
                     <input
                       type="datetime-local"
-                      value={editedPost?.date_occuring ? (() => {
-                        const date = new Date(editedPost.date_occuring);
+                      value={editedPost?.date_occurring ? (() => {
+                        const date = new Date(editedPost.date_occurring);
                         if (isNaN(date.getTime())) return '';
                         const year = date.getFullYear();
                         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -767,12 +770,12 @@ useEffect(() => {
                         const minutes = String(date.getMinutes()).padStart(2, '0');
                         return `${year}-${month}-${day}T${hours}:${minutes}`;
                       })() : ''}
-                      onChange={(e) => handleInputChange('date_occuring', e.target.value)}
+                      onChange={(e) => handleInputChange('date_occurring', e.target.value)}
                       className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
                     />
                   ) : (
                     <p className="font-semibold text-foreground text-sm sm:text-base">
-                      {post?.date_occuring ? new Date(post.date_occuring).toLocaleString('en-US', { 
+                      {post?.date_occurring ? new Date(post.date_occurring).toLocaleString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
                         year: 'numeric',
@@ -817,7 +820,7 @@ useEffect(() => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Status</p>
-                  {getEventStatus(post.date_occuring) === 'upcoming' ? (
+                  {getEventStatus(post.date_occurring) === 'upcoming' ? (
                     <p className="font-bold text-emerald-700 dark:text-green-400 text-sm sm:text-base">Upcoming</p>
                   ) : (
                     <p className="font-bold text-red-700 dark:text-red-400 text-sm sm:text-base">Closed</p>
@@ -857,7 +860,6 @@ useEffect(() => {
                 <span className="sm:hidden">
                   {likes}
                 </span>
-                {!currentUser && <span className="text-xs opacity-70 hidden sm:inline">(Login required)</span>}
               </button>
 
               <button

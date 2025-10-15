@@ -251,7 +251,7 @@ export const getUpcomingEvents = async ({
     
     let queryRef = firestore.collection('Posts')
       .where('category', '==', 'Event')
-      .orderBy('date_occuring', 'asc'); // Order by event date
+      .orderBy('date_occurring', 'asc'); // Order by event date
     
     if (campus) {
       queryRef = queryRef.where('campus', '==', campus);
@@ -267,13 +267,13 @@ export const getUpcomingEvents = async ({
     const results = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter((event: any) => {
-        if (!event.date_occuring) return false;
+        if (!event.date_occurring) return false;
         
         try {
-          const eventDate = new Date(event.date_occuring);
+          const eventDate = new Date(event.date_occurring);
           return eventDate >= today && eventDate <= futureDate;
         } catch (error) {
-          console.error('Invalid date format:', event.date_occuring);
+          console.error('Invalid date format:', event.date_occurring);
           return false;
         }
       })
@@ -352,12 +352,12 @@ export const searchEvents = async ({
         if (!matchesQuery) return false;
         
         // Date filtering - only show future events unless includeExpired is true
-        if (!includeExpired && event.date_occuring) {
+        if (!includeExpired && event.date_occurring) {
           try {
-            const eventDate = new Date(event.date_occuring);
+            const eventDate = new Date(event.date_occurring);
             return eventDate >= today;
           } catch (error) {
-            console.error('Invalid date format:', event.date_occuring);
+            console.error('Invalid date format:', event.date_occurring);
             return false;
           }
         }
@@ -366,8 +366,8 @@ export const searchEvents = async ({
       })
       .sort((a: any, b: any) => {
         // Sort by event date if available
-        if (a.date_occuring && b.date_occuring) {
-          return new Date(a.date_occuring).getTime() - new Date(b.date_occuring).getTime();
+        if (a.date_occurring && b.date_occurring) {
+          return new Date(a.date_occurring).getTime() - new Date(b.date_occurring).getTime();
         }
         return 0;
       })

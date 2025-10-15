@@ -445,7 +445,7 @@ function PostFilterContent() {
                       <option value="">Sort By</option>
                       <option value="date_posted">Date Posted</option>
                       <option value="likes">Likes</option>
-                      <option value="date_occuring">Date Occuring</option>
+                      <option value="date_occurring">Date Occuring</option>
                     </select>
                   </div>
                 </div>
@@ -465,7 +465,7 @@ function PostFilterContent() {
                         <option value="">Sort By</option>
                         <option value="date_posted">Date Posted</option>
                         <option value="likes">Likes</option>
-                        <option value="date_occuring">Date Occuring</option>
+                        <option value="date_occurring">Date Occuring</option>
                       </select>
                     </div>
                   </div>
