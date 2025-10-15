@@ -65,7 +65,8 @@ KEY_MAP = {
     "caption": "details",
     "displayUrl": "image",
     "timestamp": "date_posted",
-    "hashtags": "hashtags"
+    "hashtags": "hashtags",
+    "videoUrl": "video"
 }
 
 FIELD_DEFAULTS = {
@@ -78,7 +79,8 @@ FIELD_DEFAULTS = {
     "image": "",
     "likes": 0,
     "links": [],
-    "title": ""
+    "title": "",
+    "video": "" 
 }
 
 def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
@@ -104,6 +106,7 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                     post_context = f"Caption: {item.get('caption')}\nHashtags: {', '.join(hashtags)}"
                     doc_data["category"] = llm_utils.classify_post(post_context)
                     doc_data["title"] = llm_utils.get_title(post_context)
+                    doc_data["date_occurring"] = llm_utils.extract_event_date(post_context)
                     doc_data["links"] = [post_url]
                 elif src_key == "displayUrl":
                     # Upload image to Firebase Storage
@@ -146,4 +149,3 @@ def url_to_firebase_storage(url):
     except Exception as e:
         print(f"Error uploading image to Firebase Storage: {e}")
         return url  # Return original URL if upload fails
-    
