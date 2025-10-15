@@ -7,7 +7,7 @@ import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import { collection, query, where, getDocs, getFirestore } from "firebase/firestore"
 import db from "@/model/firebase"
 import type { User } from "@/model/types"
-import { ArrowLeft, Building2, Users, MapPin, Instagram, ExternalLink, Plus, X, Save } from "lucide-react"
+import { ArrowLeft, Building2, Users, MapPin, Instagram, ExternalLink, Plus, X, Save, Clock, CheckCircle } from "lucide-react"
 import PositionCard from "@/components/PositionCard"
 
 interface PageProps {
@@ -26,7 +26,7 @@ export default function ApplicationsPage({ params }: PageProps) {
   const [isExecutive, setIsExecutive] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
-  const [backPage, setBackPage] = useState<'exec' | 'club'>('exec')
+  const [backPage, setBackPage] = useState<'exec' | 'club' | 'positions' | 'profile' | 'search'>('exec')
   const router = useRouter()
 
   // Add position form state
@@ -45,27 +45,81 @@ export default function ApplicationsPage({ params }: PageProps) {
       const id = resolvedParams.clubID
       setClubID(id)
 
-      // Determine which page user came from based on referrer
-      const referrer = document.referrer
-      console.log('Referrer:', referrer, 'Club ID:', id)
+      // Determine which page user came from using multiple methods
+      let detectedBackPage: 'exec' | 'club' | 'positions' | 'profile' | 'search' = 'exec'
       
-      if (referrer.includes('/exec')) {
-        setBackPage('exec')
-        console.log('Set back page to exec')
-      } else if (referrer.includes('/clubPage/')) {
-        setBackPage('club')
-        console.log('Set back page to club')
+      // Method 1: Check URL search parameters (most reliable)
+      const urlParams = new URLSearchParams(window.location.search)
+      const fromParam = urlParams.get('from')
+      
+      if (fromParam) {
+        switch (fromParam) {
+          case 'exec':
+            detectedBackPage = 'exec'
+            break
+          case 'club':
+            detectedBackPage = 'club'
+            break
+          case 'positions':
+            detectedBackPage = 'positions'
+            break
+          case 'profile':
+            detectedBackPage = 'profile'
+            break
+          case 'search':
+            detectedBackPage = 'search'
+            break
+          default:
+            detectedBackPage = 'exec'
+        }
+        // Store the detected source in session storage for future reference
+        try {
+          sessionStorage.setItem(`applicationsPageSource_${id}`, detectedBackPage)
+        } catch (e) {
+          // Ignore session storage errors
+        }
       } else {
-        // Check if referrer contains the club ID in any form
-        if (referrer.includes(id)) {
-          setBackPage('club')
-          console.log('Set back page to club (found club ID in referrer)')
-        } else {
-          // Default to exec if we can't determine
-          setBackPage('exec')
-          console.log('Set back page to exec (default)')
+        // Method 1.5: Check session storage for previously stored source
+        try {
+          const storedSource = sessionStorage.getItem(`applicationsPageSource_${id}`)
+          if (storedSource && ['exec', 'club', 'positions', 'profile', 'search'].includes(storedSource)) {
+            detectedBackPage = storedSource as 'exec' | 'club' | 'positions' | 'profile' | 'search'
+          } else {
+            // Method 2: Use document.referrer as final fallback
+            const referrer = document.referrer
+            
+            if (referrer.includes('/exec')) {
+              detectedBackPage = 'exec'
+            } else if (referrer.includes(`/clubPage/${id}`) || referrer.includes('/clubPage/')) {
+              detectedBackPage = 'club'
+            } else if (referrer.includes('/positionsPage')) {
+              detectedBackPage = 'positions'
+            } else if (referrer.includes('/profile')) {
+              detectedBackPage = 'profile'
+            } else if (referrer.includes('/clubSearch') || referrer.includes('/search')) {
+              detectedBackPage = 'search'
+            } else if (referrer.includes('/apply/')) {
+              // If coming from an application page, go back to positions
+              detectedBackPage = 'positions'
+            } else if (referrer.includes('/calendar')) {
+              detectedBackPage = 'search' // or could be 'positions' depending on context
+            } else if (referrer.includes('/about') || referrer.includes('/auth')) {
+              detectedBackPage = 'search'
+            } else if (referrer.includes(id)) {
+              // If referrer contains club ID but we can't determine exact page, assume club page
+              detectedBackPage = 'club'
+            } else {
+              // Default to exec if we can't determine
+              detectedBackPage = 'exec'
+            }
+          }
+        } catch (e) {
+          // If session storage fails, use default fallback
+          detectedBackPage = 'exec'
         }
       }
+      
+      setBackPage(detectedBackPage)
 
       // Fetch club data
       try {
@@ -140,6 +194,8 @@ export default function ApplicationsPage({ params }: PageProps) {
     }
   }, [currentUser, clubID])
 
+
+
   // Fetch positions using existing API endpoint
   const fetchPositions = async (clubId: string) => {
     try {
@@ -153,11 +209,26 @@ export default function ApplicationsPage({ params }: PageProps) {
     }
   }
 
+
+
   const handleBackNavigation = () => {
-    if (backPage === 'club') {
-      router.push(`/clubPage/${clubID}`)
-    } else {
-      router.push('/exec')
+    switch (backPage) {
+      case 'club':
+        router.push(`/clubPage/${clubID}`)
+        break
+      case 'positions':
+        router.push('/positionsPage')
+        break
+      case 'profile':
+        router.push('/profile')
+        break
+      case 'search':
+        router.push('/clubSearch')
+        break
+      case 'exec':
+      default:
+        router.push('/exec')
+        break
     }
   }
 
@@ -328,7 +399,21 @@ export default function ApplicationsPage({ params }: PageProps) {
             >
               <ArrowLeft className="w-5 h-5 text-primary flex-shrink-0" />
               <span className="text-primary">
-                {backPage === 'club' ? 'Back to Club Page' : 'Back to Executive Page'}
+                {(() => {
+                  switch (backPage) {
+                    case 'club':
+                      return 'Back to Club Page'
+                    case 'positions':
+                      return 'Back to Positions Page'
+                    case 'profile':
+                      return 'Back to Profile Page'
+                    case 'search':
+                      return 'Back to Club Search'
+                    case 'exec':
+                    default:
+                      return 'Back to Executive Page'
+                  }
+                })()}
               </span>
             </button>
           </div>
@@ -340,72 +425,147 @@ export default function ApplicationsPage({ params }: PageProps) {
               style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
-            <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center justify-center">
-              {/* Logo and Title Section */}
-              <div className="flex flex-col items-center gap-6 mb-6">
-                <img
-                  src={clubData?.image || "/placeholder.svg"}
-                  alt={`${clubData?.name} logo`}
-                  className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
-                />
-                <div className="text-center">
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
-                    {clubData?.name} - Open Positions
-                  </h1>
-                  <p className="text-white/90 text-lg font-medium leading-relaxed">
-                    {clubData?.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Club Info */}
-              <div className="flex flex-wrap gap-6">
-                {clubData?.department && (
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-white/70" />
-                    <span className="text-white/90 font-medium">{clubData?.department}</span>
+            <div className="relative z-10 max-w-6xl mx-auto">
+              {isExecutive ? (
+                // Executive view - Simple header
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="flex flex-col items-center gap-6 mb-6">
+                    <img
+                      src={clubData?.image || "/placeholder.svg"}
+                      alt={`${clubData?.name} logo`}
+                      className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
+                    />
+                    <div className="text-center">
+                      <h1 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg text-white">
+                        {clubData?.name} - Manage Positions
+                      </h1>
+                      <p className="text-white/80 text-lg font-medium">
+                        Manage applications and positions for your club
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-white/70" />
-                  <span className="text-white/90 font-medium">{clubData?.followers || 0} Followers</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-white/70" />
-                  <span className="text-white/90 font-medium">{clubData?.campus}</span>
-                </div>
-                {clubData?.instagram && (
-                  <a 
-                    href={`https://instagram.com/${clubData.instagram.replace(/^@/, "")}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="flex items-center gap-2 hover:text-accent transition-colors"
-                  >
-                    <Instagram className="w-5 h-5 text-accent" />
-                    <span className="text-white/90 font-medium">@{clubData.instagram.replace(/^@/, "")}</span>
-                  </a>
-                )}
-              </div>
 
-              {/* External Links */}
-              {clubData?.links && Object.keys(clubData.links).length > 0 && (
-                <div className="mt-4">
-                  <div className="flex flex-wrap gap-4">
-                    {Object.entries(clubData.links as Record<string, string>)
-                      .slice(0, 3)
-                      .map(([key, link], index) => (
-                      <a
-                        key={index}
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                  {/* Club Info */}
+                  <div className="flex flex-wrap gap-6">
+                    {clubData?.department && (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-white/70" />
+                        <span className="text-white/90 font-medium">{clubData?.department}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-white/70" />
+                      <span className="text-white/90 font-medium">{clubData?.followers || 0} Followers</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-white/70" />
+                      <span className="text-white/90 font-medium">{clubData?.campus}</span>
+                    </div>
+                    {clubData?.instagram && (
+                      <a 
+                        href={`https://instagram.com/${clubData.instagram.replace(/^@/, "")}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="flex items-center gap-2 hover:text-accent transition-colors"
                       >
-                        <ExternalLink className="w-4 h-4 text-accent" />
-                        <span className="text-white/90 text-sm font-medium">{key}</span>
+                        <Instagram className="w-5 h-5 text-accent" />
+                        <span className="text-white/90 font-medium">@{clubData.instagram.replace(/^@/, "")}</span>
                       </a>
-                    ))}
+                    )}
                   </div>
+
+                  {/* External Links */}
+                  {clubData?.links && Object.keys(clubData.links).length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex flex-wrap gap-4">
+                        {Object.entries(clubData.links as Record<string, string>)
+                          .slice(0, 3)
+                          .map(([key, link], index) => (
+                          <a
+                            key={index}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4 text-accent" />
+                            <span className="text-white/90 text-sm font-medium">{key}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Regular user view
+                <div className="flex flex-col items-center justify-center">
+                  {/* Logo and Title Section */}
+                  <div className="flex flex-col items-center gap-6 mb-6">
+                    <img
+                      src={clubData?.image || "/placeholder.svg"}
+                      alt={`${clubData?.name} logo`}
+                      className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
+                    />
+                    <div className="text-center">
+                      <h1 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
+                        {clubData?.name} - Open Positions
+                      </h1>
+                      <p className="text-white/90 text-lg font-medium leading-relaxed">
+                        {clubData?.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Club Info */}
+                  <div className="flex flex-wrap gap-6">
+                    {clubData?.department && (
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-white/70" />
+                        <span className="text-white/90 font-medium">{clubData?.department}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-white/70" />
+                      <span className="text-white/90 font-medium">{clubData?.followers || 0} Followers</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-white/70" />
+                      <span className="text-white/90 font-medium">{clubData?.campus}</span>
+                    </div>
+                    {clubData?.instagram && (
+                      <a 
+                        href={`https://instagram.com/${clubData.instagram.replace(/^@/, "")}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="flex items-center gap-2 hover:text-accent transition-colors"
+                      >
+                        <Instagram className="w-5 h-5 text-accent" />
+                        <span className="text-white/90 font-medium">@{clubData.instagram.replace(/^@/, "")}</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {/* External Links */}
+                  {clubData?.links && Object.keys(clubData.links).length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex flex-wrap gap-4">
+                        {Object.entries(clubData.links as Record<string, string>)
+                          .slice(0, 3)
+                          .map(([key, link], index) => (
+                          <a
+                            key={index}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4 text-accent" />
+                            <span className="text-white/90 text-sm font-medium">{key}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

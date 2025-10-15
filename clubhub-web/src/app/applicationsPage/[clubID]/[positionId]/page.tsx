@@ -22,6 +22,8 @@ interface Application {
   submittedAt: string
   positionId: string
   clubId: string
+  processedAt?: string
+  processedBy?: string
 }
 
 interface UserProfile {
@@ -52,6 +54,7 @@ export default function PositionApplicationsPage({ params }: PageProps) {
   const [isExecutive, setIsExecutive] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'pending' | 'processed'>('pending')
   const router = useRouter()
 
   // Initialize component
@@ -202,16 +205,33 @@ export default function PositionApplicationsPage({ params }: PageProps) {
           applicationId,
           status: newStatus,
           clubId: clubID,
-          userId: application.userId
+          userId: application.userId,
+          processedBy: authUser.uid,
+          processedAt: new Date().toISOString()
         })
       })
 
       if (response.ok) {
+        const updatedApp = {
+          ...application,
+          status: newStatus,
+          processedAt: newStatus !== 'pending' ? new Date().toISOString() : undefined,
+          processedBy: newStatus !== 'pending' ? authUser.uid : undefined
+        }
+        
         setApplications(prev => 
           prev.map(app => 
-            app.id === applicationId ? { ...app, status: newStatus } : app
+            app.id === applicationId ? updatedApp : app
           )
         )
+        
+        // Switch to appropriate tab after status change
+        if (newStatus === 'pending') {
+          setActiveTab('pending')
+        } else if (newStatus === 'approved' || newStatus === 'rejected') {
+          setActiveTab('processed')
+        }
+        
         alert(`Application ${newStatus === 'approved' ? 'approved' : newStatus === 'rejected' ? 'rejected' : 'updated'} successfully!`)
       } else {
         alert('Failed to update application status')
@@ -263,6 +283,18 @@ export default function PositionApplicationsPage({ params }: PageProps) {
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
+
+  // Filter applications based on active tab
+  const filteredApplications = applications.filter(app => {
+    if (activeTab === 'pending') {
+      return app.status === 'pending'
+    } else {
+      return app.status === 'approved' || app.status === 'rejected'
+    }
+  })
+
+  const pendingCount = applications.filter(app => app.status === 'pending').length
+  const processedCount = applications.filter(app => app.status === 'approved' || app.status === 'rejected').length
 
   if (loading) {
     return (
@@ -333,31 +365,56 @@ export default function PositionApplicationsPage({ params }: PageProps) {
                 <h1 className="text-3xl font-bold text-foreground mb-2">
                   {position?.title || 'Position'} Applications
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mb-2">
                   {position?.clubName && `${position.clubName} • `}
                   {applications.length} application{applications.length !== 1 ? 's' : ''} submitted
                 </p>
+                {position?.description && (
+                  <p className="text-muted-foreground/80 text-sm">
+                    {position.description}
+                  </p>
+                )}
               </div>
             </div>
 
-            {position?.description && (
-              <div className="bg-background/50 rounded-lg p-4 border border-border">
-                <p className="text-card-foreground">{position.description}</p>
-              </div>
-            )}
-
             {position?.deadline && (
-              <div className="flex items-center gap-2 mt-4 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground mb-6">
                 <Calendar className="w-4 h-4" />
                 <span>Deadline: {formatDate(position.deadline)}</span>
               </div>
             )}
+
+            {/* Tabs */}
+            <div className="flex space-x-1 bg-background/20 p-1 rounded-lg">
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === 'pending'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/30'
+                }`}
+              >
+                <Clock className="w-4 h-4" />
+                Pending ({pendingCount})
+              </button>
+              <button
+                onClick={() => setActiveTab('processed')}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === 'processed'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/30'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4" />
+                Processed ({processedCount})
+              </button>
+            </div>
           </div>
 
           {/* Applications List */}
-          {applications.length > 0 ? (
+          {filteredApplications.length > 0 ? (
             <div className="space-y-4">
-              {applications.map((application) => {
+              {filteredApplications.map((application) => {
                 const userProfile = userProfiles.get(application.userId)
                 return (
                   <div
@@ -400,6 +457,12 @@ export default function PositionApplicationsPage({ params }: PageProps) {
                           <Calendar className="w-4 h-4" />
                           <span>Submitted {formatDate(application.submittedAt)}</span>
                         </div>
+                        {application.processedAt && (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>{application.status === 'approved' ? 'Approved' : 'Rejected'} {formatDate(application.processedAt)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4" />
                           <span>{Object.keys(application.answers).length} response{Object.keys(application.answers).length !== 1 ? 's' : ''}</span>
@@ -412,7 +475,7 @@ export default function PositionApplicationsPage({ params }: PageProps) {
                           <button
                             onClick={() => handleStatusUpdate(application.id, 'approved')}
                             disabled={updatingStatus === application.id}
-                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 border border-green-200 rounded-lg hover:bg-green-200 hover:text-green-900 transition-colors disabled:opacity-50"
                           >
                             <CheckCircle className="w-4 h-4" />
                             {updatingStatus === application.id ? 'Approving...' : 'Approve'}
@@ -420,7 +483,7 @@ export default function PositionApplicationsPage({ params }: PageProps) {
                           <button
                             onClick={() => handleStatusUpdate(application.id, 'rejected')}
                             disabled={updatingStatus === application.id}
-                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 border border-red-200 rounded-lg hover:bg-red-200 hover:text-red-900 transition-colors disabled:opacity-50"
                           >
                             <X className="w-4 h-4" />
                             {updatingStatus === application.id ? 'Rejecting...' : 'Reject'}
@@ -477,11 +540,22 @@ export default function PositionApplicationsPage({ params }: PageProps) {
           ) : (
             <div className="bg-card/30 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-12 text-center form-glow">
               <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-muted-foreground" />
+                {activeTab === 'pending' ? (
+                  <Clock className="w-8 h-8 text-muted-foreground" />
+                ) : (
+                  <CheckCircle className="w-8 h-8 text-muted-foreground" />
+                )}
               </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">No Applications Yet</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                {activeTab === 'pending' ? 'No Pending Applications' : 'No Processed Applications'}
+              </h2>
               <p className="text-muted-foreground">
-                No applications have been submitted for this position yet.
+                {activeTab === 'pending' 
+                  ? applications.length === 0 
+                    ? 'No applications have been submitted for this position yet.'
+                    : 'All applications have been processed. Check the Processed tab to see them.'
+                  : 'No applications have been approved or rejected yet.'
+                }
               </p>
             </div>
           )}

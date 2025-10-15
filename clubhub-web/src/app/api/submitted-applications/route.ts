@@ -230,7 +230,7 @@ export const PATCH = withAuth(async (request: NextRequest) => { // used to updat
         const authResult = (request as any).auth; // Added by middleware
 
         const body = await request.json();
-        const { applicationId, status, clubId, userId } = body;
+        const { applicationId, status, clubId, userId, processedBy, processedAt } = body;
 
         if (!applicationId || !status || !clubId || !userId) {
             return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
@@ -267,8 +267,22 @@ export const PATCH = withAuth(async (request: NextRequest) => { // used to updat
             return NextResponse.json({ error: "Application not found in user's subcollection" }, { status: 404 });
         }
         
-        await applicationRef.update({ status });
-        await userApplicationRef.update({ status });
+        const updateData: any = { status };
+        
+        // Add processed timestamp and user for approved/rejected applications
+        if (status === 'approved' || status === 'rejected') {
+            if (processedBy && processedAt) {
+                updateData.processedBy = processedBy;
+                updateData.processedAt = processedAt;
+            }
+        } else if (status === 'pending') {
+            // Remove processed fields when resetting to pending
+            updateData.processedBy = admin.firestore.FieldValue.delete();
+            updateData.processedAt = admin.firestore.FieldValue.delete();
+        }
+        
+        await applicationRef.update(updateData);
+        await userApplicationRef.update(updateData);
 
         return NextResponse.json({ message: "Application status updated successfully" }, { status: 200 });
     } catch (error: any) {
