@@ -92,11 +92,9 @@ export interface CalendarEvent {
     description?: string;
     date: string;
     startTime?: string;
-    endTime?: string;
-    isAllDay: boolean;
     postId?: string;
+    postDeleted?: boolean;
     clubId?: string;
-    color?: string;
     location?: string;
     createdAt: string;
     updatedAt: string;

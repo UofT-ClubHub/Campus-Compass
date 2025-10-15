@@ -1,17 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import type { CalendarEvent } from "@/model/types"
 
 interface EventFormData {
   title: string
   description: string
-  date: string
-  startTime: string
-  endTime: string
-  isAllDay: boolean
+  datetime: string
   location: string
+  postId?: string
 }
 
 interface EventModalProps {
@@ -27,36 +26,35 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
-    date: new Date().toISOString().split("T")[0],
-    startTime: "",
-    endTime: "",
-    isAllDay: false,
+    datetime: "",
     location: "",
+    postId: "",
   })
 
   // Reset form when modal opens/closes or when editing event changes
   useEffect(() => {
     if (isOpen) {
       if (mode === "edit" && event) {
+        // Combine date and startTime for editing
+        const datetime = event.startTime 
+          ? `${event.date}T${event.startTime}`
+          : event.date;
         setFormData({
           title: event.title,
           description: event.description || "",
-          date: event.date,
-          startTime: event.startTime || "",
-          endTime: event.endTime || "",
-          isAllDay: event.isAllDay,
+          datetime: datetime,
           location: event.location || "",
+          postId: event.postId || "",
         })
       } else {
         // Add mode
+        const initialDate = selectedDate ? selectedDate.toISOString().slice(0, 16) : "";
         setFormData({
           title: "",
           description: "",
-          date: selectedDate ? selectedDate.toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-          startTime: "",
-          endTime: "",
-          isAllDay: false,
+          datetime: initialDate,
           location: "",
+          postId: "",
         })
       }
     }
@@ -76,10 +74,20 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.title || !formData.date) return
+    if (!formData.title || !formData.datetime) return
 
     try {
-      await onSubmit(formData)
+      // Split datetime into date and startTime
+      const [date, time] = formData.datetime.split("T");
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        date: date,
+        startTime: time || undefined,
+        location: formData.location,
+        postId: formData.postId || undefined,
+      };
+      await onSubmit(submitData as any)
       onClose()
     } catch (error) {
       console.error("Error submitting event:", error)
@@ -90,19 +98,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
     setFormData({
       title: "",
       description: "",
-      date: new Date().toISOString().split("T")[0],
-      startTime: "",
-      endTime: "",
-      isAllDay: false,
+      datetime: "",
       location: "",
+      postId: "",
     })
     onClose()
   }
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[1000] overflow-y-auto">
       <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
         <div className="flex justify-between items-center p-6 pb-4 flex-shrink-0">
           <h2 className="text-xl font-bold text-foreground">
@@ -124,7 +130,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-primary transition-all"
               placeholder="Enter event title"
               required
             />
@@ -135,58 +141,22 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-primary transition-all resize-none"
               rows={4}
               placeholder="Add event description (optional)"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">Date *</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Date & Time *</label>
             <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              type="datetime-local"
+              value={formData.datetime}
+              onChange={(e) => setFormData({ ...formData, datetime: e.target.value })}
+              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-primary transition-all [&::-webkit-calendar-picker-indicator]:cursor-pointer"
               required
             />
           </div>
-
-          <div className="flex items-center gap-3 p-3 bg-accent/20 rounded-lg">
-            <input
-              type="checkbox"
-              id="isAllDay"
-              checked={formData.isAllDay}
-              onChange={(e) => setFormData({ ...formData, isAllDay: e.target.checked })}
-              className="w-5 h-5 rounded border-border"
-            />
-            <label htmlFor="isAllDay" className="text-foreground font-medium">
-              All day event
-            </label>
-          </div>
-
-          {!formData.isAllDay && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">Start Time</label>
-                                        <input
-                          type="time"
-                          value={formData.startTime}
-                          onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                          className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">End Time</label>
-                                        <input
-                          type="time"
-                          value={formData.endTime}
-                          onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                          className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Location</label>
@@ -194,7 +164,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:border-primary transition-all"
               placeholder="Add location (optional)"
             />
           </div>
@@ -217,6 +187,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, event, mode, sel
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 } 

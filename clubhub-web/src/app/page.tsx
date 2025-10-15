@@ -2,62 +2,15 @@
 
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
-import { PostCard } from "@/components/post-card"
-import { ClubCard } from "@/components/club-card"
-
 import type { Post, User, Club } from "@/model/types"
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTheme } from "@/contexts/ThemeContext"
 
-// Typewriter component for subtitle
-function TypewriterText() {
-  const [currentText, setCurrentText] = useState("")
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isDeleting, setIsDeleting] = useState(false)
-  
-  const texts = [
-    "Navigate your university journey with confidence. Discover clubs, events, and opportunities that shape your future.",
-    "Connect with like-minded students and explore your passions through our diverse community of clubs.",
-    "Your gateway to campus life. Find events, join clubs, and make the most of your university experience."
-  ]
-
-  useEffect(() => {
-    const currentFullText = texts[currentIndex]
-    
-    if (!isDeleting) {
-      if (currentText.length < currentFullText.length) {
-        const timeout = setTimeout(() => {
-          setCurrentText(currentFullText.slice(0, currentText.length + 1))
-        }, 50)
-        return () => clearTimeout(timeout)
-      } else {
-        const timeout = setTimeout(() => {
-          setIsDeleting(true)
-        }, 2000)
-        return () => clearTimeout(timeout)
-      }
-    } else {
-      if (currentText.length > 0) {
-        const timeout = setTimeout(() => {
-          setCurrentText(currentText.slice(0, currentText.length - 1))
-        }, 30)
-        return () => clearTimeout(timeout)
-      } else {
-        setIsDeleting(false)
-        setCurrentIndex((prev) => (prev + 1) % texts.length)
-      }
-    }
-  }, [currentText, currentIndex, isDeleting, texts])
-
-  return (
-    <div className="mb-12 h-8 md:h-10 lg:h-12 flex items-center justify-center">
-      <p className="text-base md:text-lg lg:text-xl font-light leading-relaxed max-w-4xl mx-auto text-primary-foreground">
-        {currentText}
-        <span className="text-primary-foreground animate-pulse">|</span>
-      </p>
-    </div>
-  )
-}
+// Import new components
+import { HeroSection } from "@/components/home/HeroSection"
+import { ClubsCarousel } from "@/components/home/ClubsCarousel"
+import { EventsCarousel } from "@/components/home/EventsCarousel"
+import { StatsBoxes } from "@/components/home/StatsBoxes"
 
 export default function HomePage() {
   const { theme } = useTheme()
@@ -69,20 +22,14 @@ export default function HomePage() {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
   const [isLoadingClubs, setIsLoadingClubs] = useState(false)
 
-  const clubScrollRef = useRef<HTMLDivElement>(null)
-  const postScrollRef = useRef<HTMLDivElement>(null)
-  const followedScrollRef = useRef<HTMLDivElement>(null)
-  const isUserScrollingRef = useRef(false)
-  const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true)
-  const [duplicatedPosts, setDuplicatedPosts] = useState<Post[]>([])
-  const [duplicatedClubs, setDuplicatedClubs] = useState<Club[]>([])
+  // Track the followed clubs to avoid unnecessary refetches
+  const followedClubsRef = useRef<string[]>([])
 
   const fetchPosts = async () => {
     setIsLoadingPosts(true)
     try {
       // Build API URL with clubs filter if user is logged in and has followed clubs
-      let apiUrl = `/api/posts?sort_by=likes&sort_order=desc`
+      let apiUrl = `/api/posts?sort_by=likes&sort_order=desc&limit=50`
       
       // Use currentUser from state, but also check if we have followed clubs
       const followedClubs = currentUser?.followed_clubs || []
@@ -107,8 +54,6 @@ export default function HomePage() {
       setIsLoadingPosts(false)
     }
   }
-
-
 
   const fetchClubs = async () => {
     setIsLoadingClubs(true)
@@ -155,9 +100,6 @@ export default function HomePage() {
     fetchClubs()
   }, [])
 
-  // Track the followed clubs to avoid unnecessary refetches
-  const followedClubsRef = useRef<string[]>([])
-
   // Handle posts fetching - only when loading state changes or followed clubs change
   useEffect(() => {
     if (!loading) {
@@ -181,7 +123,6 @@ export default function HomePage() {
       fetchPosts()
     }
   }, [loading, currentUser])
-
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -216,99 +157,6 @@ export default function HomePage() {
     fetchPosts()
   }
 
-  useEffect(() => {
-    const container = clubScrollRef.current
-    if (!container) return
-    const third = container.scrollWidth / 3
-    const handleInfiniteScroll = () => {
-      const scrollLeft = container.scrollLeft
-      if (scrollLeft <= third / 2) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft += third
-        container.style.scrollBehavior = "smooth"
-      } else if (scrollLeft >= third * 1.5) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft -= third
-        container.style.scrollBehavior = "smooth"
-      }
-    }
-    container.addEventListener("scroll", handleInfiniteScroll)
-    return () => {
-      container.removeEventListener("scroll", handleInfiniteScroll)
-    }
-  }, [duplicatedClubs])
-
-  useEffect(() => {
-    const container = postScrollRef.current
-    if (!container) return
-    const third = container.scrollWidth / 3
-    const handleInfiniteScroll = () => {
-      const scrollLeft = container.scrollLeft
-      if (scrollLeft <= third / 2) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft += third
-        container.style.scrollBehavior = "smooth"
-      } else if (scrollLeft >= third * 1.5) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft -= third
-        container.style.scrollBehavior = "smooth"
-      }
-    }
-    container.addEventListener("scroll", handleInfiniteScroll)
-    return () => {
-      container.removeEventListener("scroll", handleInfiniteScroll)
-    }
-  }, [duplicatedPosts])
-
-  useEffect(() => {
-    const container = followedScrollRef.current
-    if (!container) return
-    const third = container.scrollWidth / 3
-    const handleInfiniteScroll = () => {
-      const scrollLeft = container.scrollLeft
-      if (scrollLeft <= third / 2) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft += third
-        container.style.scrollBehavior = "smooth"
-      } else if (scrollLeft >= third * 1.5) {
-        container.style.scrollBehavior = "auto"
-        container.scrollLeft -= third
-        container.style.scrollBehavior = "smooth"
-      }
-    }
-    container.addEventListener("scroll", handleInfiniteScroll)
-    return () => {
-      container.removeEventListener("scroll", handleInfiniteScroll)
-    }
-  }, [duplicatedPosts])
-
-  const duplicatedPostsMemo = useMemo(() => {
-    return posts.length > 0 ? [...posts, ...posts, ...posts] : []
-  }, [posts])
-
-  useEffect(() => {
-    setDuplicatedPosts(duplicatedPostsMemo)
-  }, [duplicatedPostsMemo])
-
-  const duplicatedClubsMemo = useMemo(() => {
-    return clubs.length > 0 ? [...clubs, ...clubs, ...clubs] : []
-  }, [clubs])
-
-  useEffect(() => {
-    setDuplicatedClubs(duplicatedClubsMemo)
-  }, [duplicatedClubsMemo])
-
-  const handleUserScroll = useCallback(() => {
-    isUserScrollingRef.current = true
-    if (userScrollTimeoutRef.current) {
-      clearTimeout(userScrollTimeoutRef.current)
-    }
-    userScrollTimeoutRef.current = setTimeout(() => {
-      isUserScrollingRef.current = false
-      setIsAutoScrolling(true)
-    }, 2000)
-  }, [])
-
   return (
     <div className="min-h-screen overflow-x-hidden bg-theme-gradient bg-animated-elements relative" data-theme={theme}>
       {/* Animated background elements - constrained to viewport */}
@@ -319,649 +167,38 @@ export default function HomePage() {
       </div>
 
       <div className="relative z-10">
-        {/* Hero Section */}
-        <section className="relative min-h-[500px] overflow-hidden w-full max-w-full">
-        {/* Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br z-10 ${
-          theme === 'light'
-            ? 'from-black/50 via-black/40 to-black/30' 
-            : theme === 'deep-dark'
-            ? 'from-black/70 via-black/60 to-black/50'
-            : 'from-black/70 via-black/60 to-black/s0'
-        }`} />
+        <HeroSection />
 
-        {/* Background Image */}
-        <img
-          src="/utsc.jpg"
-          alt="UofT Image"
-          className="absolute inset-0 w-full h-full object-cover scale-105 transition-transform duration-[20s] ease-out hover:scale-110"
-        />
+        <StatsBoxes />
 
-        {/* Content */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 sm:px-12 lg:px-16">
-          <div className="text-center max-w-5xl mx-auto">
-            {/* Main Title with Icons */}
-            <div className="mb-8 flex items-center justify-center gap-8 md:gap-12 lg:gap-16">
-              {/* Left Icon */}
-              <span className="hidden md:inline-flex">
-                <svg 
-                  className="w-12 h-12" 
-                  fill="none" 
-                  stroke="#fff" 
-                  strokeWidth={2} 
-                  viewBox="0 0 24 24"
-                  style={{
-                    filter: `
-                      drop-shadow(1px 1px 4px #000)
-                      drop-shadow(0 2px 8px #000)
-                      drop-shadow(0 0 12px #a5b4fc)
-                    `
-                  }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.418 0-8-5.373-8-10A8 8 0 1 1 20 11c0 4.627-3.582 10-8 10z" />
-                  <circle cx="12" cy="11" r="3" />
-                </svg>
-              </span>
-              
-              {/* Main Title */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-none tracking-tight">
-                <span
-                  className="block font-sans font-extrabold tracking-tight"
-                  style={{
-                    color: "#fff",
-                    textShadow: `
-                      1px 1px 4px #000,
-                      0 2px 8px #000,
-                      0 0 12px #a5b4fc
-                    `
-                  }}
-                >
-                  UofT ClubHub
-                </span>
-              </h1>
-              
-              {/* Right Icon */}
-              <span className="hidden md:inline-flex">
-                <svg 
-                  className="w-12 h-12" 
-                  fill="none" 
-                  stroke="#fff" 
-                  strokeWidth={2} 
-                  viewBox="0 0 24 24"
-                  style={{
-                    filter: `
-                      drop-shadow(1px 1px 4px #000)
-                      drop-shadow(0 2px 8px #000)
-                      drop-shadow(0 0 12px #a5b4fc)
-                    `
-                  }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </span>
-            </div>
-
-            {/* Subtitle */}
-            <TypewriterText />
-          </div>
-        </div>
-
-        {/* Bottom Fade */}
-        <div
-          className={`
-            absolute bottom-0 left-0 w-full h-40 z-15
-            bg-gradient-to-t from-background to-transparent
-          `}
-        />
-      </section>
-
-      {/* Clubs Section */}
-      {clubs.length <= 4 && (
-        <section className="py-12 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Discover <span className="text-primary">Clubs</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Connect with like-minded students and explore your passions through our diverse community of clubs.
-              </p>
-            </div>
-
-            {/* Clubs Grid */}
-            {isLoadingClubs ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading clubs...</p>
-                  </div>
-                </div>
-              </div>
-            ) : clubs.length > 0 ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]">
-                    {clubs.map((club: Club, index: any) => (
-                      <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
-                        <ClubCard
-                          key={club.id}
-                          club={club}
-                          className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-      )}
-
-      {clubs.length > 4 && (
-        <section className="py-12 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Discover <span className="text-primary">Clubs</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Connect with like-minded students and explore your passions through our diverse community of clubs.
-              </p>
-            </div>
-
-            {/* Auto-Scrolling Clubs */}
-            {isLoadingClubs ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading clubs...</p>
-                  </div>
-                </div>
-              </div>
-            ) : clubs.length > 0 ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div
-                    ref={clubScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
-                    onScroll={handleUserScroll}
-                    onTouchStart={handleUserScroll}
-                    onTouchMove={handleUserScroll}
-                  >
-                    <div
-                      className={`flex gap-4 ${isAutoScrolling && clubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
-                      style={{ width: "fit-content" }}
-                      onMouseEnter={(e) => {
-                        if (e.target === e.currentTarget) {
-                          setIsAutoScrolling(false)
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const target = e.relatedTarget
-                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
-                          if (!isUserScrollingRef.current) {
-                            setIsAutoScrolling(true)
-                          }
-                        }
-                      }}
-                    >
-                      {duplicatedClubs.map((club: Club, index: any) => (
-                        <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
-                          <ClubCard
-                            key={club.id}
-                            club={club}
-                            className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-      )}
-
-      {/* General Events Section - Only show for non-logged-in users */}
-      {posts.length <= 4 && !currentUser && (
-        <section className="py-12 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Upcoming <span className="text-primary">Events</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Don't miss out on the exciting events happening across campus. Your next adventure awaits.
-              </p>
-            </div>
-
-            {/* Events Grid */}
-            {isLoadingPosts ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading events...</p>
-                  </div>
-                </div>
-              </div>
-            ) : posts.length > 0 ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]">
-                    {posts.map((post: Post, index: any) => (
-                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
-                        <PostCard
-                          key={post.id}
-                          post={post}
-                          currentUser={currentUser}
-                          onLikeUpdate={handleLikeUpdate}
-                          onRefresh={handlePostDelete}
-                          className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-      )}
-
-      {/* Fading Line Separator */}
-      {!currentUser && (
-        <div className="py-8 w-full max-w-full">
+        <div className="py-4 w-full max-w-full">
           <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
             </div>
           </div>
         </div>
-      )}
+        
+        <ClubsCarousel clubs={clubs} isLoading={isLoadingClubs} maxDisplay={12} />
 
-      {/* Auto-scrolling General Events Section - Only show for non-logged-in users */}
-      {posts.length > 4 && !currentUser && (
-        <section className="py-12 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Upcoming <span className="text-primary">Events</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Don't miss out on the exciting events happening across campus. Your next adventure awaits.
-              </p>
-            </div>
-
-            {/* Auto-Scrolling Events */}
-            {isLoadingPosts ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading events...</p>
-                  </div>
-                </div>
-              </div>
-            ) : posts.length > 0 && (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div
-                    ref={postScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
-                    onScroll={handleUserScroll}
-                    onTouchStart={handleUserScroll}
-                    onTouchMove={handleUserScroll}
-                  >
-                    <div
-                      className={`flex gap-4 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
-                      style={{ width: "fit-content" }}
-                      onMouseEnter={(e) => {
-                        if (e.target === e.currentTarget) {
-                          setIsAutoScrolling(false)
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const target = e.relatedTarget
-                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
-                          if (!isUserScrollingRef.current) {
-                            setIsAutoScrolling(true)
-                          }
-                        }
-                      }}
-                    >
-                      {duplicatedPosts.map((post: Post, index: any) => (
-                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
-                          <PostCard
-                            key={post.id}
-                            post={post}
-                            currentUser={currentUser}
-                            onLikeUpdate={handleLikeUpdate}
-                            onRefresh={handlePostDelete}
-                            className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Simple Line Divider */}
-      {currentUser && (
-        <div className="py-8 w-full max-w-full">
+        <div className="py-4 w-full max-w-full">
           <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* User Events Section */}
-      {posts.length <= 4 && currentUser && (
-        <section className="py-8 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Your <span className="text-primary">Events</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Stay connected with events from the clubs you follow. Your personalized campus experience.
-              </p>
-            </div>
+        <EventsCarousel 
+          posts={posts}
+          currentUser={currentUser}
+          isLoading={isLoadingPosts}
+          maxDisplay={50}
+          onLikeUpdate={handleLikeUpdate}
+          onPostDelete={handlePostDelete}
+        />
 
-            {/* Events Grid */}
-            {isLoadingPosts ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-8 shadow-2xl overflow-hidden">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading your events...</p>
-                  </div>
-                </div>
-              </div>
-            ) : posts.length > 0 && (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]" data-testid="posts-container">
-                    {posts.map((post: Post, index: any) => (
-                      <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
-                        <PostCard
-                          key={post.id}
-                          post={post}
-                          currentUser={currentUser}
-                          onLikeUpdate={handleLikeUpdate}
-                          onRefresh={handlePostDelete}
-                          className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {posts.length > 4 && currentUser && (
-        <section className="py-8 relative w-full max-w-full">
-          <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-            {/* Section Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-3xl mb-4 shadow-lg">
-                <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-foreground mb-6 tracking-tight">
-                Your <span className="text-primary">Events</span>
-              </h2>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Stay connected with events from the clubs you follow. Your personalized campus einxperience.
-              </p>
-            </div>
-
-            {/* Auto-Scrolling Followed Events */}
-            {isLoadingPosts ? (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl p-8 sm:p-10">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-                    <p className="mt-4 text-sm text-muted-foreground animate-pulse">Loading your events...</p>
-                  </div>
-                </div>
-              </div>
-            ) : posts.length > 0 && (
-              <div className="relative">
-                {/* Decorative Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl blur-3xl"></div>
-
-                {/* Main Container */}
-                <div className="relative overflow-hidden bg-card/80 backdrop-blur-sm border border-primary/20 rounded-3xl shadow-2xl">
-                  {/* Subtle Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-5">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, var(--primary) 2px, transparent 2px)`,
-                        backgroundSize: "40px 40px",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div
-                    ref={followedScrollRef}
-                    className="overflow-x-auto scroll-smooth pb-6 scrollbar-hide manual-scroll-container p-6 sm:p-8 w-full max-w-[calc(100vw-2rem)]"
-                    onScroll={handleUserScroll}
-                    onTouchStart={handleUserScroll}
-                    onTouchMove={handleUserScroll}
-                  >
-                    <div
-                      className={`flex gap-4 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
-                      style={{ width: "fit-content" }}
-                      onMouseEnter={(e) => {
-                        if (e.target === e.currentTarget) {
-                          setIsAutoScrolling(false)
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const target = e.relatedTarget
-                        if (!(target instanceof Node) || !e.currentTarget.contains(target)) {
-                          if (!isUserScrollingRef.current) {
-                            setIsAutoScrolling(true)
-                          }
-                        }
-                      }}
-                    >
-                      {duplicatedPosts.map((post: Post, index: any) => (
-                        <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
-                          <PostCard
-                            key={post.id}
-                            post={post}
-                            currentUser={currentUser}
-                            onLikeUpdate={handleLikeUpdate}
-                            onRefresh={handlePostDelete}
-                            className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+        <div className="mb-4"></div>
       </div>
     </div>
   )

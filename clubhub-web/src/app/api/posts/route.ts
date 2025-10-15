@@ -70,28 +70,33 @@ export async function GET(request: NextRequest) {
         // Handle pagination - Firestore doesn't support offset directly, so we need to handle it
         let posts: Post[] = [];
         let allPosts: Post[] = [];
+        const snapshot = await query.get();
+        allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
 
-        if (usingClubsFilter) {
-            const snapshot = await query.get();
-            allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
-        } else {
-            if (offset === 0) {
-                query = query.limit(limit + offset);
-                const snapshot = await query.get();
-                allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
-            } else {
-                query = query.limit(offset + limit);
-                const snapshot = await query.get();
-                allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
-            }
-        }
+        // Collect all unique club IDs from posts
+        const clubIds = [...new Set(allPosts.map(post => post.club))];
+
+        // Fetch club data for these IDs
+        const clubsCollection = firestore.collection('Clubs');
+        const clubDocs = await Promise.all(clubIds.map(async id => {
+        const doc = await clubsCollection.doc(id).get();
+        return doc.exists ? { id, name: doc.data()?.name } : null;
+        }));
+
+        // Build a lookup: { clubID: clubName }
+        const clubIdToName: Record<string, string> = {};
+        clubDocs.forEach(club => {
+        if (club) clubIdToName[club.id] = club.name;
+        });
 
         // Apply text-based filters in memory (these can't use Firestore indexes efficiently)
         allPosts = allPosts.filter(post => {
+            const clubName = post.club ? clubIdToName[post.club] : "";
             // Handle combined search (search in title, details, and hashtags with OR logic)
             const matchesSearch = !searchFilter || 
               (post.title && post.title.toLowerCase().includes(searchFilter.toLowerCase())) ||
               (post.details && post.details.toLowerCase().includes(searchFilter.toLowerCase())) ||
+              (clubName && clubName.toLowerCase().includes(searchFilter.toLowerCase())) ||
               (post.hashtags && post.hashtags.some((hashtag: string) => 
                 hashtag.toLowerCase().includes(searchFilter.toLowerCase())
               ));
@@ -263,6 +268,29 @@ export const DELETE = withAuth(async (request: NextRequest) => {
             }
         }
 
+        // Before deleting the post, mark any related calendar events across all users as postDeleted: true
+        const usersCollection = firestore.collection('Users');
+        const usersSnapshot = await usersCollection.get();
+
+        const batch = firestore.batch();
+        usersSnapshot.docs.forEach(userDoc => {
+            const calendarEventsRef = usersCollection.doc(userDoc.id).collection('CalendarEvents');
+            // We cannot run queries inside a batch directly; collect updates separately
+        });
+
+        // Query all user events referencing this post and update them
+        for (const userDoc of usersSnapshot.docs) {
+            const calendarEventsRef = usersCollection.doc(userDoc.id).collection('CalendarEvents');
+            const matchingEvents = await calendarEventsRef.where('postId', '==', postId).get();
+            matchingEvents.docs.forEach(eventDoc => {
+                batch.update(eventDoc.ref, { postDeleted: true, updatedAt: new Date().toISOString() });
+            });
+        }
+
+        // Commit all event updates first
+        await batch.commit();
+
+        // Finally, delete the post
         await docRef.delete();
         return NextResponse.json({ message: 'post deleted successfully' }, { status: 200 });
     }

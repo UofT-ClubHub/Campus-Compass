@@ -377,8 +377,13 @@ export default function AdminPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-xl font-semibold text-foreground mb-4">Search Users</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="flex items-end justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-foreground">Search Users</h2>
+                        <div className="text-muted-foreground">
+                            Total Users: <span className="text-foreground font-bold">{allUsers.length}</span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
                         <input
                             type="text"
                             placeholder="Filter by name..."

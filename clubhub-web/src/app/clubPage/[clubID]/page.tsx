@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import db from "@/model/firebase"
-import { collection, query, where, getDocs, getFirestore } from "firebase/firestore"
+import { collection, query, where, getDocs, getFirestore, orderBy } from "firebase/firestore"
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
 import type { Post, User } from "@/model/types"
@@ -31,7 +31,7 @@ async function getClubData(clubID: string) {
 
     // Get posts for this club
     const postsRef = collection(firestore, "Posts")
-    const postsQuery = query(postsRef, where("club", "==", clubID))
+    const postsQuery = query(postsRef, where("club", "==", clubID), orderBy("date_posted", "desc"))
     const postsSnapshot = await getDocs(postsQuery)
 
     const posts = postsSnapshot.docs.map((doc) => ({
@@ -407,6 +407,12 @@ export default function ClubPage({ params }: PageProps) {
                        Manage Club
                      </button>
                    )}
+                   <button
+                     onClick={() => router.push(`/applicationsPage/${clubID}`)}
+                     className="cursor-pointer px-6 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium transition-all duration-200 border border-accent"
+                   >
+                     View Open Positions
+                   </button>
                      <button
                      onClick={handleFollowClub}
                      disabled={isFollowLoading}

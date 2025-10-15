@@ -10,7 +10,6 @@ export const GET = withAuth(async (request: NextRequest) => {
         const userId = searchParams.get('userId');
         const eventId = searchParams.get('id');
         const startDate = searchParams.get('startDate');
-        const endDate = searchParams.get('endDate');
         const category = searchParams.get('category');
 
         // Resolve target user (default to authenticated user)
@@ -41,9 +40,6 @@ export const GET = withAuth(async (request: NextRequest) => {
         // Filter by date range if provided
         if (startDate) {
             query = query.where('date', '>=', startDate);
-        }
-        if (endDate) {
-            query = query.where('date', '<=', endDate);
         }
 
         // Filter by category if provided
@@ -78,19 +74,24 @@ export const POST = withAuth(async (request: NextRequest) => {
             .collection('CalendarEvents');
 
         // Validate required fields
-        if (!data.title || !data.date || typeof data.isAllDay !== 'boolean') {
+        if (!data.title || !data.date) {
             return NextResponse.json({ 
-                message: 'Missing required fields: title, date, and isAllDay are required' 
+                message: 'Missing required fields: title and date are required' 
             }, { status: 400 });
         }
 
         // Set default values and add metadata
         const now = new Date().toISOString();
-        const eventData = {
+        const eventData: any = {
             ...data,
             createdAt: now,
             updatedAt: now,
         };
+        
+        // Only add postDeleted if postId is provided
+        if (data.postId) {
+            eventData.postDeleted = false;
+        }
 
         // Create new event document
         const docRef = await calendarCollection.add(eventData);
