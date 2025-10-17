@@ -35,6 +35,9 @@ function ClubSearchContent() {
 
   const hasFilters =  campusFilter || sortOrder || departmentFilter
 
+  const campusOptions = ["UTSC", "UTSG", "UTM"];
+  const departmentOptions = ["Computer, Math, & Stats", "Engineering", "Business/Management", "Health & Medicine", "Law", "Cultural", "Sports", "Design Team", "Other"];
+
   // Clear all filters function
   const clearAllFilters = () => {
     setCampusFilter("");
@@ -266,25 +269,64 @@ function ClubSearchContent() {
                              text-card-foreground placeholder-muted-foreground/70
                              text-lg font-medium"
                   />
+                  {/* Filter Toggle Button */}
+                  <div className="absolute right-5 flex items-center">
+                    <button
+                      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                      className="flex items-center gap-2 px-3 py-2 bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
+                    >
+                      <Filter className="w-4 h-4 text-primary" />
+                       <span className="text-primary font-medium text-sm">
+                         {isFiltersExpanded ? 'Hide' : 'Filters'}
+                        </span>
+                    </button>
+                  </div>
                 </div>
               </div>
              </div>
         </div>
 
-        {/* Filter Toggle Button */}
-        <div className="flex justify-center mb-4">
+        {/* Sort Buttons */}
+        <div className="flex flex-wrap justify-center gap-3 mb-6">
           <button
-            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-            className="flex items-center gap-2 px-6 py-3 bg-card/30 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
+            onClick={() => setsortOrder("desc")}
+            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+              sortOrder === "desc" 
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
+                : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
+            }`}
           >
-            <Filter className="w-4 h-4 text-primary" />
-            <span className="text-primary font-medium">
-              {isFiltersExpanded ? 'Hide Filters' : 'Show Filters'}
-            </span>
-            <div className={`transition-transform duration-300 ${isFiltersExpanded ? 'rotate-180' : ''}`}>
-              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" fill="currentColor" />
+              Most Followed
+            </div>
+          </button>
+          <button
+            onClick={() => setsortOrder("asc")}
+            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+              sortOrder === "asc" 
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
+                : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" fill="currentColor" />
+              Least Followed
+            </div>
+          </button>
+          <button
+            onClick={() => setsortOrder("")}
+            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+              sortOrder === "" 
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
+                : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
               </svg>
+              Default
             </div>
           </button>
         </div>
@@ -292,66 +334,48 @@ function ClubSearchContent() {
          {/* Collapsible Search Filters */}
          {isFiltersExpanded && (
            <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-4 mb-4 form-glow animate-in slide-in-from-top-2 duration-300">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {/* Club Name Filter */}
-
-             {/* Description Filter */}
-           </div>
-
-           {/* Bottom Row - 3 filters */}
-           <div className="pt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+           <div className="grid grid-cols-1 gap-4">
              {/* Campus Filter */}
-             <div className="space-y-2">
-              <label className="text-lg font-medium text-primary text-center block">Campus</label>
-              <div className="relative">
-                <select
-                value={campusFilter}
-                onChange={(e) => setCampusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              >
-                <option value="">Select Campus</option>
-                <option value="UTSC">UTSC</option>
-                <option value="UTSG">UTSG</option>
-                <option value="UTM">UTM</option>
-              </select>
+             <div className=" space-y-2">
+              <label className="text-lg font-medium text-primary text-left block ml-2">Campus:</label>
+               <div className="relative">
+                   <div className="flex flex-wrap gap-2 mb-2">
+                     {campusOptions.map((campus) => (
+                       <button 
+                         key={campus}
+                         className={`flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
+                         campusFilter === campus
+                           ? "bg-primary text-primary-foreground shadow-lg" 
+                           : "bg-card/30 backdrop-blur-xl border border-white/20 text-primary hover:bg-primary/10 hover:border-primary/30"
+                         }`}
+                         onClick={() => setCampusFilter(campus)}
+                       >
+                         <span className="text-sm">{campus}</span>
+                       </button>
+                     ))}
+                   </div>
               </div>
              </div>
 
              {/* Department Filter */}
              <div className="space-y-2">
-              <label className="text-lg font-medium text-primary text-center block">Department</label>
+              <label className="text-lg font-medium text-primary text-left block ml-2">Department:</label>
               <div className="relative">
-                <select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              >
-                <option value="">Select Department</option>
-                <option value="Computer, Math, & Stats">Computer, Math, & Stats</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Business/Management">Business/Management</option>
-                <option value="Health & Medicine">Health & Medicine</option>
-                <option value="Law">Law</option>
-                <option value="Cultural">Cultural</option>
-                <option value="Sports">Sports</option>
-                <option value="Design Team">Design Team</option>
-                <option value="Other">Other</option>
-              </select>
-              </div>
-             </div>
-
-             {/* Sort By Filter */}
-             <div className="space-y-2">
-              <label className="text-lg font-medium text-primary text-center block">Sort By</label>
-              <div className="relative">
-                <select
-                value={sortOrder}
-                onChange={(e) => setsortOrder(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-200 outline-none text-sm text-card-foreground placeholder-muted-foreground bg-input"
-              >
-                <option value="desc">Follows (Descending)</option>
-                <option value="asc">Follows (Ascending)</option>
-              </select>
+                 <div className="flex flex-wrap gap-2 mb-2">
+                   {departmentOptions.map((dep) => (
+                       <button 
+                         key={dep}
+                         className={`flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
+                         departmentFilter === dep
+                           ? "bg-primary text-primary-foreground shadow-lg" 
+                           : "bg-card/30 backdrop-blur-xl border border-white/20 text-primary hover:bg-primary/10 hover:border-primary/30"
+                         }`}
+                         onClick={() => setDepartmentFilter(dep)}
+                       >
+                         <span className="text-sm">{dep}</span>
+                       </button>
+                     ))}
+                 </div>
               </div>
              </div>
 
@@ -360,7 +384,7 @@ function ClubSearchContent() {
           { /* Clear All Filters Button */}
           {hasFilters && (
             <div className="flex justify-center mt-4">
-              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-md hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
+              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-full hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
                 Clear All Filters
               </button>
             </div>  
