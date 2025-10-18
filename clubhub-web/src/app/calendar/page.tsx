@@ -48,7 +48,12 @@ export default function CalendarPage() {
 
   // Get auth token and fetch events
   useEffect(() => {
-    if (authLoading || !authUser) return
+    if (authLoading) return
+    
+    if (!authUser) {
+      setIsLoading(false)
+      return
+    }
 
     const fetchData = async () => {
       setIsLoading(true)
@@ -88,8 +93,7 @@ export default function CalendarPage() {
       const eventData = {
         ...formData,
         date: formData.date,
-        startTime: formData.isAllDay ? undefined : formData.startTime,
-        endTime: formData.isAllDay ? undefined : formData.endTime,
+        startTime: formData.startTime || undefined,
       }
 
       if (modalMode === "add") {
@@ -258,7 +262,7 @@ export default function CalendarPage() {
   if (!authUser) {
     return (
       <div className="min-h-screen bg-theme-gradient bg-animated-elements">
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-6 py-8 pt-20">
           <div className="max-w-md mx-auto text-center">
             <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
               <div className="w-20 h-20 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
@@ -284,11 +288,11 @@ export default function CalendarPage() {
   const calendarDays = getDaysInMonth(currentMonth)
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements">
+    <div className="min-h-screen overflow-x-hidden bg-theme-gradient bg-animated-elements">
       <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 max-w-7xl relative z-20">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 gap-4 sm:gap-6">
           <div className="space-y-1 sm:space-y-2">
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">My Calendar</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Calendar</h1>
             <p className="text-muted-foreground text-sm sm:text-lg">Organize your schedule and never miss an important event</p>
           </div>
           <button
@@ -301,15 +305,15 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        <div className="flex items-center justify-between mb-4 sm:mb-8 bg-card border border-border rounded-2xl p-3 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-2 sm:mb-4 bg-card border border-border rounded-2xl p-2 sm:p-3 shadow-sm">
           <button
             onClick={() => navigateMonth("prev")}
-            className="p-2 sm:p-3 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
+            className="p-2 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
           >
-            <ChevronLeft size={20} className="text-foreground sm:hidden" />
-            <ChevronLeft size={24} className="text-foreground hidden sm:block" />
+            <ChevronLeft size={18} className="text-foreground sm:hidden" />
+            <ChevronLeft size={20} className="text-foreground hidden sm:block" />
           </button>
-          <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight text-center">
+          <h2 className="text-lg sm:text-2xl font-bold text-foreground tracking-tight text-center">
             {isMobileView ? 
               `${monthNames[currentMonth.getMonth()].slice(0, 3)} ${currentMonth.getFullYear()}` :
               `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`
@@ -317,10 +321,10 @@ export default function CalendarPage() {
           </h2>
           <button
             onClick={() => navigateMonth("next")}
-            className="p-2 sm:p-3 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
+            className="p-2 hover:bg-accent/50 rounded-xl transition-all duration-200 hover:scale-105"
           >
-            <ChevronRight size={20} className="text-foreground sm:hidden" />
-            <ChevronRight size={24} className="text-foreground hidden sm:block" />
+            <ChevronRight size={18} className="text-foreground sm:hidden" />
+            <ChevronRight size={20} className="text-foreground hidden sm:block" />
           </button>
         </div>
 
@@ -344,7 +348,7 @@ export default function CalendarPage() {
               return (
                 <div
                   key={index}
-                  className={`min-h-[80px] sm:min-h-[140px] p-1.5 sm:p-3 border-r border-b border-border/50 relative z-10 transition-all duration-200 ${
+                  className={`min-h-[80px] sm:min-h-[125px] p-1 sm:p-2 border-r border-b border-border/50 relative z-10 transition-all duration-200 ${
                     !date ? "bg-muted/20" : "hover:bg-accent/20 cursor-pointer"
                   } ${date && isToday(date) ? "bg-primary/5 border-primary/20" : ""} ${date && isSelectedDate(date) ? "bg-primary/10 border-primary/30" : ""}`}
                   onClick={() => date && setSelectedDate(date)}
@@ -362,7 +366,7 @@ export default function CalendarPage() {
                           {/* Show first event as preview - mobile gets dot, desktop gets full preview */}
                           {isMobileView ? (
                             <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-primary"></div>
+                              <div className={`w-2 h-2 rounded-full ${dayEvents[0].postDeleted ? 'bg-red-600' : 'bg-primary'}`}></div>
                               {dayEvents.length > 1 && (
                                 <span className="text-xs text-muted-foreground font-medium">
                                   {dayEvents.length}
@@ -371,7 +375,11 @@ export default function CalendarPage() {
                             </div>
                           ) : (
                             <>
-                              <div className="text-xs p-2 rounded-lg bg-primary/10 text-primary font-medium truncate border border-primary/20">
+                              <div className={`text-xs p-2 rounded-lg font-medium truncate border ${
+                                dayEvents[0].postDeleted 
+                                  ? 'bg-red-500/20 text-red-700 border-red-500' 
+                                  : 'bg-primary/10 text-primary border-primary/20'
+                              }`}>
                                 {dayEvents[0].title}
                               </div>
                               {/* Show count if more events */}
@@ -430,72 +438,99 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {getEventsForDate(selectedDate).length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <Calendar className="w-12 sm:w-16 h-12 sm:h-16 mx-auto mb-3 sm:mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground text-base sm:text-lg">No events scheduled for this date</p>
-                <p className="text-muted-foreground/70 text-xs sm:text-sm mt-1 sm:mt-2">Click "New Event" to create your first event</p>
-              </div>
-            ) : (
+            {getEventsForDate(selectedDate).length === 0 ? null : (
               openDropdowns.has(selectedDate.toISOString().split("T")[0]) && (
-                <div className="grid gap-3 sm:gap-4">
-                  {getEventsForDate(selectedDate).map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0"
-                    >
-                      <div className="flex-1 w-full">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                          <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-gradient-to-r from-primary to-accent shadow-sm"></div>
-                          <h4 className="font-semibold text-foreground text-base sm:text-lg">{event.title}</h4>
-                        </div>
+                <div className="grid gap-3 sm:gap-4 w-full max-w-full">
+                  {getEventsForDate(selectedDate).map((event) => {
+                    const isClickable = event.postId && !event.postDeleted;
+                    const cardClassName = `flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0 w-full max-w-full overflow-hidden ${
+                      isClickable ? 'cursor-pointer' : ''
+                    }`;
+                    
+                    const cardContent = (
+                      <>
+                        <div className="flex-1 w-full min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 min-w-0">
+                            <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-gradient-to-r from-primary to-accent shadow-sm"></div>
+                            <h4 className="font-semibold text-foreground text-base sm:text-lg truncate sm:whitespace-normal sm:break-words max-w-full">{event.title}</h4>
+                          </div>
 
-                        {event.description && (
-                          <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base">
-                            {event.description}
-                          </p>
-                        )}
+                          {event.description && (
+                            <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base truncate sm:whitespace-normal sm:break-words max-w-full">
+                              {event.description}
+                            </p>
+                          )}
 
-                        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
-                          {!event.isAllDay && event.startTime && (
-                            <div className="flex items-center gap-2">
-                              <Clock size={14} className="sm:hidden" />
-                              <Clock size={16} className="hidden sm:block" />
-                              <span>
-                                {event.startTime}
-                                {event.endTime && ` - ${event.endTime}`}
+                          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground min-w-0">
+                            {event.startTime && (
+                              <div className="flex items-center gap-2">
+                                <Clock size={14} className="sm:hidden" />
+                                <Clock size={16} className="hidden sm:block" />
+                                <span>
+                                  {event.startTime}
+                                </span>
+                              </div>
+                            )}
+
+                            {event.location && (
+                              <div className="flex items-center gap-2 min-w-0 max-w-full">
+                                <MapPin size={14} className="sm:hidden" />
+                                <MapPin size={16} className="hidden sm:block" />
+                                <span className="truncate block">{event.location}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {event.postId && event.postDeleted && (
+                            <div className="mt-3 sm:mt-4">
+                              <span className="inline-flex items-center px-3 py-2 text-xs sm:text-sm rounded-lg bg-red-500/20 text-red-700 border border-red-500">
+                                Original Post Deleted
                               </span>
                             </div>
                           )}
-
-                          {event.location && (
-                            <div className="flex items-center gap-2">
-                              <MapPin size={14} className="sm:hidden" />
-                              <MapPin size={16} className="hidden sm:block" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                          )}
                         </div>
-                      </div>
 
-                      <div className="flex gap-2 w-full sm:w-auto justify-end">
-                        <button
-                          onClick={() => openEditModal(event)}
-                          className="p-2.5 sm:p-3 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
-                        >
-                          <Edit size={16} className="sm:hidden mx-auto" />
-                          <Edit size={18} className="hidden sm:block" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEvent(event.id)}
-                          className="p-2.5 sm:p-3 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
-                        >
-                          <Trash2 size={16} className="sm:hidden mx-auto" />
-                          <Trash2 size={18} className="hidden sm:block" />
-                        </button>
+                        <div className="flex gap-2 w-full sm:w-auto justify-end items-center">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openEditModal(event);
+                            }}
+                            className="p-2.5 sm:p-3 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
+                          >
+                            <Edit size={16} className="sm:hidden mx-auto" />
+                            <Edit size={18} className="hidden sm:block" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDeleteEvent(event.id);
+                            }}
+                            className="p-2.5 sm:p-3 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 flex-1 sm:flex-none"
+                          >
+                            <Trash2 size={16} className="sm:hidden mx-auto" />
+                            <Trash2 size={18} className="hidden sm:block" />
+                          </button>
+                        </div>
+                      </>
+                    );
+
+                    return isClickable ? (
+                      <Link
+                        key={event.id}
+                        href={`/postFilter/postPage/${event.postId}`}
+                        className={cardClassName}
+                      >
+                        {cardContent}
+                      </Link>
+                    ) : (
+                      <div key={event.id} className={cardClassName}>
+                        {cardContent}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             )}

@@ -47,6 +47,7 @@ run_input = {
     "scrapeStories": False,
     "scrapePosts": True,
     "scrapeMentions": False,
+    "videoUrl": True,
 }
 
 # Run the Actor and wait for it to finish

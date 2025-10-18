@@ -187,12 +187,12 @@ export default function ChatbotWidget() {
           {!user ? (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
               <Bot size={40} className="mb-4 text-accent" />
-              <p className="text-muted-foreground mb-4">Please login to chat with the ClubHub Assistant and discover clubs, events, and more!</p>
+              <p className="text-muted-foreground mb-4">Sign in to chat with the ClubHub Assistant and discover clubs, events, and more!</p>
               <button
                 onClick={() => window.location.href = '/auth'}
                 className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition"
               >
-                Go to Login
+                Sign in to Continue
               </button>
             </div>
           ) : (

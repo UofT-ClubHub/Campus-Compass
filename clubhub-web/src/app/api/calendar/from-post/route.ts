@@ -20,8 +20,8 @@ export const POST = withAuth(async (request: NextRequest) => {
 
         const post = postDoc.data() as Post;
         
-        // Validate that the post has a date_occuring field
-        if (!post.date_occuring) {
+        // Validate that the post has a date_occurring field
+        if (!post.date_occurring) {
             return NextResponse.json({ message: 'Post does not have an event date' }, { status: 400 });
         }
         
@@ -38,14 +38,12 @@ export const POST = withAuth(async (request: NextRequest) => {
             }, { status: 409 });
         }
 
-        // Extract date and time from post's date_occuring
+        // Extract date and time from post's date_occurring
         let eventDate = '';
         let startTime: string | undefined = undefined;
-        let endTime: string | undefined = undefined;
-        let isAllDay = true;
 
-        if (post.date_occuring) {
-            const eventDateTime = new Date(post.date_occuring);
+        if (post.date_occurring) {
+            const eventDateTime = new Date(post.date_occurring);
             
             if (!isNaN(eventDateTime.getTime())) {
                 // Extract date in YYYY-MM-DD format
@@ -61,12 +59,6 @@ export const POST = withAuth(async (request: NextRequest) => {
                 if (hours !== 0 || minutes !== 0) {
                     // Event has a specific time
                     startTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    isAllDay = false;
-                    
-                    // Set end time to 1 hour after start time by default
-                    const endDateTime = new Date(eventDateTime);
-                    endDateTime.setHours(endDateTime.getHours() + 1);
-                    endTime = `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`;
                 }
             }
         }
@@ -82,10 +74,10 @@ export const POST = withAuth(async (request: NextRequest) => {
             title: post.title || 'Untitled Event',
             description: post.details || '',
             date: eventDate,
-            isAllDay: isAllDay,
             postId: data.postId,
+            postDeleted: false,
             clubId: post.club || '',
-            color: data.color || '#3B82F6',
+            location: post.location || undefined,
             createdAt: now,
             updatedAt: now,
         };
@@ -93,13 +85,6 @@ export const POST = withAuth(async (request: NextRequest) => {
         // Only add optional fields if they have values
         if (startTime) {
             eventData.startTime = startTime;
-        }
-        if (endTime) {
-            eventData.endTime = endTime;
-        }
-        const resolvedLocation = post?.location;
-        if (resolvedLocation) {
-            eventData.location = resolvedLocation;
         }
 
         const userEventsCollectionForAdd = firestore.collection('Users').doc(authResult.uid).collection('CalendarEvents');

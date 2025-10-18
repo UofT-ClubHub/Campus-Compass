@@ -209,7 +209,7 @@ body {
 }
 
 .animate-smooth-scroll {
-  animation: smooth-scroll 60s linear infinite;
+  animation: smooth-scroll var(--scroll-duration, 60s) linear infinite;
 }
 
 /* Smoother pause/resume transitions */

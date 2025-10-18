@@ -139,8 +139,8 @@ export default function AuthPage() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex justify-center items-center min-h-screen p-4">
-        <div className="w-full max-w-md">
+      <div className="relative z-10 flex min-h-screen p-4 pt-20">
+        <div className="w-full max-w-md mx-auto">
           {/* Frosted glass card */}
           <div className="theme-card">
             {/* Header with gradient text */}

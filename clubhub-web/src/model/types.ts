@@ -63,7 +63,7 @@ export interface Post {
     club: string;
     category: string;
     hashtags: string[];
-    date_occuring: string;
+    date_occurring: string;
     date_posted: string;
     likes: number;
     image: string;
@@ -92,11 +92,9 @@ export interface CalendarEvent {
     description?: string;
     date: string;
     startTime?: string;
-    endTime?: string;
-    isAllDay: boolean;
     postId?: string;
+    postDeleted?: boolean;
     clubId?: string;
-    color?: string;
     location?: string;
     createdAt: string;
     updatedAt: string;

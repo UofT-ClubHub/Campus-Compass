@@ -99,7 +99,7 @@ useEffect(() => {
         campus: "",
         category: "",
         date_posted: now,
-        date_occuring: "",
+        date_occurring: "",
         image: "",
         likes: 0,
         hashtags: [],
@@ -119,6 +119,8 @@ useEffect(() => {
         const response = await fetch(`/api/posts?id=${postId}`)
         if (response.ok) {
           const postData = await response.json()
+          console.log('DEBUG: Post data from API:', postData)
+          console.log('DEBUG: date_occurring value:', postData.date_occurring)
           setPost(postData)
           setEditedPost(postData) // Initialize edited post
           setLikes(postData.likes || 0)
@@ -261,7 +263,7 @@ useEffect(() => {
   const handleExportToCalendar = async (e: React.MouseEvent) => {
     e.stopPropagation()
 
-    if (!post?.date_occuring) {
+    if (!post?.date_occurring) {
       setError('No Post Date Specified')
       return
     }
@@ -368,8 +370,8 @@ useEffect(() => {
       const token = await user.getIdToken();
 
       // Validate required fields before processing
-      if (!editedPost.title || !editedPost.details || !editedPost.campus || !editedPost.club || !editedPost.category) {
-        setError('Please fill in all required fields (title, details, campus, club, category)');
+      if (!editedPost.title || !editedPost.details || !editedPost.club || !editedPost.category) {
+        setError('Please fill in all required fields (title, details, club, category)');
         return;
       }
 
@@ -587,6 +589,7 @@ useEffect(() => {
   }
 
   const isClubAdmin = currentUser?.managed_clubs?.includes(clubId || '') || false
+  const isAdmin = currentUser?.is_admin || false
 
   if (loading) {
     return (
@@ -676,7 +679,7 @@ useEffect(() => {
                 </span>
             </button>
             
-            {(isClubAdmin || postId === "new") && (
+            {(isClubAdmin || isAdmin || postId === "new") && (
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {isEditing ? (
                   <>
@@ -757,8 +760,8 @@ useEffect(() => {
                   {isEditing ? (
                     <input
                       type="datetime-local"
-                      value={editedPost?.date_occuring ? (() => {
-                        const date = new Date(editedPost.date_occuring);
+                      value={editedPost?.date_occurring ? (() => {
+                        const date = new Date(editedPost.date_occurring);
                         if (isNaN(date.getTime())) return '';
                         const year = date.getFullYear();
                         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -767,12 +770,12 @@ useEffect(() => {
                         const minutes = String(date.getMinutes()).padStart(2, '0');
                         return `${year}-${month}-${day}T${hours}:${minutes}`;
                       })() : ''}
-                      onChange={(e) => handleInputChange('date_occuring', e.target.value)}
+                      onChange={(e) => handleInputChange('date_occurring', e.target.value)}
                       className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
                     />
                   ) : (
                     <p className="font-semibold text-foreground text-sm sm:text-base">
-                      {post?.date_occuring ? new Date(post.date_occuring).toLocaleString('en-US', { 
+                      {post?.date_occurring ? new Date(post.date_occurring).toLocaleString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
                         year: 'numeric',
@@ -792,18 +795,15 @@ useEffect(() => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Location</p>
                   {isEditing ? (
-                    <select
-                      value={editedPost?.campus || ''}
-                      onChange={(e) => handleInputChange('campus', e.target.value)}
+                    <input
+                      type="text"
+                      value={editedPost?.location || ''}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      placeholder="Add location (optional)"
                       className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
-                    >
-                      <option value="">Select campus</option>
-                      <option value="UTSG">UTSG</option>
-                      <option value="UTSC">UTSC</option>
-                      <option value="UTM">UTM</option>
-                    </select>
+                    />
                   ) : (
-                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.campus || 'TBD'}</p>
+                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.location || 'TBD'}</p>
                   )}
                 </div>
               </div>
@@ -817,7 +817,7 @@ useEffect(() => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Status</p>
-                  {getEventStatus(post.date_occuring) === 'upcoming' ? (
+                  {getEventStatus(post.date_occurring) === 'upcoming' ? (
                     <p className="font-bold text-emerald-700 dark:text-green-400 text-sm sm:text-base">Upcoming</p>
                   ) : (
                     <p className="font-bold text-red-700 dark:text-red-400 text-sm sm:text-base">Closed</p>
@@ -832,18 +832,20 @@ useEffect(() => {
               <button
                 onClick={handleLike}
                 disabled={isLiking || !currentUser}
-                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm sm:text-base ${
+                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg text-sm sm:text-base ${
+                  currentUser && !isLiking ? 'transform hover:scale-105 active:scale-95 hover:shadow-xl' : ''
+                } ${
                   isLiked
-                    ? "bg-gradient-to-r from-red-50 to-pink-50 text-red-600 border-2 border-red-200 hover:border-red-300 hover:from-red-100 hover:to-pink-100"
-                    : "bg-gradient-to-r from-card to-muted/50 hover:from-muted hover:to-card text-foreground border-2 border-border hover:border-primary/30"
-                } ${(isLiking || !currentUser) ? 'opacity-50 cursor-not-allowed transform-none hover:scale-100' : 'cursor-pointer'}`}
+                    ? `bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/30 dark:border-red-500/40 ${currentUser && !isLiking ? 'hover:border-red-500/50 dark:hover:border-red-500/60 hover:bg-red-500/20 dark:hover:bg-red-500/30' : ''}`
+                    : `bg-gradient-to-r from-card to-muted/50 text-foreground border-2 border-border ${currentUser && !isLiking ? 'hover:from-muted hover:to-card hover:border-primary/30' : ''}`
+                } ${(isLiking || !currentUser) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 title={!currentUser ? 'Please log in to like posts' : ''}
               >
                 <div className="relative">
                   {isLiked ? (
-                    <Heart size={18} className="sm:size-5 fill-current text-red-500" />
+                    <Heart size={18} className="sm:size-5 fill-red-500 dark:fill-red-400 text-red-500 dark:text-red-400" />
                   ) : (
-                    <HeartOff size={18} className="sm:size-5 group-hover:text-red-500 transition-colors" />
+                    <HeartOff size={18} className={`sm:size-5 transition-colors ${currentUser && !isLiking ? 'group-hover:text-red-500' : ''}`} />
                   )}
                   {isLiking && (
                     <div className="absolute inset-0 animate-spin">
@@ -857,34 +859,34 @@ useEffect(() => {
                 <span className="sm:hidden">
                   {likes}
                 </span>
-                {!currentUser && <span className="text-xs opacity-70 hidden sm:inline">(Login required)</span>}
               </button>
 
-              <button
-                onClick={handleExportToCalendar}
-                disabled={isAddingToCalendar || !currentUser}
-                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg text-sm sm:text-base ${
-                  isAddingToCalendar || !currentUser
-                    ? "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground cursor-not-allowed opacity-50 transform-none"
-                    : "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground hover:scale-105 hover:shadow-xl"
-                }`}
-                title={!currentUser ? 'Please log in to add events to your calendar' : ''}
-              >
-                <div className="relative">
-                  <Calendar size={18} className={`sm:size-5 ${!isAddingToCalendar && currentUser ? 'group-hover:rotate-12 transition-transform' : ''}`} />
-                  {isAddingToCalendar && (
-                    <div className="absolute inset-0 animate-spin">
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full"></div>
-                    </div>
-                  )}
-                </div>
-                <span className="hidden sm:inline">
-                  {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
-                </span>
-                <span className="sm:hidden">
-                  {isAddingToCalendar ? 'Adding...' : 'Calendar'}
-                </span>
-              </button>
+              {currentUser && (
+                <button
+                  onClick={handleExportToCalendar}
+                  disabled={isAddingToCalendar}
+                  className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg text-sm sm:text-base ${
+                    isAddingToCalendar
+                      ? "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground cursor-not-allowed opacity-50 transform-none"
+                      : "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground hover:scale-105 hover:shadow-xl cursor-pointer"
+                  }`}
+                >
+                  <div className="relative">
+                    <Calendar size={18} className={`sm:size-5 ${!isAddingToCalendar ? 'group-hover:rotate-12 transition-transform' : ''}`} />
+                    {isAddingToCalendar && (
+                      <div className="absolute inset-0 animate-spin">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                  <span className="hidden sm:inline">
+                    {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
+                  </span>
+                  <span className="sm:hidden">
+                    {isAddingToCalendar ? 'Adding...' : 'Calendar'}
+                  </span>
+                </button>
+              )}
 
               {post.links && post.links.length > 0 && (
                 <a
@@ -1151,12 +1153,16 @@ useEffect(() => {
                       </div>
                     ) : (
                       post?.hashtags?.map((tag, index) => (
-                        <span
+                        <button
                           key={index}
-                          className="group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-primary border border-primary/20 hover:border-primary/30 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 cursor-default"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/postFilter?q=${encodeURIComponent(tag)}`);
+                          }}
+                          className="group px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-primary border border-primary/20 hover:border-primary/30 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 cursor-pointer"
                         >
                           #{tag}
-                        </span>
+                        </button>
                       ))
                     )}
                   </div>
