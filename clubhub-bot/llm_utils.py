@@ -1,137 +1,130 @@
 import os
 import google.generativeai as genai
 import requests
+import json
 from PIL import Image
 from io import BytesIO
-from transformers import pipeline
-from huggingface_hub import login
 from dotenv import load_dotenv
 from datetime import datetime
 
 load_dotenv()
 
-# Authenticate once
-login(token=os.getenv("HF_TOKEN"))
-
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-# Zero-shot classifier
-_classifier = pipeline(
-    "zero-shot-classification",
-    model="facebook/bart-large-mnli",
-    device="cpu"
-)
-
-def classify_post(text: str, labels: list[str] | None = None) -> str:
-    if labels is None:
-        labels = [
-            "Event",
-            "Hiring Opportunity",
-            "General Announcement",
-            "Survey"
-        ]
-    result = _classifier(text, labels)
-    print(f"Classification result: {result['labels'][0]} with score {result['scores'][0]:.4f}")
-    return result["labels"][0]
-
-def get_title(text: str, image_url: str = None) -> str:
-    prompt = f"""
-    Generate a concise, clear title for the following post:
-
-    Text content:
-    {text}"""
-
-    if image_url:
-        prompt += f"""Also consider the image content when generating the title."""
-
-    prompt += f"""
-    Your response must be exactly in this format: 'Title' and NOTHING ELSE.
-    """
-
-    # Create the model
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
+class PostAnalyzer:
     
-    content = [prompt]
+    def __init__(self):
+        self._last_analysis = {}
     
-    # Add image if provided
-    if image_url:
-        try: 
-            # Download image from URL
-            response = requests.get(image_url)
-            response.raise_for_status()
-            img = Image.open(BytesIO(response.content))
-            content.append(img)
-        except Exception as e:
-            print(f"Error loading image: {e}")
-            # Continue without image
+    def analyze_post_complete(self, text: str, image_url: str = None) -> dict:
+        """
+        Analyze post content using Gemini in a single call.
+        Returns a dictionary with category, title, date_occurring, and location.
+        """
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        
+        prompt = f"""
+        Analyze the following post and provide a JSON response with the following fields:
 
-    response = model.generate_content(content, generation_config=genai.types.GenerationConfig(temperature=0.2))
+        1. "category": Classify into one of these categories:
+            - "Event": a planned activity that could have a specific date and time.
+            - "Hiring Opportunity": a job opportunity or role that is currently available.
+            - "General Announcement": a post that is not related to a specific event or hiring opportunity.
+            - "Survey": a survey that is asking for feedback or opinions.
+        2. "title": Generate a concise, clear title for the post
+        3. "date_occurring": Extract the event date in ISO format (%Y-%m-%dT%H:%M:%S.000Z), or "none" if no specific date
+        4. "location": Extract the location of the event or activity, or "none" if no specific location can be determined.
 
-    title = response.text.strip()
-    print(f"Generated title: {title}")
-    return title
+        Current date (today): {current_date}
+        Use this to interpret relative dates like "tomorrow", "next week", etc.
 
-def extract_event_date(text: str, image_url: str = None) -> str:
-    """
-    Extract event date from post text and image.
-    Returns ISO format date string or None if no date found.
-    """
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    
-    prompt = f"""Extract the event date from the following post content. Look for:
-            - Specific dates
-            - Days of the week with context
-            - Time expressions that indicate when an event occurs
-            
-    Current date (today): {current_date}
-    Use this to interpret relative dates like "tomorrow", "next week", etc."""
-                
-    # Add image-specific instructions if image is provided
-    if image_url:
-        prompt += """
-        - Calendar elements or date displays in the image
-        - Any dates visible in the image content"""
-    
-    prompt += f"""
-    Only return the date if you can determine a specific date.
-    If no specific date can be determined, return 'None'.
-    
-    Text content:
-    {text}"""
+        Here is the text content of the post: {text}
+        """
 
-    prompt += f"""
-    Your response must be exactly in this format: '%Y-%m-%dT%H:%M:%S.000Z' or 'None' and NOTHING ELSE.
-    """
+        if image_url:
+            prompt += f"""Also consider the image content when analyzing."""
 
-    # Create the model
-    model = genai.GenerativeModel('gemini-2.5-flash-lite')
-    
-    content = [prompt]
-    
-    # Add image if provided
-    if image_url:
+        prompt += f"""
+        Your response must be ONLY a valid JSON object exactly in this format:
+        {{
+            "category": "Event" or "Hiring Opportunity" or "General Announcement" or "Survey",
+            "title": "Title of the post",
+            "date_occurring": "YYYY-MM-DDTHH:MM:SS.000Z" or "none",
+            "location": "Location of the event or activity" or "none"
+        }}
+        """
+
+        # Create the model
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        
+        content = [prompt]
+        
+        # Add image if provided
+        if image_url:
+            try:
+                # Download image from URL
+                response = requests.get(image_url)
+                response.raise_for_status()
+                img = Image.open(BytesIO(response.content))
+                content.append(img)
+            except Exception as e:
+                print(f"Error loading image for analysis: {e}")
+        
+        print(content)
+
         try:
-            # Download image from URL
-            response = requests.get(image_url)
-            response.raise_for_status()
-            img = Image.open(BytesIO(response.content))
-            content.append(img)
+            response = model.generate_content(content, generation_config=genai.types.GenerationConfig(temperature=0.2))
+            response_text = response.text.strip()
+            
+            # Remove markdown code blocks if present
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            result = json.loads(response_text)
+            
+            # Validate category
+            if result.get("category") not in ["Event", "Hiring Opportunity", "General Announcement", "Survey"]:
+                result["category"] = "General Announcement"
+            
+            # Validate date_occurring
+            if result.get("date_occurring") and result["date_occurring"].lower() == "none":
+                result["date_occurring"] = None
+
+            # Validate location
+            if result.get("location") and result["location"].lower() == "none":
+                result["location"] = None
+            
+            # Cache the result
+            self._last_analysis = result
+            
+            print(f"Analysis complete - Category: {result['category']}, Title: {result['title']}, Date: {result.get('date_occurring')}, Location: {result.get('location')}")
+            return result
+            
         except Exception as e:
-            print(f"Error loading image for date extraction: {e}")
-            # Continue without image
+            print(f"Error analyzing post: {e}")
+            # Return default values
+            default_result = {
+                "category": "General Announcement",
+                "title": "Untitled Post",
+                "date_occurring": None,
+                "location": None
+            }
+            self._last_analysis = default_result
+            return default_result
+    
+    def get_category(self) -> str:
+        return self._last_analysis.get("category")
+    
+    def get_title(self) -> str:
+        return self._last_analysis.get("title")
+    
+    def get_date_occurring(self) -> str:
+        return self._last_analysis.get("date_occurring")
+    
+    def get_location(self) -> str:
+        return self._last_analysis.get("location")
 
-    try:
-        response = model.generate_content(content, generation_config=genai.types.GenerationConfig(temperature=0.25))
-        extracted_date = response.text.strip()
-        
-        # Validate the response
-        if extracted_date.lower() == "none" or not extracted_date:
-            print(f"No event date found in post")
-            return None
-
-        print(f"Extracted event date: {extracted_date}")
-        return extracted_date
-        
-    except Exception as e:
-        print(f"Error extracting event date: {e}")
-        return None
+analyzer = PostAnalyzer()
