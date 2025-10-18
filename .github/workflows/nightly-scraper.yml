@@ -41,5 +41,6 @@ jobs:
         ADMIN_FIREBASE_PROJECT_ID: ${{ secrets.ADMIN_FIREBASE_PROJECT_ID }}
         ADMIN_FIREBASE_PRIVATE_KEY: ${{ secrets.ADMIN_FIREBASE_PRIVATE_KEY }}
         ADMIN_FIREBASE_CLIENT_EMAIL: ${{ secrets.ADMIN_FIREBASE_CLIENT_EMAIL }}
+        GENAI_API_KEY: ${{ secrets.GENAI_API_KEY }}
       run: ./execute.sh
       working-directory: ./clubhub-bot
