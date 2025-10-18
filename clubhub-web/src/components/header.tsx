@@ -48,22 +48,22 @@ export function Header() {
         return pathname === path;
     };
 
-    // Get the current active index based on pathname
-    const getCurrentActiveIndex = useCallback(() => {
-        const hasAdmin = userData?.is_admin;
-        const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
-        const base = user ? 3 : 2; // Base index after Clubs and Posts (and Calendar if logged in)
+  // Get the current active index based on pathname
+  const getCurrentActiveIndex = useCallback(() => {
+    const hasAdmin = userData?.is_admin;
+    const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
+    const base = 3; // Base index after Clubs, Posts, and Calendar
 
-        if (pathname === '/clubSearch') return 0;
-        if (pathname === '/postFilter') return 1;
-        if (pathname === '/calendar' && user) return 2;
-        if (pathname === '/admin' && hasAdmin) return base;
-        if (pathname === '/exec' && hasExec) return base + (hasAdmin ? 1 : 0);
-        if (pathname === '/pending-club-request') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0);
-        if (pathname === '/about') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0) + 1;
-        // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
-        return -1;
-    }, [pathname, userData, user]);
+    if (pathname === '/clubSearch') return 0;
+    if (pathname === '/postFilter') return 1;
+    if (pathname === '/calendar') return 2;
+    if (pathname === '/admin' && hasAdmin) return base;
+    if (pathname === '/exec' && hasExec) return base + (hasAdmin ? 1 : 0);
+    if (pathname === '/pending-club-request') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0);
+    if (pathname === '/about') return base + (hasAdmin ? 1 : 0) + (hasExec ? 1 : 0) + 1;
+    // Return -1 for paths that shouldn't show the indicator (like home, profile, etc.)
+    return -1;
+  }, [pathname, userData, user]);
 
     // Update indicator position based on active button
     useEffect(() => {
@@ -159,7 +159,7 @@ export function Header() {
 
             {/* Enhanced Desktop Navigation */}
             <nav className="hidden xl:flex items-center flex-1 justify-center min-w-0 mx-1 lg:mx-4">
-              <div ref={navRef} className="flex items-center bg-muted/100 rounded-full px-1 py-1 backdrop-blur-sm relative overflow-x-auto max-w-full scrollbar-hide">
+              <div ref={navRef} className="flex items-center gap-2 bg-muted/100 rounded-full px-1 py-1 backdrop-blur-sm relative overflow-x-auto max-w-full scrollbar-hide">
                 {/* Sliding indicator */}
                 <div 
                   className={`absolute bg-primary/70  shadow-md shadow-primary/15 ring-1 ring-primary/15 rounded-full transition-all duration-300 ease-in-out ${
@@ -173,7 +173,6 @@ export function Header() {
                   }}
                 />
                 
-                
                 <NavButton
                   onClick={(e) => handleNavigation(e, "/clubSearch")}
                   isActive={isActive("/clubSearch")}
@@ -186,42 +185,40 @@ export function Header() {
                   label="Posts"
                   index={1}
                 />
-                {user && (
-                  <NavButton
-                    onClick={(e) => handleNavigation(e, "/calendar")}
-                    isActive={isActive("/calendar")}
-                    label="Calendar"
-                    index={2}
-                  />
-                )}
+                <NavButton
+                  onClick={(e) => handleNavigation(e, "/calendar")}
+                  isActive={isActive("/calendar")}
+                  label="Calendar"
+                  index={2}
+                />
                 {isAdmin && (
-                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={user ? 3 : 2} />
+                  <NavButton onClick={(e) => handleNavigation(e, "/admin")} isActive={isActive("/admin")} label="Admin" index={3} />
                 )}
                 {isExecutive && (
                   <NavButton
                     onClick={(e) => handleNavigation(e, "/exec")}
                     isActive={isActive("/exec")}
                     label="Exec"
-                    index={(user ? 3 : 2) + (isAdmin ? 1 : 0)}
+                    index={3 + (isAdmin ? 1 : 0)}
                   />
                 )}
                 <NavButton
                   onClick={(e) => handleNavigation(e, "/pending-club-request")}
                   isActive={isActive("/pending-club-request")}
                   label="Request"
-                  index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
+                  index={3 + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0)}
                 />
                 <NavButton
                 onClick={(e) => handleNavigation(e, "/about")}
                 isActive={isActive("/about")}
                 label="About"
-                index={(user ? 3 : 2) + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0) + 1}
+                index={3 + (isAdmin ? 1 : 0) + (isExecutive ? 1 : 0) + 1}
                 />
               </div>
             </nav>
 
             {/* Desktop User Menu */}
-            <nav className="hidden xl:flex items-center gap-2 lg:gap-4 flex-shrink-0">
+            <nav className="hidden xl:flex items-center gap-2 lg:gap-4 flex-shrink-0 min-w-[200px] justify-end">
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
@@ -234,10 +231,19 @@ export function Header() {
                 </span>
               </button>
               
-              {loading && (
-                <p className="text-sm text-muted-foreground">Loading...</p>
-              )}
-              {!loading && !user && (
+              {loading ? (
+                <button 
+                  className="bg-primary text-primary-foreground px-2 sm:px-3 lg:px-4 py-2 rounded-md font-semibold cursor-not-allowed text-xs sm:text-sm whitespace-nowrap opacity-90"
+                  type="button"
+                  disabled
+                >   
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                    <span className="hidden lg:inline">Loading...</span>
+                    <span className="lg:hidden">...</span>
+                  </span>
+                </button>
+              ) : !user ? (
                 <button 
                   onClick={(e) => handleNavigation(e, '/auth')}
                   className="bg-primary hover:bg-secondary text-primary-foreground px-2 sm:px-3 lg:px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer text-xs sm:text-sm whitespace-nowrap"
@@ -247,8 +253,7 @@ export function Header() {
                   <span className="hidden lg:inline">Login / Register</span>
                   <span className="lg:hidden">Login</span>
                 </button>
-              )}
-              {!loading && user && (
+              ) : (
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={(e) => handleNavigation(e, '/profile')}
@@ -326,19 +331,17 @@ export function Header() {
                 >
                   Posts
                 </button>
-                {user && (
-                  <button 
-                    onClick={(e) => handleNavigation(e, '/calendar')}
-                    className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
-                      isActive('/calendar') 
-                        ? 'text-primary font-medium' 
-                        : 'text-muted-foreground hover:text-secondary'
-                    }`}
-                    type="button"
-                  >
-                    Calendar
-                  </button>
-                )}
+                <button 
+                  onClick={(e) => handleNavigation(e, '/calendar')}
+                  className={`block w-full text-left transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+                    isActive('/calendar') 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground hover:text-secondary'
+                  }`}
+                  type="button"
+                >
+                  Calendar
+                </button>
                 {user && isAdmin && (
                   <button 
                     onClick={(e) => handleNavigation(e, '/admin')}
@@ -390,13 +393,21 @@ export function Header() {
                 
                 <hr className="border-border" />
                 
-                {!loading && !user && (
+                {!user && (
                   <button 
-                    onClick={(e) => handleNavigation(e, '/auth')}
-                    className="block w-full text-left bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
+                    onClick={(e) => !loading && handleNavigation(e, '/auth')}
+                    className="block w-full text-center bg-primary hover:bg-primary/80 text-primary-foreground px-4 py-2 rounded-md font-semibold transition-colors duration-150 ease-in-out cursor-pointer"
                     type="button"
+                    disabled={loading}
                   >   
-                    Login / Register
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                        Loading...
+                      </span>
+                    ) : (
+                      'Login / Register'
+                    )}
                   </button>
                 )}
                 

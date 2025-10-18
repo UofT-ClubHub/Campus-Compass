@@ -513,19 +513,13 @@ export default function ExecPage() {
               >
                 <div className="flex flex-col md:flex-row md:items-center p-2 md:p-4 gap-2 md:gap-4">
                   <div className="flex-shrink-0">
-                    {club.image ? (
-                      <Link href={`/clubPage/${club.id}`} className="block">
-                        <img
-                          src={club.image}
-                          alt={`${club.name} image`}
-                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                        />
-                      </Link>
-                    ) : (
-                      <Link href={`/clubPage/${club.id}`} className="block">
-                        <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"></div>
-                      </Link>
-                    )}
+                    <Link href={`/clubPage/${club.id}`}>
+                      <img
+                        src={club?.image || "/placeholder.jpg"}
+                        alt={`${club.name} logo`}
+                        className="w-28 h-28 rounded-full mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
+                      />
+                    </Link>
                   </div>
 
                   <div className="flex-grow min-w-0 w-full md:w-auto">
@@ -568,7 +562,7 @@ export default function ExecPage() {
                             showAddExecForm === club.id ? null : club.id
                           )
                         }
-                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-secondary hover:bg-secondary/90 hover:scale-105 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg"
                       >
                         {showAddExecForm === club.id ? "Cancel" : "Add Exec"}
                       </button>
@@ -588,14 +582,14 @@ export default function ExecPage() {
                             showEditClubForm === club.id ? null : club.id
                           );
                         }}
-                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-secondary hover:bg-secondary/90 hover:scale-105 text-secondary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg"
                       >
                         {showEditClubForm === club.id ? "Cancel" : "Edit"}
                       </button>
                     )}
                     <button
                       onClick={() => router.push(`/applicationsPage/${club.id}?from=exec`)}
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-accent hover:bg-accent/90 hover:scale-105 text-accent-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg"
                     >
                       View Forms
                     </button>
@@ -604,14 +598,14 @@ export default function ExecPage() {
                         // Route to new post page, passing club id as query param for prefill
                         router.push(`/postFilter/postPage/new?clubId=${club.id}`);
                       }}
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-primary hover:bg-primary/90 hover:scale-105 text-primary-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg"
                     >
                       Post
                     </button>
                     <button
                       onClick={() => handleDeleteClub(club.id, club.name)}
                       disabled={deletingClubId === club.id}
-                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-destructive hover:bg-destructive/90 disabled:bg-destructive/60 text-destructive-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+                      className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-destructive hover:bg-destructive/90 hover:scale-105 disabled:bg-destructive/60 text-destructive-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {deletingClubId === club.id ? "Deleting..." : "Delete"}
                     </button>
@@ -739,7 +733,7 @@ export default function ExecPage() {
                         />
                         <button
                           type="submit"
-                          className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                          className="cursor-pointer px-3 py-2 sm:px-4 sm:py-2.5 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 hover:scale-105 hover:shadow-lg transition-all duration-200"
                         >
                           Add
                         </button>
@@ -749,7 +743,7 @@ export default function ExecPage() {
                               showAddExecForm === club.id ? null : club.id
                             )
                           }
-                          className="cursor-pointer px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                          className="cursor-pointer px-3 py-2 sm:px-4 sm:py-2.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 hover:scale-105 hover:shadow-lg transition-all duration-200"
                         >
                           Cancel
                         </button>
@@ -890,7 +884,7 @@ export default function ExecPage() {
                           <button
                             type="button"
                             onClick={addLink}
-                            className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90"
+                            className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 hover:scale-105 hover:shadow-lg transition-all duration-200"
                           >
                             <Plus className="h-3 w-3" />
                             Add Link
@@ -921,7 +915,7 @@ export default function ExecPage() {
                                 <button
                                   type="button"
                                   onClick={() => removeLink(index)}
-                                  className="px-2 py-2 text-destructive hover:bg-destructive/10 rounded"
+                                  className="px-2 py-2 text-destructive hover:bg-destructive/10 hover:scale-105 rounded transition-all duration-200"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -933,7 +927,7 @@ export default function ExecPage() {
 
                       <button
                         type="submit"
-                        className="cursor-pointer px-4 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="cursor-pointer px-3 py-2 sm:px-4 sm:py-2.5 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 hover:scale-105 hover:shadow-lg transition-all duration-200"
                       >
                         Save Changes
                       </button>
@@ -951,7 +945,7 @@ export default function ExecPage() {
                             showEditClubForm === club.id ? null : club.id
                           );
                         }}
-                        className="cursor-pointer ml-2 px-3 py-1.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 transition-colors"
+                        className="cursor-pointer ml-2 px-3 py-2 sm:px-4 sm:py-2.5 border border-border text-foreground rounded text-sm font-medium hover:bg-muted/50 hover:scale-105 hover:shadow-lg transition-all duration-200"
                       >
                         Cancel
                       </button>

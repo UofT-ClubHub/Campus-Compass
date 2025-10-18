@@ -141,10 +141,10 @@ export default function PendingClubRequestPage() {
         ))}
       </div>
 
-      <div className="relative z-10 container max-w-4xl mx-auto py-12 px-4">
+      <div className="relative z-10 container max-w-4xl mx-auto py-10 px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-3">Club Registration Portal</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-foreground mb-3">Club Registration Portal</h1>
+          <p className="text-md text-muted-foreground max-w-2xl mx-auto">
             Start your journey by registering your club with us. Join our vibrant community of student organizations.
           </p>
         </div>
@@ -175,7 +175,7 @@ export default function PendingClubRequestPage() {
         {showForm ? (
           <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-8 form-glow">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-semibold text-foreground mb-3">Register Your Club</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-3">Register Your Club</h2>
               <p className="text-muted-foreground">
                 Fill out the form below to submit your club for approval. All fields marked with * are required.
               </p>
@@ -328,7 +328,7 @@ export default function PendingClubRequestPage() {
         ) : (
           <div className="bg-card/30 backdrop-blur-xl rounded-lg shadow-lg border border-white/20 p-8 form-glow">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-foreground mb-2">My Club Requests</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-2">My Club Requests</h2>
               <p className="text-muted-foreground">Track the status of your submitted club registration requests.</p>
             </div>
 

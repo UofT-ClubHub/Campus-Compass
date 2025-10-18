@@ -6,12 +6,11 @@ import type { User } from "@/model/types"
 import { PositionCard } from "@/components/position-card"
 import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Separate component that uses useSearchParams
 function PositionSearchContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
 
@@ -131,8 +130,8 @@ function PositionSearchContent() {
       sort_by ? params.append("sort_by", sort_by) : null
       sort_order ? params.append("sort_order", sort_order) : null
       departmentFilter ? params.append("department", departmentFilter) : null
-      params.append("show_open", "true") // Default to showing open positions
-      params.append("show_closed", "false") // Default to not showing closed positions
+      params.append("show_open", "true") // Show open positions
+      params.append("show_closed", "true") // Also include closed positions
       params.append("offset", currentOffset.toString())
       params.append("limit", limit.toString());
 

@@ -7,9 +7,10 @@ import { ExpandablePositionCard } from './expandable-position-card';
 interface PositionCardProps {
   position: any;
   className?: string;
+  onPositionUpdate?: (position: any) => void;
 }
 
-export function PositionCard({ position, className = "" }: PositionCardProps) {
+export function PositionCard({ position, className = "", onPositionUpdate }: PositionCardProps) {
   const [showExpandable, setShowExpandable] = useState(false);
 
   const handleCardClick = () => {
@@ -78,6 +79,7 @@ export function PositionCard({ position, className = "" }: PositionCardProps) {
         <ExpandablePositionCard
           position={position}
           onClose={() => setShowExpandable(false)}
+          onPositionUpdate={onPositionUpdate}
         />
       )}
     </div>

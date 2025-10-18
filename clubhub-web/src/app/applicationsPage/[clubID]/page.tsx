@@ -422,7 +422,7 @@ export default function ApplicationsPage({ params }: PageProps) {
           <header className="relative text-white rounded-2xl p-8 mb-8 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
             <div
               className="absolute inset-0 bg-cover bg-center filter blur-md"
-              style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
+              style={{ backgroundImage: `url(${clubData?.image || "/placeholder.jpg"})` }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
             <div className="relative z-10 max-w-6xl mx-auto">
@@ -431,7 +431,7 @@ export default function ApplicationsPage({ params }: PageProps) {
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="flex flex-col items-center gap-6 mb-6">
                     <img
-                      src={clubData?.image || "/placeholder.svg"}
+                      src={clubData?.image || "/placeholder.jpg"}
                       alt={`${clubData?.name} logo`}
                       className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
                     />
@@ -502,7 +502,7 @@ export default function ApplicationsPage({ params }: PageProps) {
                   {/* Logo and Title Section */}
                   <div className="flex flex-col items-center gap-6 mb-6">
                     <img
-                      src={clubData?.image || "/placeholder.svg"}
+                      src={clubData?.image || "/placeholder.jpg"}
                       alt={`${clubData?.name} logo`}
                       className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
                     />
@@ -746,11 +746,7 @@ export default function ApplicationsPage({ params }: PageProps) {
             {positions.length > 0 ? (
               <div className="space-y-4">
                 {positions.map((position: any) => {
-                  // Check if deadline has passed to determine actual status
-                  const deadline = position.deadline ? new Date(position.deadline) : null;
-                  const isDeadlinePassed = deadline && deadline < new Date();
-                  const actualStatus = isDeadlinePassed ? 'closed' : (position.status || 'open');
-                  
+                  // Do not override status based on deadline; always rely on stored status
                   const transformedPosition = {
                     positionId: position.id || position.positionId,
                     title: position.title || "Position",
@@ -758,7 +754,7 @@ export default function ApplicationsPage({ params }: PageProps) {
                     requirements: position.requirements || [],
                     deadline: position.deadline,
                     date_posted: position.date_posted,
-                    status: actualStatus as 'open' | 'closed',
+                    status: (position.status || 'open') as 'open' | 'closed',
                     questions: position.questions || {},
                     clubId: position.clubId || clubID,
                     clubName: position.clubName || clubData?.name,
@@ -787,8 +783,8 @@ export default function ApplicationsPage({ params }: PageProps) {
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <h3 className="text-xl font-semibold text-white mb-2">No Positions Available</h3>
-                <p className="text-gray-300 text-center max-w-md">
+                <h3 className="text-xl font-semibold text-foreground mb-2">No Positions Available</h3>
+                <p className="text-muted-foreground text-center max-w-md">
                   {clubData?.name} doesn't have any positions at the moment. 
                   {isExecutive && " Click 'Add New Position' to create one!"}
                 </p>

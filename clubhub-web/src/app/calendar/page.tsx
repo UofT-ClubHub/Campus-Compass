@@ -48,7 +48,12 @@ export default function CalendarPage() {
 
   // Get auth token and fetch events
   useEffect(() => {
-    if (authLoading || !authUser) return
+    if (authLoading) return
+    
+    if (!authUser) {
+      setIsLoading(false)
+      return
+    }
 
     const fetchData = async () => {
       setIsLoading(true)
@@ -257,7 +262,7 @@ export default function CalendarPage() {
   if (!authUser) {
     return (
       <div className="min-h-screen bg-theme-gradient bg-animated-elements">
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-6 py-8 pt-20">
           <div className="max-w-md mx-auto text-center">
             <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
               <div className="w-20 h-20 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
@@ -283,11 +288,11 @@ export default function CalendarPage() {
   const calendarDays = getDaysInMonth(currentMonth)
 
   return (
-    <div className="min-h-screen bg-theme-gradient bg-animated-elements">
+    <div className="min-h-screen overflow-x-hidden bg-theme-gradient bg-animated-elements">
       <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 max-w-7xl relative z-20">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 gap-4 sm:gap-6">
           <div className="space-y-1 sm:space-y-2">
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">My Calendar</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Calendar</h1>
             <p className="text-muted-foreground text-sm sm:text-lg">Organize your schedule and never miss an important event</p>
           </div>
           <button
@@ -435,28 +440,28 @@ export default function CalendarPage() {
 
             {getEventsForDate(selectedDate).length === 0 ? null : (
               openDropdowns.has(selectedDate.toISOString().split("T")[0]) && (
-                <div className="grid gap-3 sm:gap-4">
+                <div className="grid gap-3 sm:gap-4 w-full max-w-full">
                   {getEventsForDate(selectedDate).map((event) => {
                     const isClickable = event.postId && !event.postDeleted;
-                    const cardClassName = `flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0 ${
+                    const cardClassName = `flex flex-col sm:flex-row justify-between items-start p-4 sm:p-6 border border-primary/20 rounded-2xl bg-card/80 backdrop-blur-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 group gap-3 sm:gap-0 w-full max-w-full overflow-hidden ${
                       isClickable ? 'cursor-pointer' : ''
                     }`;
                     
                     const cardContent = (
                       <>
-                        <div className="flex-1 w-full">
-                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                        <div className="flex-1 w-full min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 min-w-0">
                             <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-gradient-to-r from-primary to-accent shadow-sm"></div>
-                            <h4 className="font-semibold text-foreground text-base sm:text-lg">{event.title}</h4>
+                            <h4 className="font-semibold text-foreground text-base sm:text-lg truncate sm:whitespace-normal sm:break-words max-w-full">{event.title}</h4>
                           </div>
 
                           {event.description && (
-                            <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base">
+                            <p className="text-muted-foreground mb-3 sm:mb-4 leading-relaxed bg-muted/30 p-2.5 sm:p-3 rounded-lg border border-border/50 text-sm sm:text-base truncate sm:whitespace-normal sm:break-words max-w-full">
                               {event.description}
                             </p>
                           )}
 
-                          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground min-w-0">
                             {event.startTime && (
                               <div className="flex items-center gap-2">
                                 <Clock size={14} className="sm:hidden" />
@@ -468,10 +473,10 @@ export default function CalendarPage() {
                             )}
 
                             {event.location && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0 max-w-full">
                                 <MapPin size={14} className="sm:hidden" />
                                 <MapPin size={16} className="hidden sm:block" />
-                                <span className="truncate">{event.location}</span>
+                                <span className="truncate block">{event.location}</span>
                               </div>
                             )}
                           </div>

@@ -77,7 +77,7 @@ export const POST = withAuth(async (request: NextRequest) => {
             postId: data.postId,
             postDeleted: false,
             clubId: post.club || '',
-            location: post.campus || undefined,
+            location: post.location || undefined,
             createdAt: now,
             updatedAt: now,
         };

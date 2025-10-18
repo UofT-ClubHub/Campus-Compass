@@ -67,7 +67,12 @@ export function ClubsCarousel({ clubs, isLoading, maxDisplay = 12 }: ClubsCarous
     }, 2000)
   }, [])
 
-  // Don't render if no clubs
+  const scrollDuration = useMemo(() => {
+    const baseItemCount = 12
+    const baseDuration = 60
+    return (limitedClubs.length / baseItemCount) * baseDuration
+  }, [limitedClubs.length])
+
   if (!isLoading && limitedClubs.length === 0) {
     return null
   }
@@ -124,7 +129,7 @@ export function ClubsCarousel({ clubs, isLoading, maxDisplay = 12 }: ClubsCarous
               </div>
               <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]">
                 {limitedClubs.map((club: Club, index: number) => (
-                  <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
+                  <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64 sm:w-80">
                     <ClubCard
                       club={club}
                       className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
@@ -157,7 +162,10 @@ export function ClubsCarousel({ clubs, isLoading, maxDisplay = 12 }: ClubsCarous
               >
                 <div
                   className={`flex gap-4 ${isAutoScrolling && limitedClubs.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
-                  style={{ width: "fit-content" }}
+                  style={{ 
+                    width: "fit-content",
+                    "--scroll-duration": `${scrollDuration}s`
+                  } as React.CSSProperties & { "--scroll-duration": string }}
                   onMouseEnter={(e) => {
                     if (e.target === e.currentTarget) {
                       setIsAutoScrolling(false)
@@ -173,7 +181,7 @@ export function ClubsCarousel({ clubs, isLoading, maxDisplay = 12 }: ClubsCarous
                   }}
                 >
                   {duplicatedClubs.map((club: Club, index: number) => (
-                    <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64">
+                    <div key={`${club.id}-${index}`} className="flex-shrink-0 w-64 sm:w-80">
                       <ClubCard
                         club={club}
                         className="h-full transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
@@ -189,4 +197,3 @@ export function ClubsCarousel({ clubs, isLoading, maxDisplay = 12 }: ClubsCarous
     </section>
   )
 }
-

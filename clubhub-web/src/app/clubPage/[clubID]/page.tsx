@@ -301,10 +301,10 @@ export default function ClubPage({ params }: PageProps) {
       <main className="relative z-10">
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
-         <header className="relative text-white rounded-2xl p-12 mb-10 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
+         <header className="relative text-white rounded-2xl p-6 sm:p-8 md:p-10 lg:p-12 mb-6 sm:mb-8 md:mb-10 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
            <div
              className="absolute inset-0 bg-cover bg-center filter blur-md"
-             style={{ backgroundImage: `url(${clubData?.image || "/placeholder.svg"})` }}
+             style={{ backgroundImage: `url(${clubData?.image || "/placeholder.jpg"})` }}
            ></div>
            <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
            
@@ -313,47 +313,47 @@ export default function ClubPage({ params }: PageProps) {
             {/* Logo and Title Section */}
             <div className="mb-6 flex flex-col items-center">
               <img
-                src={clubData?.image || "/placeholder.svg"}
+                src={clubData?.image || "/placeholder.jpg"}
                 alt={`${clubData?.name} logo`}
-                className="w-28 h-28 rounded-full mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full mb-4 sm:mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
               />
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">{clubData?.name}</h1>
-              <p className="text-white/90 text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 drop-shadow-">{clubData?.name}</h1>
+              <p className="text-white/90 text-base sm:text-lg md:text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>
               {clubData?.department && (
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  <Building2 className="w-5 h-5 text-white/70" />
-                  <p className="text-white/70 text-lg font-medium">{clubData?.department}</p>
+                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white/70" />
+                  <p className="text-white/70 text-sm sm:text-base md:text-lg font-medium">{clubData?.department}</p>
                 </div>
               )}
             </div>
 
             {/* Stats bar */}
-            <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-white/30">
-               <div className="flex items-center gap-3 text-white">
-                 <Users className="w-5 h-5 text-white/80" />
-                 <span className="font-semibold text-lg">{followerCount}</span>
-                 <span className="text-white/80 text-sm font-medium">Followers</span>
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-white/30">
+               <div className="flex items-center gap-2 sm:gap-3 text-white">
+                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
+                 <span className="font-semibold text-base sm:text-lg">{followerCount}</span>
+                 <span className="text-white/80 text-xs sm:text-sm font-medium">Followers</span>
                </div>
-               <div className="flex items-center gap-3 text-white">
-                 <UserCheck className="w-5 h-5 text-success" />
-                 <span className="font-semibold text-lg">{executives.length}</span>
-                 <span className="text-white/80 text-sm font-medium">Executives</span>
+               <div className="flex items-center gap-2 sm:gap-3 text-white">
+                 <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
+                 <span className="font-semibold text-base sm:text-lg">{executives.length}</span>
+                 <span className="text-white/80 text-xs sm:text-sm font-medium">Executives</span>
                </div>
-               {ig && (<a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white hover:underline hover:text-accent transition text-white">
-                 <Instagram className="w-5 h-5 text-accent" />
-                 <span className="font-semibold text-lg">@{ig}</span>
+               {ig && (<a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 sm:gap-3 text-white hover:underline hover:text-accent transition text-white">
+                 <Instagram className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                 <span className="font-semibold text-base sm:text-lg">@{ig}</span>
                </a>
                )}
-               <div className="flex items-center gap-3 text-white">
-                 <MapPin className="w-5 h-5 text-warning" />
-                 <span className="font-semibold text-lg">{clubData?.campus}</span>
+               <div className="flex items-center gap-2 sm:gap-3 text-white">
+                 <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
+                 <span className="font-semibold text-base sm:text-lg">{clubData?.campus}</span>
                </div>
              </div>
 
               {clubData?.links && Object.keys(clubData.links).length > 0 && (
                 <div>
-                  <p className="font-medium text-muted-foreground mb-0 mt-4">External Links:</p>
-                                  <div className="flex flex-wrap justify-center gap-8 pt-2">
+                  <p className="font-medium text-muted-foreground mb-0 mt-4 text-sm sm:text-base">External Links:</p>
+                                  <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 pt-2">
                     {Object.entries(clubData.links as Record<string, string>)
                       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                       .slice(0, 3)
@@ -363,10 +363,10 @@ export default function ClubPage({ params }: PageProps) {
                         href={link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 text-white hover:underline hover:text-accent transition text-white"
+                        className="flex items-center gap-2 sm:gap-3 text-white hover:underline hover:text-accent transition text-white"
                       >
-                        <ExternalLink className="w-5 h-5 text-accent" />
-                        <span className="font-semibold text-lg">{key}</span>
+                        <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                        <span className="font-semibold text-base sm:text-lg">{key}</span>
                       </a>
                     ))}
                   {Object.keys(clubData.links).length > 3 && (
@@ -396,48 +396,48 @@ export default function ClubPage({ params }: PageProps) {
                 </div>
               )}
 
-               {/* Action Buttons */}
-               {authUser && (
-                 <div className="mt-6 flex justify-center gap-4">
-                   {isClubExecutive && (
-                     <button
-                       onClick={handleManageClub}
-                       className="cursor-pointer px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all duration-200 border border-primary"
+              {/* Action Buttons */}
+              {authUser && (
+                <div className="mt-6 flex flex-col sm:flex-row justify-center gap-y-2 gap-x-6">
+                  {isClubExecutive && (
+                    <button
+                      onClick={handleManageClub}
+                      className="cursor-pointer px-6 py-2 sm:px-8 sm:py-3 bg-destructive/80 hover:bg-destructive/60 hover:scale-105 hover:shadow-lg text-secondary-foreground rounded-lg font-medium text-base sm:text-lg transition-all duration-200 border border-secondary"
+                    >
+                      Manage Club
+                    </button>
+                  )}
+                  <button
+                    onClick={() => router.push(`/applicationsPage/${clubID}?from=club`)}
+                    className="cursor-pointer px-6 py-2 sm:px-8 sm:py-3 bg-accent hover:bg-accent/70 hover:scale-105 hover:shadow-lg text-accent-foreground rounded-lg font-medium text-base sm:text-lg transition-all duration-200 border border-accent"
+                  >
+                    View Positions
+                  </button>
+                    <button
+                    onClick={handleFollowClub}
+                    disabled={isFollowLoading}
+                    className={`cursor-pointer px-6 py-2 sm:px-8 sm:py-3 rounded-lg font-medium text-base sm:text-lg transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 hover:shadow-lg ${
+                      isFollowing 
+                      ? "bg-pink-500 hover:bg-pink-600 text-white border-pink-500" 
+                      : "bg-secondary hover:bg-secondary/70 text-secondary-foreground border-secondary"
+                    }`}
                      >
-                       Manage Club
-                     </button>
-                   )}
-                   <button
-                     onClick={() => router.push(`/applicationsPage/${clubID}?from=club`)}
-                     className="cursor-pointer px-6 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium transition-all duration-200 border border-accent"
-                   >
-                     View Open Positions
-                   </button>
-                     <button
-                     onClick={handleFollowClub}
-                     disabled={isFollowLoading}
-                     className={`cursor-pointer px-6 py-2 rounded-lg font-medium transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed ${
-                       isFollowing 
-                       ? "bg-pink-500 hover:bg-pink-600 text-white border-pink-500" 
-                       : "bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary"
-                     }`}
-                     >
-                     {isFollowLoading ? (
-                       <div className="flex items-center justify-center">
-                       <div className="w-4 h-4 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
-                       Loading...
-                       </div>
-                     ) : isFollowing ? (
-                       <div className="flex items-center gap-2">
-                       <HeartOff className="w-4 h-4" />
-                       Unfollow
-                       </div>
-                     ) : (
-                       <div className="flex items-center gap-2">
-                       <Heart className="w-4 h-4" />
-                       Follow
-                       </div>
-                     )}
+                    {isFollowLoading ? (
+                      <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Loading...
+                      </div>
+                    ) : isFollowing ? (
+                      <div className="flex items-center justify-center gap-2">
+                      <HeartOff className="w-4 h-4" />
+                      Unfollow
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      Follow
+                      </div>
+                    )}
                      </button>
                  </div>
                )}

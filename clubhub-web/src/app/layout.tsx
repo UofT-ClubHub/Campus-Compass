@@ -78,7 +78,7 @@ export default function RootLayout({
             <Header />
             {children}
             
-            {/* <ChatbotWidget /> */}
+            <ChatbotWidget />
           </MantineProvider>
         </ThemeProvider>
         <SpeedInsights />

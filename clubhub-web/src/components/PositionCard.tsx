@@ -303,10 +303,12 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
     }
   }
 
-  const isDeadlinePassed = position.deadline && new Date(position.deadline) < new Date()
-  const actualStatus = isDeadlinePassed ? "closed" : position.status || "open"
-  const canApply = actualStatus === "open" && !isDeadlinePassed
-  const isRecentlyClosed = position.status === "open" && isDeadlinePassed
+  // Do not auto-close based on deadline; always rely on current status field
+  const deadlineIso = position.deadline
+  const isDeadlinePassed = deadlineIso ? new Date(deadlineIso).getTime() < Date.now() : false
+  const actualStatus = position.status || "open"
+  const canApply = actualStatus === "open"
+  const isRecentlyClosed = false
 
   return (
     <div className="group relative mb-6 max-w-5xl mx-auto">
@@ -476,9 +478,9 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
                     </div>
                   ) : (
                     position.deadline && (
-                      <div className={`flex items-center gap-2 ${isDeadlinePassed ? "text-red-600 dark:text-destructive" : "text-blue-600 dark:text-accent"}`}>
+                      <div className="flex items-center gap-2 text-blue-600 dark:text-accent">
                         <Calendar className="w-4 h-4" />
-                        <span className="font-medium">Deadline: {formatDate(position.deadline)}</span>
+                        <span className="font-medium">Deadline: {formatDate(position.deadline!)}</span>
                       </div>
                     )
                   )}
@@ -697,24 +699,11 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
                         <AlertCircle className="w-10 h-10 text-red-600 dark:text-destructive" />
                       </div>
                       <h4 className="text-xl font-bold text-gray-900 dark:text-foreground mb-3">
-                        {actualStatus === "closed" && isRecentlyClosed
-                          ? "Position Recently Closed"
-                          : actualStatus === "closed" && isDeadlinePassed
-                            ? "Application Deadline Passed"
-                            : "Position Closed"}
+                        {actualStatus === "closed" ? "Position Closed" : "Position Unavailable"}
                       </h4>
                       <p className="text-gray-600 dark:text-card-foreground/80 text-base leading-relaxed max-w-md mx-auto">
-                        {actualStatus === "closed" && isRecentlyClosed
-                          ? "This position was recently closed due to the deadline passing."
-                          : actualStatus === "closed" && isDeadlinePassed
-                            ? "The deadline for this position has passed."
-                            : "This position is no longer accepting applications."}
+                        {actualStatus === "closed" ? "This position is no longer accepting applications." : "This position is currently unavailable."}
                       </p>
-                      {position.deadline && (
-                        <p className="text-gray-500 dark:text-muted-foreground mt-3 text-sm">
-                          Deadline was: {formatDate(position.deadline)}
-                        </p>
-                      )}
                     </div>
                   </div>
                 )}

@@ -101,8 +101,8 @@ export function PostCard({
               <MapPin className="h-4 w-4 text-destructive" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground font-medium">Campus</p>
-              <p className="text-sm text-muted-foreground truncate">{post.campus}</p>
+              <p className="text-xs text-muted-foreground font-medium">Location</p>
+              <p className="text-sm text-muted-foreground truncate">{post.location || "TBD"}</p>
             </div>
           </div>
 
@@ -119,7 +119,7 @@ export function PostCard({
 
         {/* Hashtags */}
         {post.hashtags && post.hashtags.length > 0 && (
-          <div className="flex flex-nowrap gap-1 pt-2 pb-1 items-center justify-center px-2">
+          <div className="flex flex-wrap gap-1 pt-2 pb-1 items-center justify-center">
             {post.hashtags.slice(0, 3).map((hashtag, index) => (
               <button
                 key={index}
@@ -128,12 +128,13 @@ export function PostCard({
                   e.stopPropagation();
                   onHashtagClick?.(hashtag);
                 }}
+                title={`#${hashtag}`}
               >
                 #{hashtag}
               </button>
             ))}
             {post.hashtags.length > 3 && (
-              <span className="px-3 py-1 rounded-full border border-border bg-background text-foreground text-xs font-medium flex-shrink-0 whitespace-nowrap">
+              <span className="px-2 py-1 rounded-full border border-border bg-background text-foreground text-xs font-medium flex-shrink-0 whitespace-nowrap">
                 +{post.hashtags.length - 3}
               </span>
             )}

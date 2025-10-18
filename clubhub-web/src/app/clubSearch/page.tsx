@@ -105,6 +105,9 @@ function ClubSearchContent() {
     }
 
     try {
+      // Add 0.1 second delay before API call
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const params = new URLSearchParams()
 
       if (query) {
@@ -239,49 +242,51 @@ function ClubSearchContent() {
           <p className="text-muted-foreground">Discover and connect with student organizations</p>
           <div className="space-y-2 mt-6">
                <label className="text-lg font-medium text-primary"></label>
-              {/* Main search container */}
-              <div className={`relative bg-card border border-white/20 rounded-2xl shadow-lg transition-all duration-300 ${
-                isFocused 
-                  ? 'scale-[1.02] shadow-2xl [box-shadow:0_0_30px_rgba(var(--primary-rgb),0.3)] border-primary/30' 
-                  : 'hover:shadow-xl'
-              }`}>
-                <div className="relative flex items-center">
-                  {/* Search icon with animation */}
-                  <div className="absolute left-5 flex items-center">
-                    <Search
-                      className={`w-5 h-5 transition-all duration-300 ${
-                        isFocused ? "text-primary scale-110 drop-shadow-sm" : "text-muted-foreground group-hover:text-primary/70"
-                      }`}
+              {/* Search and Filter Container */}
+              <div className="flex gap-4 items-center">
+                {/* Main search container */}
+                <div className={`flex-1 relative bg-card border border-white/20 rounded-2xl shadow-lg transition-all duration-300 ${
+                  isFocused 
+                    ? 'scale-[1.02] shadow-2xl [box-shadow:0_0_30px_rgba(var(--primary-rgb),0.3)] border-primary/30' 
+                    : 'hover:shadow-xl'
+                }`}>
+                  <div className="relative flex items-center">
+                    {/* Search icon with animation */}
+                    <div className="absolute left-5 flex items-center">
+                      <Search
+                        className={`w-5 h-5 transition-all duration-300 ${
+                          isFocused ? "text-primary scale-110 drop-shadow-sm" : "text-muted-foreground group-hover:text-primary/70"
+                        }`}
+                      />
+                    </div>
+
+                    {/* Search input */}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      placeholder="Search clubs by name, category, or interest..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
+                      className="w-full pl-14 pr-5 py-3 sm:py-4 bg-transparent border-0 rounded-2xl 
+                               focus:outline-none focus:ring-0
+                               text-card-foreground placeholder-muted-foreground/70
+                               text-lg font-medium"
                     />
                   </div>
-
-                  {/* Search input */}
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    placeholder="Search clubs by name, category, or interest..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    className="w-full pl-14 pr-20 py-5 bg-transparent border-0 rounded-2xl 
-                             focus:outline-none focus:ring-0
-                             text-card-foreground placeholder-muted-foreground/70
-                             text-lg font-medium"
-                  />
-                  {/* Filter Toggle Button */}
-                  <div className="absolute right-5 flex items-center">
-                    <button
-                      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                      className="flex items-center gap-2 px-3 py-2 bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-lg shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105"
-                    >
-                      <Filter className="w-4 h-4 text-primary" />
-                       <span className="text-primary font-medium text-sm">
-                         {isFiltersExpanded ? 'Hide' : 'Filters'}
-                        </span>
-                    </button>
-                  </div>
                 </div>
+
+                {/* Filter Toggle Button */}
+                <button
+                  onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                  className="cursor-pointer flex items-center justify-center gap-2 px-4 py-3 sm:py-4 sm:min-w-[120px] bg-primary/10 backdrop-blur-xl border border-primary/20 rounded-2xl shadow-lg hover:shadow-xl hover:bg-primary/20 transition-all duration-300 hover:scale-105 whitespace-nowrap"
+                >
+                  <Filter className="w-5 h-5 text-primary" />
+                  <span className="text-primary font-medium text-sm hidden sm:inline">
+                    {isFiltersExpanded ? 'Hide' : 'Filters'}
+                  </span>
+                </button>
               </div>
              </div>
         </div>
@@ -290,7 +295,7 @@ function ClubSearchContent() {
         <div className="flex flex-wrap justify-center gap-3 mb-6">
           <button
             onClick={() => setsortOrder("desc")}
-            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+            className={`cursor-pointer px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
               sortOrder === "desc" 
                 ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
                 : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
@@ -303,7 +308,7 @@ function ClubSearchContent() {
           </button>
           <button
             onClick={() => setsortOrder("asc")}
-            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+            className={`cursor-pointer px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
               sortOrder === "asc" 
                 ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
                 : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
@@ -316,7 +321,7 @@ function ClubSearchContent() {
           </button>
           <button
             onClick={() => setsortOrder("")}
-            className={`px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
+            className={`cursor-pointer px-3 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 ${
               sortOrder === "" 
                 ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl border-2 border-blue-400" 
                 : "bg-card/40 backdrop-blur-xl border-2 border-white/30 text-primary hover:bg-primary/15 hover:border-primary/50 hover:shadow-lg"
@@ -343,7 +348,7 @@ function ClubSearchContent() {
                      {campusOptions.map((campus) => (
                        <button 
                          key={campus}
-                         className={`flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
+                         className={`cursor-pointer flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
                          campusFilter === campus
                            ? "bg-primary text-primary-foreground shadow-lg" 
                            : "bg-card/30 backdrop-blur-xl border border-white/20 text-primary hover:bg-primary/10 hover:border-primary/30"
@@ -365,7 +370,7 @@ function ClubSearchContent() {
                    {departmentOptions.map((dep) => (
                        <button 
                          key={dep}
-                         className={`flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
+                         className={`cursor-pointer flex items-center justify-center px-3 py-2 rounded-full font-medium transition-all duration-200 ${
                          departmentFilter === dep
                            ? "bg-primary text-primary-foreground shadow-lg" 
                            : "bg-card/30 backdrop-blur-xl border border-white/20 text-primary hover:bg-primary/10 hover:border-primary/30"
@@ -384,7 +389,7 @@ function ClubSearchContent() {
           { /* Clear All Filters Button */}
           {hasFilters && (
             <div className="flex justify-center mt-4">
-              <button onClick={clearAllFilters} className="px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-full hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
+              <button onClick={clearAllFilters} className="cursor-pointer px-6 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-full hover:bg-destructive/20 hover:border-destructive/30 transition-all duration-200 text-sm font-medium">
                 Clear All Filters
               </button>
             </div>  

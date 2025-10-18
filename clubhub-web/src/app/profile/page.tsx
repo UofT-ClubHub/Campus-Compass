@@ -42,7 +42,12 @@ export default function ProfilePage() {
     }, []);
     
     useEffect(() => { 
-        if (authLoading || !authUser) return;
+        if (authLoading) return;
+        
+        if (!authUser) {
+            setIsLoading(false);
+            return;
+        }
 
         const fetchUserData = async () => {
             setIsLoading(true);
@@ -187,6 +192,32 @@ export default function ProfilePage() {
         )
     }
 
+    if (!authUser) {
+        return (
+            <div className="min-h-screen bg-theme-gradient bg-animated-elements">
+                <div className="container mx-auto px-6 py-8 pt-20">
+                    <div className="max-w-md mx-auto text-center">
+                        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+                            <div className="w-20 h-20 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+                                <Users className="w-10 h-10 text-primary" />
+                            </div>
+                            <h1 className="text-2xl font-bold mb-4 text-foreground">Welcome to Your Profile</h1>
+                            <p className="text-muted-foreground mb-8 leading-relaxed">
+                                Sign in to access your profile, view your followed clubs, and manage your applications.
+                            </p>
+                            <Link
+                                href="/auth"
+                                className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                            >
+                                Sign In to Continue
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen relative overflow-hidden bg-theme-gradient bg-animated-elements">
             <div className="absolute inset-0 bg-animated-elements">
@@ -291,7 +322,7 @@ export default function ProfilePage() {
                                         <div className="flex gap-3 sm:gap-4">
                                             <div className="flex-shrink-0">
                                                 <img
-                                                    src={club.image || "/default-club-image.png"}
+                                                    src={club.image || "/placeholder.jpg"}
                                                     alt={club.name}
                                                     className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
                                                 />

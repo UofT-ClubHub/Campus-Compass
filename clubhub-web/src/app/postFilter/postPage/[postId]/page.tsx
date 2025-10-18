@@ -370,8 +370,8 @@ useEffect(() => {
       const token = await user.getIdToken();
 
       // Validate required fields before processing
-      if (!editedPost.title || !editedPost.details || !editedPost.campus || !editedPost.club || !editedPost.category) {
-        setError('Please fill in all required fields (title, details, campus, club, category)');
+      if (!editedPost.title || !editedPost.details || !editedPost.club || !editedPost.category) {
+        setError('Please fill in all required fields (title, details, club, category)');
         return;
       }
 
@@ -795,18 +795,15 @@ useEffect(() => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Location</p>
                   {isEditing ? (
-                    <select
-                      value={editedPost?.campus || ''}
-                      onChange={(e) => handleInputChange('campus', e.target.value)}
+                    <input
+                      type="text"
+                      value={editedPost?.location || ''}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      placeholder="Add location (optional)"
                       className="font-semibold text-foreground bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm w-full"
-                    >
-                      <option value="">Select campus</option>
-                      <option value="UTSG">UTSG</option>
-                      <option value="UTSC">UTSC</option>
-                      <option value="UTM">UTM</option>
-                    </select>
+                    />
                   ) : (
-                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.campus || 'TBD'}</p>
+                    <p className="font-semibold text-foreground text-sm sm:text-base">{post?.location || 'TBD'}</p>
                   )}
                 </div>
               </div>
@@ -835,18 +832,20 @@ useEffect(() => {
               <button
                 onClick={handleLike}
                 disabled={isLiking || !currentUser}
-                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm sm:text-base ${
+                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg text-sm sm:text-base ${
+                  currentUser && !isLiking ? 'transform hover:scale-105 active:scale-95 hover:shadow-xl' : ''
+                } ${
                   isLiked
-                    ? "bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/30 dark:border-red-500/40 hover:border-red-500/50 dark:hover:border-red-500/60 hover:bg-red-500/20 dark:hover:bg-red-500/30"
-                    : "bg-gradient-to-r from-card to-muted/50 hover:from-muted hover:to-card text-foreground border-2 border-border hover:border-primary/30"
-                } ${(isLiking || !currentUser) ? 'opacity-50 cursor-not-allowed transform-none hover:scale-100' : 'cursor-pointer'}`}
+                    ? `bg-red-500/10 text-red-600 dark:text-red-400 border-2 border-red-500/30 dark:border-red-500/40 ${currentUser && !isLiking ? 'hover:border-red-500/50 dark:hover:border-red-500/60 hover:bg-red-500/20 dark:hover:bg-red-500/30' : ''}`
+                    : `bg-gradient-to-r from-card to-muted/50 text-foreground border-2 border-border ${currentUser && !isLiking ? 'hover:from-muted hover:to-card hover:border-primary/30' : ''}`
+                } ${(isLiking || !currentUser) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 title={!currentUser ? 'Please log in to like posts' : ''}
               >
                 <div className="relative">
                   {isLiked ? (
                     <Heart size={18} className="sm:size-5 fill-red-500 dark:fill-red-400 text-red-500 dark:text-red-400" />
                   ) : (
-                    <HeartOff size={18} className="sm:size-5 group-hover:text-red-500 transition-colors" />
+                    <HeartOff size={18} className={`sm:size-5 transition-colors ${currentUser && !isLiking ? 'group-hover:text-red-500' : ''}`} />
                   )}
                   {isLiking && (
                     <div className="absolute inset-0 animate-spin">
@@ -862,31 +861,32 @@ useEffect(() => {
                 </span>
               </button>
 
-              <button
-                onClick={handleExportToCalendar}
-                disabled={isAddingToCalendar || !currentUser}
-                className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg text-sm sm:text-base ${
-                  isAddingToCalendar || !currentUser
-                    ? "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground cursor-not-allowed opacity-50 transform-none"
-                    : "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground hover:scale-105 hover:shadow-xl"
-                }`}
-                title={!currentUser ? 'Please log in to add events to your calendar' : ''}
-              >
-                <div className="relative">
-                  <Calendar size={18} className={`sm:size-5 ${!isAddingToCalendar && currentUser ? 'group-hover:rotate-12 transition-transform' : ''}`} />
-                  {isAddingToCalendar && (
-                    <div className="absolute inset-0 animate-spin">
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full"></div>
-                    </div>
-                  )}
-                </div>
-                <span className="hidden sm:inline">
-                  {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
-                </span>
-                <span className="sm:hidden">
-                  {isAddingToCalendar ? 'Adding...' : 'Calendar'}
-                </span>
-              </button>
+              {currentUser && (
+                <button
+                  onClick={handleExportToCalendar}
+                  disabled={isAddingToCalendar}
+                  className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all duration-300 transform shadow-lg text-sm sm:text-base ${
+                    isAddingToCalendar
+                      ? "bg-gradient-to-r from-muted to-muted/80 text-muted-foreground cursor-not-allowed opacity-50 transform-none"
+                      : "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground hover:scale-105 hover:shadow-xl cursor-pointer"
+                  }`}
+                >
+                  <div className="relative">
+                    <Calendar size={18} className={`sm:size-5 ${!isAddingToCalendar ? 'group-hover:rotate-12 transition-transform' : ''}`} />
+                    {isAddingToCalendar && (
+                      <div className="absolute inset-0 animate-spin">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                  <span className="hidden sm:inline">
+                    {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
+                  </span>
+                  <span className="sm:hidden">
+                    {isAddingToCalendar ? 'Adding...' : 'Calendar'}
+                  </span>
+                </button>
+              )}
 
               {post.links && post.links.length > 0 && (
                 <a

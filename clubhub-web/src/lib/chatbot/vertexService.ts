@@ -191,7 +191,7 @@ export class VertexChatbotService {
             context += `📝 **"${post.title || 'Untitled Post'}"**\n`;
             context += `   Posted by: ${post.club_name || 'Unknown Club'}\n`;
             context += `   Category: ${post.category || 'General'}\n`;
-            context += `   Campus: ${post.campus || 'Unknown'}\n`;
+            context += `   Location: ${post.location || 'TBD'}\n`;
             
             if (post.date_created || post.date_posted) {
               const postDate = post.date_created || post.date_posted;
@@ -212,7 +212,7 @@ export class VertexChatbotService {
             context += `${index + 1}. **${post.title || 'Post'}**\n`;
             context += `   Posted by: ${post.club_name || 'Unknown Club'}\n`;
             context += `   Category: ${post.category || 'General'}\n`;
-            context += `   Campus: ${post.campus || 'Unknown'}\n`;
+            context += `   Location: ${post.location || 'TBD'}\n`;
             if (post.date_created || post.date_posted) {
               const postDate = post.date_created || post.date_posted;
               context += `   Posted: ${new Date(postDate).toLocaleDateString()}\n`;

@@ -10,9 +10,10 @@ import { useRouter } from "next/navigation";
 interface ExpandablePositionCardProps {
   position: any;
   onClose: () => void;
+  onPositionUpdate?: (position: any) => void;
 }
 
-export function ExpandablePositionCard({ position, onClose }: ExpandablePositionCardProps) {
+export function ExpandablePositionCard({ position, onClose, onPositionUpdate }: ExpandablePositionCardProps) {
   const [isOpen, setIsOpen] = useState(true);
   const router = useRouter();
   const handleOpenChange = (open: boolean) => {

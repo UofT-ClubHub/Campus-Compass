@@ -29,7 +29,7 @@ export default function HomePage() {
     setIsLoadingPosts(true)
     try {
       // Build API URL with clubs filter if user is logged in and has followed clubs
-      let apiUrl = `/api/posts?sort_by=likes&sort_order=desc&limit=50`
+      let apiUrl = `/api/posts?sort_by=date_posted&sort_order=desc&limit=20`
       
       // Use currentUser from state, but also check if we have followed clubs
       const followedClubs = currentUser?.followed_clubs || []
@@ -193,7 +193,7 @@ export default function HomePage() {
           posts={posts}
           currentUser={currentUser}
           isLoading={isLoadingPosts}
-          maxDisplay={50}
+          maxDisplay={20}
           onLikeUpdate={handleLikeUpdate}
           onPostDelete={handlePostDelete}
         />

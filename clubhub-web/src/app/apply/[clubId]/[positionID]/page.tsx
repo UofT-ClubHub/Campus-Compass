@@ -104,14 +104,14 @@ export default function applyPage({ params }: PageProps) {
             <header className="relative text-white rounded-2xl p-8 mb-8 shadow-xl overflow-hidden bg-card/30 backdrop-blur-xl border border-white/20 form-glow">
               <div
                 className="absolute inset-0 bg-cover bg-center filter blur-md"
-                style={{ backgroundImage: `url(${club?.image || "/placeholder.svg"})` }}
+                style={{ backgroundImage: `url(${club?.image || "/placeholder.jpg"})` }}
               ></div>
               <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-black/50"></div>
               <div className="relative z-10 max-w-6xl mx-auto flex flex-col items-center justify-center">
                 {/* Logo and Title Section */}
                 <div className="flex flex-col items-center gap-6 mb-6">
                   <img
-                    src={club?.image || "/placeholder.svg"}
+                    src={club?.image || "/placeholder.jpg"}
                     alt={`${club?.name || 'Club'} logo`}
                     className="w-20 h-20 rounded-full border-4 border-white/50 shadow-lg backdrop-blur-sm"
                   />

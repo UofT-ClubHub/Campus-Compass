@@ -77,6 +77,14 @@ export function EventsCarousel({
     }, 2000)
   }, [])
 
+  // Calculate scroll duration based on number of items to maintain consistent speed
+  // Base: 60s for 12 items (5 pixels per second per item)
+  const scrollDuration = useMemo(() => {
+    const baseItemCount = 12
+    const baseDuration = 60
+    return (limitedPosts.length / baseItemCount) * baseDuration
+  }, [limitedPosts.length])
+
   // Don't render if no posts
   if (!isLoading && limitedPosts.length === 0) {
     return null
@@ -141,7 +149,7 @@ export function EventsCarousel({
               </div>
               <div className="relative flex gap-4 overflow-x-auto pb-6 scrollbar-hide w-full max-w-[calc(100vw-2rem)]" data-testid="posts-container">
                 {limitedPosts.map((post: Post, index: number) => (
-                  <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                  <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64 sm:w-80">
                     <PostCard
                       post={post}
                       currentUser={currentUser}
@@ -176,8 +184,11 @@ export function EventsCarousel({
                 onTouchMove={handleUserScroll}
               >
                 <div
-                  className={`flex gap-4 transition-transform duration-100 ease-out ${isAutoScrolling ? "animate-smooth-scroll" : ""}`}
-                  style={{ width: "fit-content" }}
+                  className={`flex gap-4 ${isAutoScrolling && limitedPosts.length >= 3 ? "animate-smooth-scroll transition-transform duration-100 ease-out" : ""}`}
+                  style={{ 
+                    width: "fit-content",
+                    "--scroll-duration": `${scrollDuration}s`
+                  } as React.CSSProperties & { "--scroll-duration": string }}
                   onMouseEnter={(e) => {
                     if (e.target === e.currentTarget) {
                       setIsAutoScrolling(false)
@@ -193,7 +204,7 @@ export function EventsCarousel({
                   }}
                 >
                   {duplicatedPosts.map((post: Post, index: number) => (
-                    <div key={`${post.id}-${index}`} className="flex-shrink-0 w-80">
+                    <div key={`${post.id}-${index}`} className="flex-shrink-0 w-64 sm:w-80">
                       <PostCard
                         post={post}
                         currentUser={currentUser}
@@ -212,4 +223,3 @@ export function EventsCarousel({
     </section>
   )
 }
-
