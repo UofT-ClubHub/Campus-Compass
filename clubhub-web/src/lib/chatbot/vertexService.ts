@@ -132,8 +132,8 @@ export class VertexChatbotService {
           
           // Handle both event dates and post dates
           if (event.date_occurring) {
-            context += `   📅 Event Date: ${new Date(event.date_occurring).toLocaleDateString()}\n`;
-            context += `   🕐 Event Time: ${new Date(event.date_occurring).toLocaleTimeString()}\n`;
+            context += `   📅 Event Date: ${new Date(event.date_occurring).toLocaleDateString('en-US', { timeZone: 'UTC' })}\n`;
+            context += `   🕐 Event Time: ${new Date(event.date_occurring).toLocaleTimeString('en-US', { timeZone: 'UTC' })}\n`;
           } else if (event.date_posted || event.date_created) {
             const postDate = event.date_posted || event.date_created;
             context += `   📅 Posted Date: ${new Date(postDate).toLocaleDateString()}\n`;
@@ -314,8 +314,8 @@ export class VertexChatbotService {
         context += `Found ${events.length} upcoming events in ClubHub database${campus ? ` at ${campus}` : ''} in the next ${daysAhead} days:\n`;
         events.forEach((event: any, index: number) => {
           context += `${index + 1}. ${event.title || 'Event'}\n`;
-          context += `   Date: ${event.date_occurring ? new Date(event.date_occurring).toLocaleDateString() : 'Date TBA'}\n`;
-          context += `   Time: ${event.date_occurring ? new Date(event.date_occurring).toLocaleTimeString() : 'Time TBA'}\n`;
+          context += `   Date: ${event.date_occurring ? new Date(event.date_occurring).toLocaleDateString('en-US', { timeZone: 'UTC' }) : 'Date TBA'}\n`;
+          context += `   Time: ${event.date_occurring ? new Date(event.date_occurring).toLocaleTimeString('en-US', { timeZone: 'UTC' }) : 'Time TBA'}\n`;
           context += `   Campus: ${event.campus || 'Unknown'}\n`;
           context += `   Details: ${event.details || 'No details available'}\n`;
           

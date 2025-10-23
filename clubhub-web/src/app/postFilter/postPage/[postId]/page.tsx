@@ -775,8 +775,8 @@ useEffect(() => {
                     />
                   ) : (
                     <p className="font-semibold text-foreground text-sm sm:text-base">
-                      {post?.date_occurring ? new Date(post.date_occurring).toLocaleString('en-US', { 
-                        month: 'short', 
+                      {post?.date_occurring ? new Date(post.date_occurring).toLocaleString('en-US', {
+                        month: 'short',
                         day: 'numeric',
                         year: 'numeric',
                         hour: '2-digit',
