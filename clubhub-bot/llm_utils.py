@@ -5,24 +5,27 @@ import json
 from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
 load_dotenv()
 
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
 class PostAnalyzer:
-    
+
     def __init__(self):
         self._last_analysis = {}
-    
+
     def analyze_post_complete(self, text: str, image_url: str = None) -> dict:
         """
         Analyze post content using Gemini in a single call.
         Returns a dictionary with category, title, date_occurring, and location.
         """
-        current_date = datetime.now().strftime("%Y-%m-%d")
-        
+        # Get current date in EST/Toronto timezone, subtract 1 day to catch posts from "today"
+        toronto_tz = pytz.timezone('America/Toronto')
+        current_date = (datetime.now(toronto_tz) - timedelta(days=1)).strftime("%Y-%m-%d")
+
         prompt = f"""
         Analyze the following post and provide a JSON response with the following fields:
 
@@ -32,11 +35,16 @@ class PostAnalyzer:
             - "General Announcement": a post that is not related to a specific event or hiring opportunity.
             - "Survey": a survey that is asking for feedback or opinions.
         2. "title": Generate a concise, clear title for the post
-        3. "date_occurring": Extract the event date in ISO format (%Y-%m-%dT%H:%M:%S.000Z), or "none" if no specific date
+        3. "date_occurring": Extract the event date and time in ISO format (YYYY-MM-DDTHH:MM:SS.000Z), or "none" if no specific date.
+           - Use the EXACT dates as mentioned in the pos
+           - DO NOT perform any timezone conversions
+           - If a specific time is mentioned, include it exactly as stated
+           - If NO specific time is mentioned, default to 00:00:00 (midnight/12 AM)
         4. "location": Extract the location of the event or activity, or "none" if no specific location can be determined.
 
-        Current date (today): {current_date}
-        Use this to interpret relative dates like "tomorrow", "next week", etc.
+        Current date (reference for today): {current_date}
+        This date is in EST timezone. Use this to interpret relative dates like "tomorrow", "next week", etc.
+        DO NOT convert times to different timezones - use times exactly as stated in the post.
 
         Here is the text content of the post: {text}
         """
@@ -49,13 +57,15 @@ class PostAnalyzer:
         {{
             "category": "Event" or "Hiring Opportunity" or "General Announcement" or "Survey",
             "title": "Title of the post",
-            "date_occurring": "YYYY-MM-DDTHH:MM:SS.000Z" or "none",
+            "date_occurring": "YYYY-MM-DDTHH:MM:SS.000Z" or "none" (use 00:00:00 if no time specified),
             "location": "Location of the event or activity" or "none"
         }}
+
+        CRITICAL: Use exact times from the post. DO NOT convert timezones. If no time is given, use 00:00:00.
         """
 
         # Create the model
-        model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        model = genai.GenerativeModel('gemini-2.5-pro')
         
         content = [prompt]
         
@@ -88,10 +98,13 @@ class PostAnalyzer:
             # Validate category
             if result.get("category") not in ["Event", "Hiring Opportunity", "General Announcement", "Survey"]:
                 result["category"] = "General Announcement"
-            
+
             # Validate date_occurring
-            if result.get("date_occurring") and result["date_occurring"].lower() == "none":
+            date_occurring = result.get("date_occurring")
+            if not date_occurring or date_occurring.lower() == "none":
                 result["date_occurring"] = None
+            else:
+                result["date_occurring"] = date_occurring
 
             # Validate location
             if result.get("location") and result["location"].lower() == "none":

@@ -65,6 +65,47 @@ export default function PostPage() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isImageExpanded])
 
+  // Helper function to format date/time from ISO string WITHOUT timezone conversion
+  // Directly transcribes the date and time as stored
+  const formatDateTime = (isoString: string) => {
+    if (!isoString) return 'TBD';
+
+    try {
+      // Parse the ISO string components directly without timezone conversion
+      const date = new Date(isoString);
+      const year = date.getUTCFullYear();
+      const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+      const day = date.getUTCDate();
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+
+      // Format time in 12-hour format
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = minutes.toString().padStart(2, '0');
+
+      return `${month} ${day}, ${year}, ${displayHours}:${displayMinutes} ${period}`;
+    } catch (e) {
+      return 'TBD';
+    }
+  };
+
+  // Helper function to format date only (no time)
+  const formatDateOnly = (isoString: string) => {
+    if (!isoString) return 'Recently';
+
+    try {
+      const date = new Date(isoString);
+      const year = date.getUTCFullYear();
+      const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+      const day = date.getUTCDate();
+
+      return `${month} ${day}, ${year}`;
+    } catch (e) {
+      return 'Recently';
+    }
+  };
+
   // Helper function to determine event status
   const getEventStatus = (dateOccuring: string | undefined) => {
     if (!dateOccuring) {
@@ -73,12 +114,12 @@ export default function PostPage() {
 
     const eventDate = new Date(dateOccuring)
     const now = new Date()
-    
+
     // If event date is before now, it's closed
     if (eventDate < now) {
       return 'closed'
     }
-    
+
     return 'upcoming'
   }
 
@@ -775,13 +816,7 @@ useEffect(() => {
                     />
                   ) : (
                     <p className="font-semibold text-foreground text-sm sm:text-base">
-                      {post?.date_occurring ? new Date(post.date_occurring).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 'TBD'}
+                      {post?.date_occurring ? formatDateTime(post.date_occurring) : 'TBD'}
                     </p>
                   )}
                 </div>
@@ -1075,7 +1110,7 @@ useEffect(() => {
                   <div className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <span className="text-muted-foreground font-medium text-sm sm:text-base">Posted:</span>
                     <span className="text-foreground font-semibold text-sm sm:text-base">
-                      {post.date_posted ? new Date(post.date_posted).toLocaleDateString() : 'Recently'}
+                      {post.date_posted ? formatDateOnly(post.date_posted) : 'Recently'}
                     </span>
                   </div>
                 </div>
