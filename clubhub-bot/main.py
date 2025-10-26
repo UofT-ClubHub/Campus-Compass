@@ -13,7 +13,6 @@ scrape_time = datetime.now(timezone.utc)
 last_scraped_date = scrape_time - timedelta(days=1)
 
 instagram_links, mapping = firebase_client.get_instagram_links()
-instagram_links = ["https://www.instagram.com/utscaoa/"]
 
 def _select_apify_key():
     """Select APIFY key based on day rotation, with fallback."""
@@ -31,14 +30,14 @@ def _select_apify_key():
     return selected_key
 
 # Initialize the ApifyClient with the selected API token
-apify_api_key = os.getenv("APIFY_KEY")
+apify_api_key = _select_apify_key()
 client = ApifyClient(apify_api_key)
 
 # Prepare the Actor input
 run_input = {
     "directUrls": instagram_links,
     "resultsType": "posts",
-    "resultsLimit": 1,
+    "resultsLimit": 10,
     "searchType": "hashtag",
     "searchLimit": 1,
     "addParentData": False,
@@ -78,7 +77,6 @@ for item in items:
         else:
             print(f"  -> Skipping post (already scraped)")
 
-new_items = items
 # Only proceed if there are new items
 if new_items:
     with open("output.json", "w", encoding="utf-8") as f:
