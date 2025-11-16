@@ -588,7 +588,7 @@ export default function ExecPage() {
                       </button>
                     )}
                     <button
-                      onClick={() => router.push(`/applicationsPage/${club.id}?from=exec`)}
+                      onClick={() => router.push(`/teams/${club.id}`)}
                       className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-accent hover:bg-accent/90 hover:scale-105 text-accent-foreground rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-lg"
                     >
                       View Forms
