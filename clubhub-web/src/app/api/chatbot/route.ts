@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     console.log('2. Validation passed');
     console.log('3. About to call processMessage...');
 
-    // Process with your RAG service
-    const result = await chatbotService.processMessage(message.trim());
+    // Process with your RAG service (pass request for authentication)
+    const result = await chatbotService.processMessage(message.trim(), request);
     
     console.log('4. processMessage completed successfully');
     console.log('5. Result:', {
@@ -46,11 +46,22 @@ export async function POST(request: NextRequest) {
     // Handle authentication errors specifically
     if (error.message?.includes('must be signed in')) {
       return NextResponse.json(
-        { 
+        {
           error: 'Authentication required',
           message: "Please sign in to use the chatbot feature."
         },
         { status: 401 }
+      );
+    }
+
+    // Handle authorization errors (cost concerns)
+    if (error.message?.includes('cost concerns')) {
+      return NextResponse.json(
+        {
+          error: 'Authorization required',
+          message: error.message
+        },
+        { status: 403 }
       );
     }
     

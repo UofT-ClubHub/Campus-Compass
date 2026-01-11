@@ -79,6 +79,59 @@ export async function deleteImage(imageUrl: string): Promise<void> {
   }
 }
 
+// Copy an image from one folder to another in Firebase Storage
+export async function copyImageToFolder(
+  imageUrl: string,
+  targetFolder: string
+): Promise<string> {
+  if (!imageUrl || !imageUrl.includes('storage.googleapis.com')) {
+    return imageUrl; // Return original if not a Firebase Storage URL
+  }
+
+  try {
+    const bucket = storage.bucket();
+
+    // Extract the source path from URL
+    const url = new URL(imageUrl);
+    const pathMatch = url.pathname.match(/\/o\/(.+)/);
+    if (!pathMatch) {
+      throw new Error('Invalid storage URL format');
+    }
+
+    const encodedPath = pathMatch[1].split('?')[0];
+    const sourcePath = decodeURIComponent(encodedPath);
+
+    const sourceFile = bucket.file(sourcePath);
+
+    // Check if source file exists
+    const [exists] = await sourceFile.exists();
+    if (!exists) {
+      console.warn(`Source file does not exist: ${sourcePath}`);
+      return imageUrl; // Return original URL if file doesn't exist
+    }
+
+    // Extract filename from source path
+    const fileName = sourcePath.split('/').pop() || 'image.jpg';
+
+    // Create destination path
+    const timestamp = Date.now();
+    const destinationPath = `${targetFolder}/${timestamp}_${fileName}`;
+    const destinationFile = bucket.file(destinationPath);
+
+    // Copy the file
+    await sourceFile.copy(destinationFile);
+
+    // Make the copied file public
+    await destinationFile.makePublic();
+
+    // Return new URL
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(destinationPath)}?alt=media`;
+  } catch (error) {
+    console.error('Error copying image:', error);
+    return imageUrl; // Return original URL on error to avoid breaking the flow
+  }
+}
+
 // Helper function to get content type
 function getContentType(extension: string): string {
   switch (extension.toLowerCase()) {

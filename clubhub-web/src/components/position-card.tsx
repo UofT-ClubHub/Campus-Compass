@@ -34,7 +34,7 @@ export function PositionCard({ position, className = "", onPositionUpdate }: Pos
       <div className="p-4 flex items-center gap-4">
         {position.clubImage ? (
           <img
-            src={position.clubImage}
+            src={position.clubImage || "/placeholder.jpg"}
             alt={position.clubName}
             className="w-16 h-16 rounded-lg object-cover border border-border"
           />

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { firestore } from '../firebaseAdmin';
 import { withAuth } from '@/lib/auth-middleware';
 import * as admin from 'firebase-admin';
+import { copyImageToFolder } from '../storage';
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
@@ -159,11 +160,18 @@ export const PUT = withAuth(async (request: NextRequest) => {
       const clubsCollection = firestore.collection('Clubs');
       const usersCollection = firestore.collection('Users');
 
+      // Copy image from pending-clubs folder to clubs folder
+      let clubImageUrl = '';
+      if (pendingClubData.club_image) {
+        clubImageUrl = await copyImageToFolder(pendingClubData.club_image, 'clubs');
+        console.log(`Copied club image from pending-clubs to clubs: ${clubImageUrl}`);
+      }
+
       const newClubData: Omit<Club, 'id'> = {
         name: pendingClubData.club_name,
         description: pendingClubData.club_description,
         campus: pendingClubData.club_campus,
-        image: pendingClubData.club_image || '',
+        image: clubImageUrl,
         instagram: pendingClubData.club_instagram || '',
         followers: 0,
         executives: [],

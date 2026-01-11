@@ -169,15 +169,15 @@ export default function HomePage() {
       <div className="relative z-10">
         <HeroSection />
 
-        {/* <StatsBoxes /> */}
+        <StatsBoxes />
 
-        {/* <div className="py-4 w-full max-w-full">
+        <div className="py-4 w-full max-w-full">
           <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
             <div className="relative flex items-center justify-center">
               <div className="w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-75"></div>
             </div>
           </div>
-        </div> */}
+        </div>
         
         <ClubsCarousel clubs={clubs} isLoading={isLoadingClubs} maxDisplay={12} />
 

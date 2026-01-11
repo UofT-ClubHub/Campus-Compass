@@ -316,6 +316,12 @@ export default function ClubPage({ params }: PageProps) {
                 src={clubData?.image || "/placeholder.jpg"}
                 alt={`${clubData?.name} logo`}
                 className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full mb-4 sm:mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== window.location.origin + "/placeholder.jpg") {
+                    target.src = "/placeholder.jpg";
+                  }
+                }}
               />
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 drop-shadow-">{clubData?.name}</h1>
               <p className="text-white/90 text-base sm:text-lg md:text-xl font-medium leading-relaxed max-w-2xl">{clubData?.description}</p>

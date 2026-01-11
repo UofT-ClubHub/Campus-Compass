@@ -48,7 +48,7 @@ export function ExpandablePositionCard({ position, onClose, onPositionUpdate }: 
             <div className="flex-shrink-0">
               {position.clubImage ? (
                 <img
-                  src={position.clubImage}
+                  src={position.clubImage || "/placeholder.jpg"}
                   alt={position.clubName}
                   className="w-16 h-16 rounded-lg object-cover"
                 />

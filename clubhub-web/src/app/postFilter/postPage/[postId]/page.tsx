@@ -1016,15 +1016,21 @@ useEffect(() => {
                       </div>
                     ) : (
                       <>
-                        <img 
-                          src={post.image} 
+                        <img
+                          src={post.image || "/placeholder.jpg"}
                           alt={post.title}
                           title="Click to expand"
                           className="w-full h-auto max-h-80 sm:max-h-[28rem] lg:max-h-[30rem] object-contain rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
                           onClick={() => setIsImageExpanded(true)}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (target.src !== window.location.origin + "/placeholder.jpg") {
+                              target.src = "/placeholder.jpg";
+                            }
+                          }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none"></div>
-                        
+
                         {/* Hover tooltip */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                           <div className="bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">
@@ -1129,9 +1135,15 @@ useEffect(() => {
                   <div className="relative w-16 h-12 sm:w-20 sm:h-16 mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-all duration-300">
                     {clubImage ? (
                       <img
-                        src={clubImage}
+                        src={clubImage || "/placeholder.jpg"}
                         alt={clubName}
                         className="w-full h-full rounded-lg object-cover border-2 border-primary/20 group-hover:border-primary/40 transition-all duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== window.location.origin + "/placeholder.jpg") {
+                            target.src = "/placeholder.jpg";
+                          }
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 border-2 border-primary/20 group-hover:border-primary/40 flex items-center justify-center transition-all duration-300">
@@ -1209,16 +1221,22 @@ useEffect(() => {
 
       {/* Image Expansion Modal */}
       {isImageExpanded && post?.image && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setIsImageExpanded(false)}
         >
           <div className="relative max-w-4xl max-h-[80vh] w-full h-full flex items-center justify-center">
-            <img 
-              src={post?.image || ''} 
+            <img
+              src={post?.image || '/placeholder.jpg'}
               alt={post?.title || 'Post image'}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src !== window.location.origin + "/placeholder.jpg") {
+                  target.src = "/placeholder.jpg";
+                }
+              }}
             />
             <button
               onClick={() => setIsImageExpanded(false)}

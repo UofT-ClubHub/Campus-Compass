@@ -18,7 +18,7 @@ async function ensureVertexModelInitialized() {
   }
 }
 
-// Only allow authenticated users (API route context)
+// Only allow authenticated admins and executives
 async function ensureAuthenticated(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -27,20 +27,39 @@ async function ensureAuthenticated(request: NextRequest) {
   const idToken = authHeader.split('Bearer ')[1];
   try {
     // Dynamic import to avoid loading Firebase Admin during build time
-    const { auth } = await import('@/app/api/firebaseAdmin');
+    const { auth, firestore } = await import('@/app/api/firebaseAdmin');
     const decoded = await auth.verifyIdToken(idToken);
     console.log('User authenticated:', decoded.email || decoded.uid);
+
+    // Check if user is admin or executive
+    const userDoc = await firestore.collection('Users').doc(decoded.uid).get();
+
+    if (!userDoc.exists) {
+      throw new Error('Due to cost concerns, only users with special roles (admins or club executives) can access the chatbot at this time.');
+    }
+
+    const userData = userDoc.data();
+    const isAdmin = userData?.is_admin === true;
+    const isExecutive = userData?.is_executive === true;
+
+    if (!isAdmin && !isExecutive) {
+      throw new Error('Due to cost concerns, only users with special roles (admins or club executives) can access the chatbot at this time.');
+    }
+
+    console.log('User authorized for chatbot:', decoded.email || decoded.uid, `(admin: ${isAdmin}, executive: ${isExecutive})`);
   } catch (e) {
+    if (e instanceof Error && e.message.includes('cost concerns')) {
+      throw e;
+    }
     throw new Error('User must be signed in to use the chatbot. Please log in first.');
   }
 }
 
 export class VertexChatbotService {
-  async processMessage(message: string, request?: NextRequest): Promise<{ message: string; data?: any }> {
+  async processMessage(message: string, request: NextRequest): Promise<{ message: string; data?: any }> {
     try {
-      if (request) {
-        await ensureAuthenticated(request);
-      }
+      // Always require authentication
+      await ensureAuthenticated(request);
       await ensureVertexModelInitialized();
       // Analyze the message and gather relevant data
       const context = await this.gatherContext(message);
@@ -56,6 +75,14 @@ export class VertexChatbotService {
       };
     } catch (error) {
       console.error('AI error:', error);
+
+      // Return specific error messages for authentication/authorization failures
+      if (error instanceof Error) {
+        return {
+          message: error.message
+        };
+      }
+
       return {
         message: "I'm sorry, I encountered an error while processing your request. Please try again or ask for help!"
       };

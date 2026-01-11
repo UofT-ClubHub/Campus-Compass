@@ -33,6 +33,12 @@ export function ClubCard({ club, className = "" }: ClubCardProps) {
             src={club?.image || "/placeholder.jpg"}
             alt={club.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== window.location.origin + "/placeholder.jpg") {
+                target.src = "/placeholder.jpg";
+              }
+            }}
           />
           {/* Fade overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-club-card-bg to-transparent group-hover:scale-110 transition-transform duration-500"></div>

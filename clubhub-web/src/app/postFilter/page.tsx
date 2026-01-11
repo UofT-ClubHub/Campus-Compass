@@ -565,7 +565,7 @@ function PostFilterContent() {
                 {/* End of results indicator */}
                 {!hasMore && posts.length > 0 && (
                   <div className="mt-8 py-4 text-center">
-                    <p className="text-muted-foreground">No more posts to load</p>
+                    <p className="text-muted-foreground">No more posts to load (last 30 days)</p>
                   </div>
                 )}
               </>

@@ -67,6 +67,12 @@ export function PostCard({
           src={post.image || "/placeholder.jpg"}
           alt={post.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (target.src !== window.location.origin + "/placeholder.jpg") {
+              target.src = "/placeholder.jpg";
+            }
+          }}
         />
         {/* Fade overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-post-card-bg to-transparent group-hover:scale-105 transition-transform duration-500"></div>

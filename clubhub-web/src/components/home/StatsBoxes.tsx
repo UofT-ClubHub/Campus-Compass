@@ -50,12 +50,12 @@ export function StatsBoxes() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 bg-green-500/10 rounded-xl">
+                  <div className="inline-flex items-center justify-center w-10 h-10 bg-green-500/10 rouwhynded-xl">
                     <Calendar className="w-5 h-5 text-green-500" />
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-bold text-green-500">{loading ? 0 : stats.events}</div>
-                    <p className="text-sm font-medium text-muted-foreground">Events</p>
+                    <p className="text-sm font-medium text-muted-foreground">Events (last month)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -64,7 +64,7 @@ export function StatsBoxes() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-bold text-amber-500">{loading ? 0 : stats.hiring}</div>
-                    <p className="text-sm font-medium text-muted-foreground">Hiring Opportunities</p>
+                    <p className="text-sm font-medium text-muted-foreground">Hiring Opportunities (last month)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -73,7 +73,7 @@ export function StatsBoxes() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-bold text-purple-500">{loading ? 0 : stats.announcements}</div>
-                    <p className="text-sm font-medium text-muted-foreground">Announcements</p>
+                    <p className="text-sm font-medium text-muted-foreground">Announcements (last month)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export function StatsBoxes() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-bold text-cyan-500">{loading ? 0 : stats.surveys}</div>
-                    <p className="text-sm font-medium text-muted-foreground">Surveys</p>
+                    <p className="text-sm font-medium text-muted-foreground">Surveys (last month)</p>
                   </div>
                 </div>
               </div>
