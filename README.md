@@ -2,50 +2,35 @@
 
 ## Project Overview
 
-Campus Compass is a social-media-style hub for U of T’s 99,794 students where student leaders can register new clubs and post events or announcements directly to a campus-wide feed. Complementing these manual posts, the platform scrapes Instagram content from existing club accounts, classifies each post with an NLP model, and uses GitHub Actions to refresh the feed daily, so no opportunity slips through the cracks. Students browse a familiar timeline, RSVP or apply in one tap, and chat with an AI assistant for quick answer, while clubs track sign-ups through real-time analytics—turning fragmented campus life into one always-on discovery platform.
+Campus Compass is the ultimate discovery platform for University of Toronto's 99,794 students—a centralized hub where campus life comes alive. Whether you're searching for your next club to join, hunting for executive positions, or simply looking to stay in the loop, Campus Compass brings everything together in one seamless experience.
 
-## Installation Instructions
+### What We Offer
 
-### Prerequisites
+**Discover & Connect**
+- Browse 1,000+ student clubs across all three campuses: St. George, Scarborough, and Mississauga
+- Advanced search and filtering by campus, department, and popularity
+- Follow clubs to build a personalized feed tailored to your interests
 
-- Node.js
-- npm
-- Firebase account
+**Events & Announcements**
+- Explore a real-time feed of events, hiring opportunities, announcements, and surveys
+- Interactive calendar integration to save events and never miss a deadline
+- Filter by category, campus, or department to find exactly what you're looking for
 
-### Web Application (`clubhub-web`)
+**Recruitment Made Simple**
+- Discover open positions at clubs across campus
+- Apply directly through the platform with custom application forms
+- Track your application status from submission to decision
 
-1.  **Navigate to the web application directory:**
-    ```bash
-    cd clubhub-web
-    ```
+**AI-Powered Assistant**
+- Chat with our intelligent assistant powered by Google Gemini
+- Get personalized club recommendations based on your interests
+- Ask questions about events, deadlines, and opportunities in natural language
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Set up environment variables:**
-    Create a `.env` file in the `clubhub-web` directory and add your Firebase configuration.
-    ```
-    NEXT_PUBLIC_FIREBASE_API_KEY=""
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
-    NEXT_PUBLIC_FIREBASE_DATABASE_URL=""
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID=""
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=""
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=""
-    NEXT_PUBLIC_FIREBASE_APP_ID=""
-    ```
-
-4.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-    
-    #### The application will now be available at `http://localhost:3000`.
-
-### Bot (`clubhub-bot`)
-
-(Instructions for the bot will be added here once the bot development is further along.)
+**For Club Leaders**
+- Register and manage your club with a powerful executive dashboard
+- Create and publish events, announcements, and job postings
+- Track engagement with real-time analytics and follower insights
+- Manage applications and recruit new members effortlessly
 
 ## Contribution Guidelines
 
@@ -72,15 +57,3 @@ We follow a branching strategy inspired by **Git Flow**.
 -   **Hotfix Branches (`hotfix/<short-description>`)**:
     -   Created from `main` for critical production bugs that need immediate attention.
     -   Once fixed, they are merged back into both `main` and `develop`.
-
-## MVC Setup
-
-- For this project, we are using Next.js for both the frontend and backend, Firebase Database for storage, and GitHub Actions with Python for the bots. We will be following the MVC (Model-View-Controller) setup:
-
-- The model is defined in `clubhub-web/src/model`, setting up a client for the Firebase cloud database that we are using and defining data structures for Clubs, Posts, and Users.
-
-- The controllers are defined in `clubhub-web/src/app/api`, and are used to interact with the client, performing CRUD operations.
-    - The basic GET endpoints have been set up for each of the database collections: Clubs, Posts, Users
-
-- The view is defined in `clubhub-web/src/app` using `.tsx` (Typescript) files.
-    - An authentication page has been set up in `clubhub-web/src/app/auth` where users can sign up, log in, or reset their passwords.
