@@ -65,7 +65,7 @@ class PostAnalyzer:
         """
 
         # Create the model
-        model = genai.GenerativeModel('gemini-3-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         content = [prompt]
         
