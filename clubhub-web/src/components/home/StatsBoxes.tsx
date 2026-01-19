@@ -33,22 +33,13 @@ export function StatsBoxes() {
   }, [])
 
   return (
-    <section className="py-5 relative w-full max-w-full">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-12 max-w-full">
-        <div className="w-full">
+    <section className="py-5 relative w-full max-w-full flex items-center justify-center">
+      <div className="container mx-auto px-6 sm:px-8 lg:px-12 flex justify-center">
+        <div className="w-full max-w-6xl">
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5">
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-500/10 rounded-xl">
-                    <Users className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <div className="text-2xl md:text-3xl font-bold text-blue-500">{loading ? 0 : stats.clubs}</div>
-                    <p className="text-sm font-medium text-muted-foreground">Active Clubs</p>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-items-center">
                 <div className="flex items-center gap-3">
                   <div className="inline-flex items-center justify-center w-10 h-10 bg-green-500/10 rouwhynded-xl">
                     <Calendar className="w-5 h-5 text-green-500" />
