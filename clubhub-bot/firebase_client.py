@@ -3,6 +3,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 import os
 import json
+import time
 from dotenv import load_dotenv
 from llm_utils import analyzer
 import requests
@@ -106,8 +107,11 @@ def upload_posts(json_path: str, mapping: str, collection_name: str = "Posts"):
                     hashtags = item.get('hashtags') or []
                     post_context = f"Caption: {item.get('caption')}\nHashtags: {', '.join(hashtags)}"
                     image_url = item.get('displayUrl')
-                    
+
+                    # Simple fixed delay to avoid AI rate limits
+                    time.sleep(20)
                     analysis = analyzer.analyze_post_complete(post_context, image_url)
+                    
                     doc_data["category"] = analyzer.get_category()
                     doc_data["title"] = analyzer.get_title()
                     doc_data["date_occurring"] = analyzer.get_date_occurring()
