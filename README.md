@@ -1,59 +1,111 @@
-# Campus Compass
+# 🧭 Campus Compass
 
-## Project Overview
+**Every club, event and opportunity at the University of Toronto, all in one place.**
 
-Campus Compass is the ultimate discovery platform for University of Toronto's 99,794 students—a centralized hub where campus life comes alive. Whether you're searching for your next club to join, hunting for executive positions, or simply looking to stay in the loop, Campus Compass brings everything together in one seamless experience.
+Campus Compass is the discovery hub for U of T's 99,794 students. Find your people across 1,000+ student clubs, catch every event, apply for exec roles, and never scroll through ten Instagram accounts again. 🎉
 
-### What We Offer
+> 🏫 St. George · 🌳 Scarborough · 🌲 Mississauga, all three campuses, one compass.
 
-**Discover & Connect**
-- Browse 1,000+ student clubs across all three campuses: St. George, Scarborough, and Mississauga
-- Advanced search and filtering by campus, department, and popularity
-- Follow clubs to build a personalized feed tailored to your interests
+---
 
-**Events & Announcements**
-- Explore a real-time feed of events, hiring opportunities, announcements, and surveys
-- Interactive calendar integration to save events and never miss a deadline
-- Filter by category, campus, or department to find exactly what you're looking for
+## ✨ Why Campus Compass?
 
-**Recruitment Made Simple**
-- Discover open positions at clubs across campus
-- Apply directly through the platform with custom application forms
-- Track your application status from submission to decision
+Club life at U of T is scattered across Instagram pages, group chats and posters taped to walls. Campus Compass pulls it together automatically: every night it reads club Instagram posts and uses AI to sort them into events, hiring calls, announcements and surveys, so the feed is always fresh without anyone lifting a finger. 🤖📸
 
-**AI-Powered Assistant**
-- Chat with our intelligent assistant powered by free models on OpenRouter
-- Get personalized club recommendations based on your interests
-- Ask questions about events, deadlines, and opportunities in natural language
+---
 
-**For Club Leaders**
-- Register and manage your club with a powerful executive dashboard
-- Create and publish events, announcements, and job postings
-- Track engagement with real-time analytics and follower insights
-- Manage applications and recruit new members effortlessly
+## 🎒 For Students
 
-## Contribution Guidelines
+### 🔍 Discover Clubs
+- 🗂️ Browse 1,000+ clubs across all three campuses
+- 🎯 Filter by campus, department and popularity
+- ⭐ Follow the clubs you love to build your own personalized feed
 
-### Ticketing Tool
+### 📰 Stay in the Loop
+- 📅 **Events**, 💼 **Hiring Opportunities**, 📢 **Announcements** and 📝 **Surveys**, auto-sorted from club posts
+- 🔎 Search and filter by category, campus or department
+- ❤️ Like posts and keep up with what's trending
+- 🗓️ Save events to your personal calendar so you never miss a deadline
 
--   We use **Jira** for tracking user stories, tasks, bugs, and feature requests.
+### 🚀 Join the Team
+- 🧑‍💼 Explore open exec and member positions across campus
+- ✍️ Apply right on the platform with each club's custom application form
+- 📬 Track every application from submitted to decision
 
-### Branching Strategy
+### 🎨 Make It Yours
+- 🌗 Four themes: Light, Warm Light, Deep Dark and Vibrant Dark
+- 👤 A profile with your campus, bio and followed clubs
 
-We follow a branching strategy inspired by **Git Flow**.
+---
 
--   **`main`**: This branch represents the production-ready code.
+## 🛠️ For Club Executives
 
--   **`develop`**: This is the primary development branch where all feature branches are merged.
+- 🏛️ **Register your club** and get approved by the Campus Compass team
+- 🧭 **Executive dashboard** to edit your club's description, logo, Instagram and links
+- 📣 **Publish** events, announcements and job postings
+- 📋 **Recruit**: create positions, review applications and accept or reject candidates
+- 📊 **Track** applications with built-in charts
+- 🤖 **AI assistant** that answers questions about clubs, events and deadlines in plain language
 
--   **Feature Branches (`feat/<feature-name>`)**:
-    -   Create a new branch from `develop` for each new feature or significant change.
-    -   Once the feature is complete and tested, create a PR to merge it into `develop`.
+---
 
--   **Bugfix Branches (`fix/<short-description>`)**:
-    -   Create a new branch from `develop` to address bugs.
-    -   Once the bug is fixed and verified, create a PR to merge it back into `develop`.
+## 🛡️ For Admins
 
--   **Hotfix Branches (`hotfix/<short-description>`)**:
-    -   Created from `main` for critical production bugs that need immediate attention.
-    -   Once fixed, they are merged back into both `main` and `develop`.
+- ✅ **Approve or reject** new club requests, with full history of every approved request
+- 🌈 **Color-coded roles** so you can spot 🟣 Admins, 🔵 Execs and ⚪ Users at a glance
+- 🗝️ **Manage every club** from the exec portal, no extra setup needed
+- 🔐 **Grant or revoke** admin and exec roles
+
+---
+
+## 🔒 Security
+
+- 🧱 All writes go through the server, so roles can only be granted by admins (or by execs for their own clubs)
+- ✉️ Only verified emails are trusted when finding users
+- 📜 Firestore rules allow the browser to read public club and post data only
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Tools |
+|---|---|
+| 🌐 Web app | Next.js 15, React 19, Tailwind CSS 4, TypeScript |
+| 🔥 Backend | Firebase Auth, Firestore, Cloud Storage, Firebase Admin SDK |
+| 🤖 AI assistant | OpenRouter free models (Inkling by default, with automatic fallbacks) |
+| 🕷️ Nightly scraper | Python, Apify Instagram scraper, Google Gemini for post categorization |
+| ⚙️ Automation | GitHub Actions (nightly scrape), Vercel (hosting) |
+
+---
+
+## 🏃 Run It Locally
+
+```bash
+cd clubhub-web
+npm install
+npm run dev        # http://localhost:3000
+npm run test:api   # API security tests
+```
+
+### 🔑 Environment Variables
+
+Set these in `clubhub-web/.env.local` for local work, or in Vercel for production:
+
+| Variable | What it's for |
+|---|---|
+| `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_DATABASE_URL`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID` | 🔥 Firebase web config |
+| `ADMIN_FIREBASE_PROJECT_ID`, `ADMIN_FIREBASE_CLIENT_EMAIL`, `ADMIN_FIREBASE_PRIVATE_KEY` | 🛡️ Firebase Admin SDK (server only) |
+| `OPENROUTER_API_KEY` | 🤖 AI assistant (required for the chatbot) |
+| `OPENROUTER_MODEL` | 🧪 Optional: swap the default chatbot model |
+
+The nightly scraper uses its own secrets in GitHub Actions (`APIFY_KEY_1`–`8`, `GENAI_API_KEY`, and the `ADMIN_FIREBASE_*` keys).
+
+### 📜 Firestore Rules
+
+```bash
+firebase deploy --only firestore:rules --project <your-project-id>
+```
+
+---
+
+<p align="center">Made with 💙 for U of T students</p>
