@@ -657,7 +657,7 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
 
                         <div className="flex gap-4 pt-6">
                           {/* Submit Application button - only show for regular users (non-executives) */}
-                          {!canEdit && (
+                          {!currentUser?.managed_clubs?.includes(position.clubId) && (
                             <button
                               type="submit"
                               disabled={isSubmitting}
