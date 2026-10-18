@@ -4,7 +4,7 @@ import firebase_client
 from apify_client import ApifyClient
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
-from cleanup import cleanup_old_posts, cleanup_old_pending_clubs, cleanup_old_storage_images
+from cleanup import cleanup_old_pending_clubs, cleanup_old_storage_images
 
 load_dotenv()
 
@@ -94,17 +94,12 @@ if new_items:
 else:
     print("No new posts to add")
 
-# Cleanup old posts
-print("\nCleaning up posts older than 30 days...")
-deleted_posts = cleanup_old_posts(days_old=30)
-print(f"Deleted {deleted_posts} old posts")
-
 # Cleanup old pending clubs
 print("\nCleaning up pending clubs older than 30 days...")
 deleted_pending_clubs = cleanup_old_pending_clubs(days_old=30)
 print(f"Deleted {deleted_pending_clubs} old pending clubs")
 
 # Cleanup old storage images
-print("\nCleaning up storage images older than 30 days...")
-posts_images, pending_clubs_images = cleanup_old_storage_images(days_old=30)
-print(f"Deleted {posts_images} old post images and {pending_clubs_images} old pending club images from storage")
+print("\nCleaning up pending club images older than 30 days...")
+pending_clubs_images = cleanup_old_storage_images(days_old=30)
+print(f"Deleted {pending_clubs_images} old pending club images from storage")

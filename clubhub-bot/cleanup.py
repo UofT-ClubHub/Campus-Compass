@@ -81,57 +81,6 @@ def delete_image_from_storage(image_url: str) -> bool:
         return False
 
 
-def cleanup_old_posts(days_old: int = 30):
-    """
-    Delete posts older than the specified number of days and their associated images.
-
-    Args:
-        days_old: Delete posts older than this many days (default: 30)
-
-    Returns:
-        Number of posts deleted
-    """
-    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_old)
-
-    posts_ref = db.collection("Posts")
-
-    # Query posts with date_posted older than cutoff
-    old_posts = posts_ref.where("date_posted", "<", cutoff_date.isoformat()).stream()
-
-    deleted_count = 0
-
-    batch = db.batch()
-    batch_count = 0
-    MAX_BATCH_SIZE = 500  # Firestore batch limit
-
-    for post in old_posts:
-        post_data = post.to_dict()
-        post_id = post.id
-        image_url = post_data.get("image", "")
-
-        # Delete associated image from storage
-        if image_url:
-            delete_image_from_storage(image_url)
-
-        # Add post deletion to batch
-        batch.delete(posts_ref.document(post_id))
-        batch_count += 1
-
-        # Commit batch if we've reached the limit
-        if batch_count >= MAX_BATCH_SIZE:
-            batch.commit()
-            batch = db.batch()
-            batch_count = 0
-
-        deleted_count += 1
-
-    # Commit any remaining deletions in the batch
-    if batch_count > 0:
-        batch.commit()
-
-    return deleted_count
-
-
 def cleanup_old_pending_clubs(days_old: int = 30):
     """
     Delete pending clubs older than the specified number of days and their associated images.
@@ -157,6 +106,9 @@ def cleanup_old_pending_clubs(days_old: int = 30):
 
     for pending_club in old_pending_clubs:
         pending_club_data = pending_club.to_dict()
+        # Keep approved requests so admins can see the approval history
+        if pending_club_data.get("status") == "approved":
+            continue
         pending_club_id = pending_club.id
         club_image = pending_club_data.get("club_image", "")
 
@@ -186,29 +138,17 @@ def cleanup_old_pending_clubs(days_old: int = 30):
 def cleanup_old_storage_images(days_old: int = 30):
     """
     Directly scan storage bucket and delete images older than the specified number of days
-    from the 'posts' and 'pending-clubs' folders.
+    from the 'pending-clubs' folder.
 
     Args:
         days_old: Delete images older than this many days (default: 30)
 
     Returns:
-        Tuple of (posts_images_deleted, pending_clubs_images_deleted)
+        Number of pending club images deleted
     """
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_old)
 
-    posts_deleted = 0
     pending_clubs_deleted = 0
-
-    # Delete old images from posts folder
-    posts_blobs = bucket.list_blobs(prefix="posts/")
-    for blob in posts_blobs:
-        if blob.time_created and blob.time_created < cutoff_date:
-            try:
-                blob.delete()
-                print(f"  Deleted old post image: {blob.name}")
-                posts_deleted += 1
-            except Exception as e:
-                print(f"  Error deleting {blob.name}: {e}")
 
     # Delete old images from pending-clubs folder
     pending_clubs_blobs = bucket.list_blobs(prefix="pending-clubs/")
@@ -221,4 +161,4 @@ def cleanup_old_storage_images(days_old: int = 30):
             except Exception as e:
                 print(f"  Error deleting {blob.name}: {e}")
 
-    return posts_deleted, pending_clubs_deleted
+    return pending_clubs_deleted
