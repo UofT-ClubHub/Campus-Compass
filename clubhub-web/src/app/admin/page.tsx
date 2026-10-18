@@ -6,6 +6,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import type { User, Club } from '@/model/types';
 import PendingClubsManagement from '@/components/pending-clubs-management';
+import RoleBadge, { ROLE_STYLES, getRole } from '@/components/role-badge';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AdminPage() {
@@ -423,19 +424,24 @@ export default function AdminPage() {
                             ))}
                         </select>
                     </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                        Roles: <RoleBadge user={{ is_admin: true, is_executive: false, managed_clubs: [] }} />
+                        <RoleBadge user={{ is_admin: false, is_executive: true, managed_clubs: [] }} />
+                        <RoleBadge user={{ is_admin: false, is_executive: false, managed_clubs: [] }} />
+                    </div>
                     {allUsers.length > 0 && (
                         <div className="bg-card/60 backdrop-blur-xl border border-border rounded-lg shadow-sm max-h-96 overflow-y-auto">
                             {allUsers.map((user: User) => (
                                 <div
                                     key={user.id}
                                     onClick={() => handleSelectUser(user)}
-                                    className={`p-3 border-b border-border last:border-b-0 cursor-pointer transition-colors ${
+                                    className={`p-3 border-b border-border last:border-b-0 cursor-pointer transition-colors ${ROLE_STYLES[getRole(user)].border} ${
                                         selectedUser?.id === user.id 
                                             ? 'bg-primary/10 border-primary/20 ring-1 ring-primary/20' 
                                             : 'hover:bg-muted'
                                     }`}
                                 >
-                                    <span className="font-medium text-foreground">{user.name || ""}</span>
+                                    <span className="font-medium text-foreground">{user.name || ""}</span> <RoleBadge user={user} />
                                     <span className="text-muted-foreground"> ({user.email})</span>
                                     <span className="text-muted-foreground"> - Campus: {user.campus || ""}</span>
                                     {selectedUser?.id === user.id && (

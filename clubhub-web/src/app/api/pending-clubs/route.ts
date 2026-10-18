@@ -14,7 +14,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     // Non-admins can only see their own requests
     const userFilter = authResult.isAdmin ? searchParams.get("user") : authResult.uid;
     const statusFilter = searchParams.get("status");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limitParam = searchParams.get("limit");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const pendingClubsCollection = firestore.collection("Pending_Clubs");
@@ -57,7 +57,9 @@ export const GET = withAuth(async (request: NextRequest) => {
       );
     }
 
-    const paginated = pendingClubs.slice(offset, offset + limit);
+    const paginated = limitParam
+      ? pendingClubs.slice(offset, offset + parseInt(limitParam))
+      : pendingClubs.slice(offset);
     
     return NextResponse.json(paginated, { status: 200 });
   } catch (error: any) {

@@ -5,6 +5,7 @@ import { auth } from '@/model/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import type { PendingClub, User } from '@/model/types';
 import React from "react";
+import RoleBadge from '@/components/role-badge';
 
 export default function PendingClubsManagement() {
   const [user] = useAuthState(auth);
@@ -170,6 +171,8 @@ export default function PendingClubsManagement() {
     });
   };
 
+  const approvedClubs = pendingClubs.filter(club => club.status === 'approved');
+
   if (isLoading) {
     return (
       <div className="bg-card rounded-lg shadow-sm p-6 border border-border">
@@ -273,7 +276,7 @@ export default function PendingClubsManagement() {
                           <span className="font-medium">Requested by:</span>{' '}
                           {requestingUser ? (
                             <>
-                              {requestingUser.name} ({requestingUser.email})
+                              {requestingUser.name} ({requestingUser.email}) <RoleBadge user={requestingUser} />
                             </>
                           ) : (
                             'Loading user details...'
@@ -314,6 +317,42 @@ export default function PendingClubsManagement() {
                         </button>
                       </div>
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <h3 className="text-lg font-semibold text-foreground mt-8 mb-4">Approved Requests ({approvedClubs.length})</h3>
+          {approvedClubs.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No approved requests yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {approvedClubs.map((club) => {
+                const requestingUser = userDetails[club.user];
+
+                return (
+                  <div key={club.id} className="border border-border border-l-4 border-l-success rounded-lg p-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <h4 className="font-semibold text-foreground">{club.club_name}</h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="bg-muted px-2 py-1 rounded">{club.club_campus}</span>
+                        <span className="bg-muted px-2 py-1 rounded">{club.club_department}</span>
+                        <span>•</span>
+                        <span>{formatDate(club.created_at)}</span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span className="font-medium">Requested by:</span>{' '}
+                      {requestingUser ? (
+                        <>
+                          {requestingUser.name} ({requestingUser.email}) <RoleBadge user={requestingUser} />
+                        </>
+                      ) : (
+                        'Loading user details...'
+                      )}
+                    </div>
+                    {club.message && <p className="text-sm text-foreground mt-1">Message: {club.message}</p>}
                   </div>
                 );
               })}
