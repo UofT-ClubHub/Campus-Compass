@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { POST as createUser, PUT as updateUser } from '../users/route';
 import { GET as getPendingClubs, PUT as reviewPendingClub } from '../pending-clubs/route';
 import { PUT as updateClub } from '../clubs/route';
+import { POST as upload } from '../upload/route';
+import { deleteImage } from '../storage';
 
 // In-memory Firestore: { collection: { docId: data } }
 const mockDb: Record<string, Record<string, any>> = {};
@@ -23,12 +25,14 @@ jest.mock('../firebaseAdmin', () => {
     orderBy: () => ({ get: async () => ({ docs: Object.keys(mockDb[col] ?? {}).map(id => ({ id, data: () => ({ ...mockDb[col][id] }) })) }) }),
   });
   return {
-    // The bearer token is the uid
-    auth: { verifyIdToken: async (token: string) => ({ uid: token, email: `${token}@mail.utoronto.ca` }) },
+    // The bearer token is the uid; the 'unverified' user's email is not verified
+    auth: { verifyIdToken: async (token: string) => ({ uid: token, email: `${token}@mail.utoronto.ca`, email_verified: token !== 'unverified' }) },
     firestore: { collection },
     admin: { storage: () => ({}) },
   };
 });
+
+jest.mock('../storage', () => ({ uploadImage: jest.fn(async () => 'https://firebasestorage.googleapis.com/new.png'), deleteImage: jest.fn() }));
 
 const request = (method: string, path: string, uid: string, body?: object) =>
   new NextRequest(`http://localhost${path}`, {
@@ -68,6 +72,13 @@ it('T1: POST /api/users ignores client-supplied roles and email', async () => {
   });
 });
 
+it('an unverified email is not stored', async () => {
+  const res = await createUser(request('POST', '/api/users', 'unverified', { id: 'unverified', name: 'x' }));
+
+  expect(res.status).toBe(201);
+  expect(mockDb.Users.unverified.email).toBe('');
+});
+
 it('T2: a non-admin cannot approve a club request, even their own', async () => {
   const before = structuredClone(mockDb);
 
@@ -105,4 +116,23 @@ it('T5: PUT /api/clubs only writes editable fields', async () => {
 
   expect(res.status).toBe(200);
   expect(mockDb.Clubs.A).toEqual({ id: 'A', name: 'New', executives: ['execA'], followers: 3 });
+});
+
+it('upload only deletes the original when it is the authorized club\'s current image', async () => {
+  mockDb.Clubs.A.image = 'https://firebasestorage.googleapis.com/a.png';
+  mockDb.Clubs.B.image = 'https://firebasestorage.googleapis.com/b.png';
+  const uploadAs = (originalImageUrl: string) => {
+    const form = new FormData();
+    form.append('file', new File(['x'], 'logo.png'));
+    form.append('folder', 'clubs');
+    form.append('clubId', 'A');
+    form.append('originalImageUrl', originalImageUrl);
+    return upload(new NextRequest('http://localhost/api/upload', { method: 'POST', headers: { Authorization: 'Bearer execA' }, body: form }));
+  };
+
+  expect((await uploadAs(mockDb.Clubs.B.image)).status).toBe(200);
+  expect(deleteImage).not.toHaveBeenCalled();
+
+  await uploadAs(mockDb.Clubs.A.image);
+  expect(deleteImage).toHaveBeenCalledWith(mockDb.Clubs.A.image);
 });

@@ -191,13 +191,13 @@ export default function PendingClubsManagement() {
         aria-expanded={isOpen}
         aria-controls="pending-clubs-dropdown"
       >
-        Pending Club Requests
+        Club Requests
         <span className={`ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
       </button>
       {isOpen && (
         <div id="pending-clubs-dropdown" className="p-6 border-t border-border max-h-[500px] overflow-y-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h2 className="text-xl font-semibold text-foreground mb-4 sm:mb-0">Pending Club Requests</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4 sm:mb-0">Club Requests</h2>
             
             <div className="flex items-center gap-4">
               <select

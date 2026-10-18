@@ -80,7 +80,7 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
         const userDoc = await firestore.collection('Users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return { uid, isAdmin: false, isExecutive: false, email: decodedToken.email, status: 200 };
+            return { uid, isAdmin: false, isExecutive: false, email: decodedToken.email_verified ? decodedToken.email : undefined, status: 200 };
         }
 
         const userData = userDoc.data();
@@ -89,7 +89,8 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
             uid, 
             isAdmin: userData?.is_admin || false,
             isExecutive: userData?.is_executive || false,
-            email: decodedToken.email,
+            // Only trust verified emails
+            email: decodedToken.email_verified ? decodedToken.email : undefined,
             status: 200 
         };
         

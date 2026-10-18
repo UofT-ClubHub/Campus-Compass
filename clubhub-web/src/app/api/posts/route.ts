@@ -70,6 +70,10 @@ export async function GET(request: NextRequest) {
         // Handle pagination - Firestore doesn't support offset directly, so we need to handle it
         let posts: Post[] = [];
         let allPosts: Post[] = [];
+        // Posts are never pruned; only read the full collection when filtering text in memory below
+        if (!searchFilter && !titleFilter && !detailsFilter && hashtagsFilter.length === 0) {
+            query = query.limit(offset + limit);
+        }
         const snapshot = await query.get();
         allPosts = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Post));
 

@@ -186,21 +186,20 @@ export async function PUT(request: NextRequest) {
             const addedClubs: string[] = newManagedClubs.filter((clubId: string) => !oldManagedClubs.includes(clubId));
             const removedClubs: string[] = oldManagedClubs.filter((clubId: string) => !newManagedClubs.includes(clubId));
             
-            // If no clubs are being added, check if user is already an executive
-            if (addedClubs.length === 0) {
-                // User is already managing all requested clubs, return success without changes
-                return NextResponse.json({ ...targetUserData, id: targetUserId }, { status: 200 });
-            }
-            
             // Executives can only add or remove clubs they manage
             const canManageAllChangedClubs = [...addedClubs, ...removedClubs].every(clubId => currentUserManagedClubs.includes(clubId));
-            
-            if (canManageAllChangedClubs) {
-                allowedUpdates.managed_clubs = newManagedClubs;
-                allowedUpdates.is_executive = true;
-            } else {
+            if (!canManageAllChangedClubs) {
                 return NextResponse.json({ error: 'Can only change executives for clubs you manage' }, { status: 403 });
             }
+
+            // Nothing added (no-op or removals only): execs don't apply removals here; return the target unchanged, without email
+            if (addedClubs.length === 0) {
+                const { email, ...targetWithoutEmail } = targetUserData;
+                return NextResponse.json({ ...targetWithoutEmail, id: targetUserId }, { status: 200 });
+            }
+
+            allowedUpdates.managed_clubs = newManagedClubs;
+            allowedUpdates.is_executive = true;
         } else {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });
         }

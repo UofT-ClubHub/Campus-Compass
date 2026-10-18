@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadImage, deleteImage } from '../storage';
+import { firestore } from '../firebaseAdmin';
 import { checkClubPermissions, checkPostPermissions, withAuth } from '@/lib/auth-middleware';
 
 export const POST = withAuth(async (request: NextRequest) => {
@@ -14,6 +15,9 @@ export const POST = withAuth(async (request: NextRequest) => {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
+    // The only image that may be deleted: the one the authorized post/club currently uses
+    let currentImage: string | undefined;
+
     // Additional authorization checks for specific resources
     if (folder === 'posts') {
       const postId = formData.get('postId') as string;
@@ -24,6 +28,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       if (!authorized) {
         return NextResponse.json({ error: error || 'Forbidden' }, { status: status || 403 });
       }
+      if (originalImageUrl) currentImage = (await firestore.collection('Posts').doc(postId).get()).data()?.image;
     }
     else if (folder === 'clubs') {
       const clubId = formData.get('clubId') as string;
@@ -31,16 +36,17 @@ export const POST = withAuth(async (request: NextRequest) => {
       if (!authorized) {
         return NextResponse.json({ error: error || 'Forbidden' }, { status: status || 403 });
       }
+      if (originalImageUrl && clubId) currentImage = (await firestore.collection('Clubs').doc(clubId).get()).data()?.image;
     }
     else if (folder === 'pending-clubs') {
-      // No additional authorization checks needed for pending club images
+      // No additional authorization checks needed for pending club images; never deletes an original
     }
     else {
       return NextResponse.json({ error: 'Invalid folder' }, { status: 400 });
     }
     
-    // Delete original image if it exists and is different from the new one
-    if (originalImageUrl && originalImageUrl.includes('firebase')) {
+    // Delete the original only if it is the authorized post/club's current image
+    if (originalImageUrl && originalImageUrl === currentImage && originalImageUrl.includes('firebase')) {
       try {
         await deleteImage(originalImageUrl);
       } catch (error) {

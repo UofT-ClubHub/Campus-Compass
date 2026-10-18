@@ -323,16 +323,12 @@ export default function ExecPage() {
       // Refresh the managed clubs data to get updated executive information
       const updatedUser = await updateUserResponse.json();
 
-      // Refresh the clubs data to show the new executive
-      const clubsDataPromises = managedClubs.map(async (club) => {
-        const clubResponse = await fetch(`/api/clubs?id=${club.id}`);
-        if (!clubResponse.ok) {
-          return club;
-        }
-        return clubResponse.json();
-      });
-      const updatedClubs = await Promise.all(clubsDataPromises);
-      setManagedClubs(updatedClubs.filter((club) => club !== null) as Club[]);
+      // Refresh only the affected club to show the new executive
+      const clubResponse = await fetch(`/api/clubs?id=${clubId}`);
+      if (clubResponse.ok) {
+        const fresh: Club = await clubResponse.json();
+        setManagedClubs((prev) => prev.map((c) => (c.id === clubId ? fresh : c)));
+      }
 
       setNewExecEmail("");
       setShowAddExecForm(null);
@@ -523,6 +519,7 @@ export default function ExecPage() {
                       <img
                         src={club?.image || "/placeholder.jpg"}
                         alt={`${club.name} logo`}
+                        loading="lazy"
                         className="w-28 h-28 rounded-full mb-6 border-4 border-white/50 shadow-lg backdrop-blur-sm"
                       />
                     </Link>

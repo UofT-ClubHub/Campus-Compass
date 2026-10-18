@@ -130,6 +130,11 @@ export const POST = withAuth(async (request: NextRequest) => {
 
 export const PUT = withAuth(async (request: NextRequest) => {
   try {
+    const authResult = (request as any).auth; // Added by middleware
+    // Defense in depth: don't rely only on the API_PERMISSIONS path match
+    if (!authResult.isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
     const { searchParams } = request.nextUrl;
     const pendingClubId = searchParams.get('id');
     const action = searchParams.get('action'); // 'approve' or 'reject'
