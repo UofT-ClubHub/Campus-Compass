@@ -94,7 +94,7 @@ export default function PositionApplicationsPage({ params }: PageProps) {
             
             // Check if user is executive of this specific club
             if (clubID) {
-              const isClubExecutive = userData.managed_clubs?.includes(clubID) || false
+              const isClubExecutive = userData.managed_clubs?.includes(clubID) || userData.is_admin || false
               setIsExecutive(isClubExecutive)
             }
           }

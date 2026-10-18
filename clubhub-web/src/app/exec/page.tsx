@@ -94,7 +94,11 @@ export default function ExecPage() {
           return;
         }
 
-        if (user.managed_clubs && user.managed_clubs.length > 0) {
+        if (user.is_admin) {
+          // shortcut: one big page of clubs; paginate if the club count ever nears 10000
+          const clubsResponse = await fetch("/api/clubs?limit=10000");
+          if (clubsResponse.ok) setManagedClubs(await clubsResponse.json());
+        } else if (user.managed_clubs && user.managed_clubs.length > 0) {
           const clubsDataPromises = user.managed_clubs.map(
             async (clubId: string) => {
               const clubResponse = await fetch(`/api/clubs?id=${clubId}`);
@@ -280,11 +284,13 @@ export default function ExecPage() {
         return;
       }
       const users = await userResponse.json();
-      if (!users || users.length === 0) {
+      const execUser = (users as User[]).find(
+        (u) => u.email?.toLowerCase() === newExecEmail.trim().toLowerCase()
+      );
+      if (!execUser) {
         setError("User not found with the provided email.");
         return;
       }
-      const execUser = users[0] as User;
 
       const updatedManagedClubs = Array.isArray(execUser.managed_clubs)
         ? [...execUser.managed_clubs]

@@ -236,7 +236,7 @@ export default function ClubPage({ params }: PageProps) {
    };
 
      // Check if current user is a club executive
-  const isClubExecutive = currentUser?.managed_clubs?.includes(clubID) || false
+  const isClubExecutive = currentUser?.managed_clubs?.includes(clubID) || currentUser?.is_admin || false
 
   // Handle post edit
   const handlePostEdit = (updatedPost: Post) => {

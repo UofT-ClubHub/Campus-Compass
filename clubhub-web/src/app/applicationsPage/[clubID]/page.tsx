@@ -182,7 +182,7 @@ export default function ApplicationsPage({ params }: PageProps) {
   useEffect(() => {
     if (currentUser && clubID) {
       // Check if user is executive of THIS SPECIFIC club ONLY
-      const isClubExecutive = currentUser.managed_clubs?.includes(clubID) || false
+      const isClubExecutive = currentUser.managed_clubs?.includes(clubID) || currentUser.is_admin || false
       setIsExecutive(isClubExecutive)
       console.log('Executive check:', {
         clubID,

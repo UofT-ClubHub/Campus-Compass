@@ -76,7 +76,7 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
             setCurrentUser(userData);
             
             // Only allow editing if user is executive of THIS SPECIFIC club
-            const isClubExecutive = userData.managed_clubs?.includes(position.clubId) || false;
+            const isClubExecutive = userData.managed_clubs?.includes(position.clubId) || userData.is_admin || false;
             setCanEdit(isClubExecutive);
             
             console.log('Position edit permissions:', {

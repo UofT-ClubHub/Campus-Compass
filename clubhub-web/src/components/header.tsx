@@ -51,7 +51,7 @@ export function Header() {
   // Get the current active index based on pathname
   const getCurrentActiveIndex = useCallback(() => {
     const hasAdmin = userData?.is_admin;
-    const hasExec = userData?.managed_clubs && userData.managed_clubs.length > 0;
+    const hasExec = (userData?.managed_clubs && userData.managed_clubs.length > 0) || hasAdmin;
     const base = 3; // Base index after Clubs, Posts, and Calendar
 
     if (pathname === '/clubSearch') return 0;
@@ -143,7 +143,7 @@ export function Header() {
     };
 
     const isAdmin = userData?.is_admin;
-    const isExecutive = userData?.managed_clubs && userData.managed_clubs.length > 0;
+    const isExecutive = (userData?.managed_clubs && userData.managed_clubs.length > 0) || isAdmin;
 
     return (
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border" style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
