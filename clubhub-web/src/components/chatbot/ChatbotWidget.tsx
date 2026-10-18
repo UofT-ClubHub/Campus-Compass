@@ -99,18 +99,15 @@ export default function ChatbotWidget() {
 
       const result = await response.json();
 
-      if (result.success) {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: result.message,
-          isUser: false,
-          timestamp: new Date(),
-          data: result.data
-        };
-        setMessages(prev => [...prev, aiMessage]);
-      } else {
-        throw new Error(result.error || 'Failed to get response');
-      }
+      // 401/403/400/500 bodies carry a user-facing message or error too
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: result.message || result.error || 'Failed to get response',
+        isUser: false,
+        timestamp: new Date(),
+        data: result.data
+      };
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Chatbot error:', error);
       const errorMessage: Message = {

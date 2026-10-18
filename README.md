@@ -22,7 +22,7 @@ Campus Compass is the ultimate discovery platform for University of Toronto's 99
 - Track your application status from submission to decision
 
 **AI-Powered Assistant**
-- Chat with our intelligent assistant powered by Google Gemini
+- Chat with our intelligent assistant powered by free models on OpenRouter
 - Get personalized club recommendations based on your interests
 - Ask questions about events, deadlines, and opportunities in natural language
 

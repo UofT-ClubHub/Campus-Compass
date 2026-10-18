@@ -1,21 +1,30 @@
-import { getVertexAI, getGenerativeModel } from '@firebase/vertexai-preview';
 import { searchClubs, getClubDetails, searchPosts, getUpcomingEvents,
   getCategories, getCampuses, searchEvents } from './functions';
-import app from '../../model/firebase';
 import { NextRequest } from 'next/server';
 
-// Initialize Vertex AI after authentication
-let vertexAI: any = null;
-let model: any = null;
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const DEFAULT_MODEL = 'thinkingmachines/inkling:free';
+// Free models get rate-limited or rotated out; OpenRouter tries these in order
+const FALLBACK_MODELS = ['nvidia/nemotron-3-ultra-550b-a55b:free', 'openrouter/free'];
 
-// Ensure Vertex AI and model are initialized
-async function ensureVertexModelInitialized() {
-  if (!vertexAI) {
-    vertexAI = getVertexAI(app);
-  }
-  if (!model) {
-    model = getGenerativeModel(vertexAI, { model: 'gemini-2.5-flash-lite' });
-  }
+async function generateReply(system: string, user: string): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY is not set');
+  const res = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      models: [process.env.OPENROUTER_MODEL || DEFAULT_MODEL, ...FALLBACK_MODELS],
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+      reasoning: { effort: 'low', exclude: true },
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenRouter error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content?.trim() || '';
 }
 
 // Only allow authenticated admins and executives
@@ -55,34 +64,39 @@ async function ensureAuthenticated(request: NextRequest) {
   }
 }
 
-export class VertexChatbotService {
+const SYSTEM_PROMPT = `You are ClubHub Assistant, a helpful and friendly AI chatbot for the ClubHub university club management platform at the University of Toronto.
+
+Your role:
+- Help students find clubs, events, and posts across three campuses: UTSG (St. George downtown), UTM (Mississauga), and UTSC (Scarborough)
+- Provide accurate information based on the database context provided below
+- Be conversational, helpful, and encouraging
+- Use emojis occasionally to make responses engaging (but not too many!)
+- Format responses clearly with bullet points, lists, or sections when appropriate
+- Always be positive and student-focused
+
+Guidelines:
+- Always base your answers on the provided context data
+- If no relevant data is found, suggest alternatives or provide helpful guidance
+- Encourage users to visit club pages or contact clubs directly for more details
+- Be specific about dates, locations, and contact information when available
+- If users ask about joining clubs, suggest they check the club's contact information
+- Keep responses concise but informative
+- Use natural, friendly language`;
+
+export class ChatbotService {
   async processMessage(message: string, request: NextRequest): Promise<{ message: string; data?: any }> {
+    // Auth errors propagate so the route can return 401/403
+    await ensureAuthenticated(request);
     try {
-      // Always require authentication
-      await ensureAuthenticated(request);
-      await ensureVertexModelInitialized();
       // Analyze the message and gather relevant data
       const context = await this.gatherContext(message);
-      // Create the prompt for AI
-      const prompt = this.createPrompt(message, context);
-      // Use Firebase Vertex AI (now with authentication)
-      const result = await model.generateContent(prompt);
-      const response = result.response;
-      const responseText = response.text();
+      const reply = await generateReply(SYSTEM_PROMPT, this.buildUserMessage(message, context));
       return {
-        message: responseText || "Sorry, I couldn't generate a response.",
+        message: reply || "Sorry, I couldn't generate a response.",
         data: context.data
       };
     } catch (error) {
       console.error('AI error:', error);
-
-      // Return specific error messages for authentication/authorization failures
-      if (error instanceof Error) {
-        return {
-          message: error.message
-        };
-      }
-
       return {
         message: "I'm sorry, I encountered an error while processing your request. Please try again or ask for help!"
       };
@@ -633,32 +647,8 @@ export class VertexChatbotService {
     return greetingKeywords.some(keyword => message.includes(keyword)) || message.length < 10;
   }
 
-  private createPrompt(message: string, contextData: { context: string; data: any }): string {
-    return `You are ClubHub Assistant, a helpful and friendly AI chatbot for the ClubHub university club management platform at the University of Toronto.
-
-    Your role:
-    - Help students find clubs, events, and posts across three campuses: UTSG (St. George downtown), UTM (Mississauga), and UTSC (Scarborough)
-    - Provide accurate information based on the database context provided below
-    - Be conversational, helpful, and encouraging
-    - Use emojis occasionally to make responses engaging (but not too many!)
-    - Format responses clearly with bullet points, lists, or sections when appropriate
-    - Always be positive and student-focused
-
-    Guidelines:
-    - Always base your answers on the provided context data
-    - If no relevant data is found, suggest alternatives or provide helpful guidance
-    - Encourage users to visit club pages or contact clubs directly for more details
-    - Be specific about dates, locations, and contact information when available
-    - If users ask about joining clubs, suggest they check the club's contact information
-    - Keep responses concise but informative
-    - Use natural, friendly language
-
-    Context from ClubHub database:
-    ${contextData.context || 'No specific data found for this query.'}
-
-    User question: ${message}
-
-    Please provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
+  private buildUserMessage(message: string, contextData: { context: string; data: any }): string {
+    return `Context from ClubHub database:\n${contextData.context || 'No specific data found for this query.'}\n\nUser question: ${message}\n\nPlease provide a helpful, well-formatted response based on the context above. If no data was found, offer suggestions for what the user can try instead.`;
   }
 
   // Intent detection methods - IMPROVED
