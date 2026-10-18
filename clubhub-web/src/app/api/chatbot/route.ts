@@ -64,7 +64,7 @@ export async function GET() {
     return NextResponse.json({ 
       status: 'Chatbot API is running!',
       timestamp: new Date().toISOString(),
-      configured: !!process.env.OPENROUTER_API_KEY
+      configured: !!(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_MODEL)
     });
   } catch (error: any) {
     return NextResponse.json({

@@ -29,7 +29,7 @@ Every night, a scraper pulls new posts from club Instagram pages and sorts them 
 |---|---|
 | Web app | Next.js 15, React 19, Tailwind CSS 4, TypeScript |
 | Backend | Firebase Auth, Firestore, Cloud Storage |
-| AI assistant | OpenRouter (free models) |
+| AI assistant | OpenRouter |
 | Scraper | Python, Apify, Google Gemini |
 | Hosting | Vercel, GitHub Actions for the nightly scrape |
 
@@ -50,7 +50,7 @@ Put these in `clubhub-web/.env.local` locally, or in Vercel for production:
 - `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_DATABASE_URL`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase web config
 - `ADMIN_FIREBASE_PROJECT_ID`, `ADMIN_FIREBASE_CLIENT_EMAIL`, `ADMIN_FIREBASE_PRIVATE_KEY`: Firebase Admin SDK
 - `OPENROUTER_API_KEY`: required for the AI assistant
-- `OPENROUTER_MODEL`: optional, overrides the default chatbot model
+- `OPENROUTER_MODEL`: required for the AI assistant, the OpenRouter model ID to use (e.g. set it in Vercel)
 
 The nightly scraper reads its own secrets from GitHub Actions: `APIFY_KEY_1` to `APIFY_KEY_8`, `GENAI_API_KEY`, and the `ADMIN_FIREBASE_*` keys.
 
