@@ -8,6 +8,7 @@ import { auth } from '@/model/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useInfiniteScroll } from '@/lib/useInfiniteScroll';
 
 // Separate component that uses useSearchParams
 function ClubSearchContent() {
@@ -27,10 +28,13 @@ function ClubSearchContent() {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
-  const limit = 3;
+  const limit = 9;
   const loadingRef = useRef(false);
+  // Incremented on every new search so responses from older searches are ignored
+  const requestIdRef = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const hasFilters =  campusFilter || sortOrder || departmentFilter
@@ -89,12 +93,12 @@ function ClubSearchContent() {
 }, [query, campusFilter, sortOrder, departmentFilter]);
 
   const clubSearch = async (isNewSearch = false) => {
-    // Prevent multiple simultaneous calls
-    if (loadingRef.current) {
-      console.log("Club search already in progress, skipping...");
+    // Prevent overlapping page loads (a new search always goes through)
+    if (!isNewSearch && loadingRef.current) {
       return;
     }
-    
+
+    const requestId = isNewSearch ? ++requestIdRef.current : requestIdRef.current;
     loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
@@ -102,12 +106,11 @@ function ClubSearchContent() {
     if (isNewSearch) {
       setClubs([]);
       setInitialLoading(true);
+    } else {
+      setLoadingMore(true);
     }
 
     try {
-      // Add 0.1 second delay before API call
-      await new Promise(resolve => setTimeout(resolve, 100));
-
       const params = new URLSearchParams()
 
       if (query) {
@@ -129,7 +132,10 @@ function ClubSearchContent() {
       }
 
       const data = await res.json()
-      
+
+      // A newer search started while this was in flight
+      if (requestId !== requestIdRef.current) return;
+
       // Ensure data is an array
       if (!Array.isArray(data)) {
         throw new Error("Invalid response format");
@@ -147,80 +153,36 @@ function ClubSearchContent() {
         })
       }
 
-      console.log("Club list updated:", data)
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       console.error("Error fetching clubs:", error);
       // Reset loading states on error
       setHasMore(false);
     } finally {
-      if (isNewSearch) {
+      if (requestId === requestIdRef.current) {
         setInitialLoading(false);
+        setLoadingMore(false);
+        loadingRef.current = false;
       }
-      loadingRef.current = false;
     }
   }
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      // Cancel any ongoing requests
-      loadingRef.current = false;
       setHasMore(true); // Reset hasMore for new search
       setOffset(0); // Reset offset for new search
       setInitialLoading(true); // Show loading state for new search
       clubSearch(true);
-    }, 300); // Reduced from 500ms to 300ms for faster response
-  
-    return () => {
-      clearTimeout(delay);
-      // Cancel any ongoing requests when component unmounts or dependencies change
-      loadingRef.current = false;
-    };
+    }, 300);
+
+    return () => clearTimeout(delay);
   }, [query, campusFilter, sortOrder, departmentFilter]);
 
-  // Infinite scrolling logic with debouncing
-  useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    let lastScrollTime = 0;
-
-    const handleScroll = () => {
-      const now = Date.now();
-      
-      // Prevent rapid successive calls
-      if (now - lastScrollTime < 100) {
-        return;
-      }
-      lastScrollTime = now;
-
-      if (
-        window.innerHeight + document.documentElement.scrollTop <
-          document.documentElement.offsetHeight - 300 || // Increased threshold
-        !hasMore ||
-        loadingRef.current
-      ) {
-        return;
-      }
-
-    // Clear any existing timeout
-    clearTimeout(scrollTimeout);
-    
-    // Set a longer debounce to prevent rapid calls
-    scrollTimeout = setTimeout(() => {
-      if (!loadingRef.current && hasMore) {
-        clubSearch();
-      }
-    }, 300); // Increased debounce time
-  };
-
-  // Add scroll event listener with throttling
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  console.log("Scroll event listener added");
-
-  // Cleanup
-  return () => {
-    window.removeEventListener('scroll', handleScroll);
-    clearTimeout(scrollTimeout);
-  };
-}, [hasMore, offset]);
+  // Infinite scrolling: load the next page when the sentinel below the results nears the viewport
+  const sentinelRef = useInfiniteScroll(
+    () => clubSearch(),
+    hasMore && !initialLoading && !loadingMore && clubs.length > 0
+  );
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-theme-gradient" data-theme={theme}>
@@ -439,6 +401,13 @@ function ClubSearchContent() {
                   ))}
                 </div>
                 
+                {/* Loading more indicator */}
+                {loadingMore && (
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                  </div>
+                )}
+
                 {/* End of results indicator */}
                 {!hasMore && clubs.length > 0 && (
                   <div className="mt-8 py-4 text-center">
@@ -448,10 +417,11 @@ function ClubSearchContent() {
               </>
             )}
 
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} aria-hidden="true" className="h-px" />
           </div>
         </div>
       </div>
-      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   )
 }

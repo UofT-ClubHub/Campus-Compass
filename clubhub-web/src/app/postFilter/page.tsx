@@ -9,6 +9,7 @@ import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from '@/contexts/ThemeContext';
+import { useInfiniteScroll } from '@/lib/useInfiniteScroll';
 
 // Separate component that uses useSearchParams
 function PostFilterContent() {
@@ -29,10 +30,13 @@ function PostFilterContent() {
   const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || "");
 
   const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 9;
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
+  // Incremented on every new search so responses from older searches are ignored
+  const requestIdRef = useRef(0);
   const [sort_by, setSortBy] = useState(searchParams.get('sort_by') || "");
   const [sort_order, setSortOrder] = useState(searchParams.get('sort_order') || "desc");
   const [showSortOrder, setShowSortOrder] = useState(false);
@@ -83,12 +87,12 @@ function PostFilterContent() {
 }, [query, campusFilter, categoryFilter, sort_by, sort_order, departmentFilter]);
 
   const filterPosts = async (isNewSearch = false) => {
-    // Prevent multiple simultaneous calls
-    if (loadingRef.current) {
-      console.log("Filter posts already in progress, skipping...");
+    // Prevent overlapping page loads (a new search always goes through)
+    if (!isNewSearch && loadingRef.current) {
       return;
     }
-    
+
+    const requestId = isNewSearch ? ++requestIdRef.current : requestIdRef.current;
     loadingRef.current = true;
 
     const currentOffset = isNewSearch ? 0 : offset;
@@ -96,6 +100,8 @@ function PostFilterContent() {
     if (isNewSearch) {
       setPosts([]);
       setInitialLoading(true);
+    } else {
+      setLoadingMore(true);
     }
 
     try {
@@ -122,6 +128,9 @@ function PostFilterContent() {
 
       const data = await response.json();
 
+      // A newer search started while this was in flight
+      if (requestId !== requestIdRef.current) return;
+
       // Ensure data is an array
       if (!Array.isArray(data)) {
         throw new Error("Invalid response format");
@@ -142,16 +151,17 @@ function PostFilterContent() {
         });
       }
 
-      console.log("Filtered posts:", data);
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       console.error("Error fetching posts:", error);
       // Reset loading states on error
       setHasMore(false);
     } finally {
-      if (isNewSearch) {
+      if (requestId === requestIdRef.current) {
         setInitialLoading(false);
+        setLoadingMore(false);
+        loadingRef.current = false;
       }
-      loadingRef.current = false;
     }
   };
 
@@ -173,19 +183,13 @@ function PostFilterContent() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      // Cancel any ongoing requests
-      loadingRef.current = false;
       setHasMore(true); // Reset hasMore to true for new search
       setOffset(0); // Reset offset for new search
       setInitialLoading(true); // Show loading state for new search
       filterPosts(true);
-    }, 300); // Reduced from 500ms to 300ms for faster response
+    }, 300);
 
-    return () => {
-      clearTimeout(delay);
-      // Cancel any ongoing requests when component unmounts or dependencies change
-      loadingRef.current = false;
-    };
+    return () => clearTimeout(delay);
   }, [
     query,
     campusFilter,
@@ -195,51 +199,11 @@ function PostFilterContent() {
     sort_order,
   ]);
 
-  // Infinite Scrolling Logic with debouncing
-  useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    let isScrolling = false;
-    let lastScrollTime = 0;
-
-    const handleScroll = () => {
-      const now = Date.now();
-      
-      // Prevent rapid successive calls
-      if (now - lastScrollTime < 100) {
-        return;
-      }
-      lastScrollTime = now;
-
-      if (
-        window.innerHeight + document.documentElement.scrollTop <
-          document.documentElement.offsetHeight - 300 || // Increased threshold
-        !hasMore ||
-        loadingRef.current
-      ) {
-        return;
-      }
-
-      // Clear any existing timeout
-      clearTimeout(scrollTimeout);
-      
-      // Set a longer debounce to prevent rapid calls
-      scrollTimeout = setTimeout(() => {
-        if (!loadingRef.current && hasMore) {
-          filterPosts();
-        }
-      }, 300); // Increased debounce time
-    };
-
-    // Add scroll event listener with throttling
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    console.log("Scroll event listener added");
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [hasMore, offset]);
+  // Infinite scrolling: load the next page when the sentinel below the results nears the viewport
+  const sentinelRef = useInfiniteScroll(
+    () => filterPosts(),
+    hasMore && !initialLoading && !loadingMore && posts.length > 0
+  );
 
   // Handle like updates to keep posts in sync
   const handleLikeUpdate = (
@@ -562,6 +526,13 @@ function PostFilterContent() {
                   ))}
                 </div>
                 
+                {/* Loading more indicator */}
+                {loadingMore && (
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                  </div>
+                )}
+
                 {/* End of results indicator */}
                 {!hasMore && posts.length > 0 && (
                   <div className="mt-8 py-4 text-center">
@@ -570,10 +541,12 @@ function PostFilterContent() {
                 )}
               </>
             )}
+
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} aria-hidden="true" className="h-px" />
           </div>
         </div>
       </div>
-      <div id="scroll-anchor" style={{ height: "1px" }}></div>
     </div>
   );
 }
