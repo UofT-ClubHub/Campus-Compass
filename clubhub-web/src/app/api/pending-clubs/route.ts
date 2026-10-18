@@ -7,10 +7,12 @@ import { copyImageToFolder } from '../storage';
 
 export const GET = withAuth(async (request: NextRequest) => {
   try {
+    const authResult = (request as any).auth; // Added by middleware
     const { searchParams } = request.nextUrl;
     const campusFilter = searchParams.get("campus");
     const departmentFilter = searchParams.get("department");
-    const userFilter = searchParams.get("user");
+    // Non-admins can only see their own requests
+    const userFilter = authResult.isAdmin ? searchParams.get("user") : authResult.uid;
     const statusFilter = searchParams.get("status");
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");

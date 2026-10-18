@@ -224,7 +224,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
             }
         }
 
-        await docRef.update(data);
+        // A post can't be moved to another club or renamed by id
+        const { id, club, ...updates } = data;
+        await docRef.update(updates);
         const updatedDoc = await docRef.get();
         return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 });
     }

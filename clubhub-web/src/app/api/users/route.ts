@@ -86,11 +86,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: authResult.error || 'Unauthorized' }, { status: authResult.status || 401 });
         }
 
-        const userData: User = await request.json();
+        const body = await request.json();
 
-        if (authResult.uid !== userData.id) {
+        if (authResult.uid !== body.id) {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });
         }
+
+        // Never trust role fields or email from the client
+        const userData: User = {
+            id: authResult.uid,
+            name: typeof body.name === 'string' ? body.name : '',
+            email: authResult.email || '',
+            campus: typeof body.campus === 'string' ? body.campus : '',
+            bio: typeof body.bio === 'string' ? body.bio : '',
+            followed_clubs: [],
+            liked_posts: [],
+            is_admin: false,
+            is_executive: false,
+            managed_clubs: [],
+        };
 
         const usersCollection = firestore.collection('Users');
         const userDocRef = usersCollection.doc(authResult.uid!);
@@ -158,15 +172,19 @@ export async function PUT(request: NextRequest) {
                 }
             });
         } else if (authResult.isExecutive && updates.hasOwnProperty('managed_clubs')) {
+            if (!Array.isArray(updates.managed_clubs)) {
+                return NextResponse.json({ error: 'managed_clubs must be an array' }, { status: 400 });
+            }
             const currentUserDoc = await firestore.collection('Users').doc(authResult.uid).get();
             const currentUserData = currentUserDoc.data() as User;
             const currentUserManagedClubs = currentUserData.managed_clubs || [];
             
             const targetUserData = targetUserDoc.data() as User;
             const oldManagedClubs = targetUserData.managed_clubs || [];
-            const newManagedClubs = updates.managed_clubs || [];
+            const newManagedClubs: string[] = updates.managed_clubs;
             
             const addedClubs: string[] = newManagedClubs.filter((clubId: string) => !oldManagedClubs.includes(clubId));
+            const removedClubs: string[] = oldManagedClubs.filter((clubId: string) => !newManagedClubs.includes(clubId));
             
             // If no clubs are being added, check if user is already an executive
             if (addedClubs.length === 0) {
@@ -174,14 +192,14 @@ export async function PUT(request: NextRequest) {
                 return NextResponse.json({ ...targetUserData, id: targetUserId }, { status: 200 });
             }
             
-            // Check if executive can only add clubs they manage
-            const canManageAllAddedClubs = addedClubs.every(clubId => currentUserManagedClubs.includes(clubId));
+            // Executives can only add or remove clubs they manage
+            const canManageAllChangedClubs = [...addedClubs, ...removedClubs].every(clubId => currentUserManagedClubs.includes(clubId));
             
-            if (canManageAllAddedClubs) {
+            if (canManageAllChangedClubs) {
                 allowedUpdates.managed_clubs = newManagedClubs;
                 allowedUpdates.is_executive = true;
             } else {
-                return NextResponse.json({ error: 'Can only add users as executives for clubs you manage' }, { status: 403 });
+                return NextResponse.json({ error: 'Can only change executives for clubs you manage' }, { status: 403 });
             }
         } else {
             return NextResponse.json({ error: 'forbidden' }, { status: 403 });

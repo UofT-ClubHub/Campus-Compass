@@ -5,6 +5,7 @@ export interface AuthResult {
     uid: string | null;
     isAdmin: boolean;
     isExecutive: boolean;
+    email?: string;
     error?: string;
     status?: number;
 }
@@ -40,7 +41,7 @@ export const API_PERMISSIONS: Record<string, APIPermission> = {
     // Pending clubs endpoints
     'GET /api/pending-clubs': { requiresAuth: true },
     'POST /api/pending-clubs': { requiresAuth: true },
-    'DELETE /api/pending-clubs': { requiresAdmin: true },
+    'PUT /api/pending-clubs': { requiresAdmin: true },
     
     // Upload endpoints
     'POST /api/upload': { requiresAuth: true },
@@ -79,7 +80,7 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
         const userDoc = await firestore.collection('Users').doc(uid).get();
         
         if (!userDoc.exists) {
-            return { uid, isAdmin: false, isExecutive: false, status: 200 };
+            return { uid, isAdmin: false, isExecutive: false, email: decodedToken.email, status: 200 };
         }
 
         const userData = userDoc.data();
@@ -88,6 +89,7 @@ export async function getCurrentUserAuth(request: NextRequest): Promise<AuthResu
             uid, 
             isAdmin: userData?.is_admin || false,
             isExecutive: userData?.is_executive || false,
+            email: decodedToken.email,
             status: 200 
         };
         

@@ -135,7 +135,6 @@ export const PUT = withAuth(async (request: NextRequest) => {
 
         const data = await request.json();
         const clubsCollection = firestore.collection('Clubs');
-        const usersCollection = firestore.collection('users');
         const docRef = clubsCollection.doc(clubId);
         const doc = await docRef.get();
         if (!doc.exists) {
@@ -151,55 +150,13 @@ export const PUT = withAuth(async (request: NextRequest) => {
             }
         }
 
-        const oldData = doc.data() as Club;
-
-        // Handle executive updates
-        if (data.executives) {
-            const oldExecutives = oldData.executives || [];
-            const newExecutives = data.executives || [];
-
-            const oldExecEmails = oldExecutives.map((e: any) => e.email);
-            const newExecEmails = newExecutives.map((e: any) => e.email);
-
-            const addedEmails = newExecEmails.filter((email: string) => !oldExecEmails.includes(email));
-            const removedEmails = oldExecEmails.filter((email: string) => !newExecEmails.includes(email));
-
-            // Process added executives
-            for (const email of addedEmails) {
-                const userQuery = await usersCollection.where('email', '==', email).limit(1).get();
-                if (!userQuery.empty) {
-                    const userDoc = userQuery.docs[0];
-                    const userId = userDoc.id;
-
-                    // Add club to user's managedClubs
-                    await usersCollection.doc(userId).update({
-                        managedClubs: admin.firestore.FieldValue.arrayUnion(clubId)
-                    });
-
-                    // Update executive in data with id
-                    const execIndex = newExecutives.findIndex((e: any) => e.email === email);
-                    if (execIndex > -1) {
-                        data.executives[execIndex].id = userId;
-                    }
-                }
-            }
-
-            // Process removed executives
-            for (const email of removedEmails) {
-                const userQuery = await usersCollection.where('email', '==', email).limit(1).get();
-                if (!userQuery.empty) {
-                    const userDoc = userQuery.docs[0];
-                    const userId = userDoc.id;
-
-                    // Remove club from user's managedClubs
-                    await usersCollection.doc(userId).update({
-                        managedClubs: admin.firestore.FieldValue.arrayRemove(clubId)
-                    });
-                }
-            }
+        // Executives are managed through PUT /api/users, which keeps both sides in sync
+        const EDITABLE_FIELDS = ['name', 'description', 'campus', 'image', 'instagram', 'department', 'links'];
+        const updates = Object.fromEntries(Object.entries(data).filter(([key]) => EDITABLE_FIELDS.includes(key)));
+        if (Object.keys(updates).length === 0) {
+            return NextResponse.json({ message: 'No editable fields provided' }, { status: 400 });
         }
-
-        await docRef.update(data);
+        await docRef.update(updates);
         const updatedDoc = await docRef.get();
         return NextResponse.json({ id: updatedDoc.id, ...updatedDoc.data() }, { status: 200 });
     } catch (error: any) {

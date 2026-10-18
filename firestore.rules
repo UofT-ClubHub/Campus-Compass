@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // The browser reads these directly (club page, applications page)
+    match /Clubs/{clubId} {
+      allow read: if true;
+    }
+    match /Posts/{postId} {
+      allow read: if true;
+    }
+    // Everything else, and every write, goes through the Next.js API (Admin SDK bypasses rules)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
