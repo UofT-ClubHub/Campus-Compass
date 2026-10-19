@@ -40,7 +40,7 @@ function PositionSearchContent() {
   const handlePositionUpdate = (updatedPosition: any) => {
     setPositions(prevPositions => 
       prevPositions.map(pos => 
-        pos.positionId === updatedPosition.positionId ? updatedPosition : pos
+        pos.id === updatedPosition.id ? updatedPosition : pos
       )
     );
   };
@@ -157,7 +157,7 @@ function PositionSearchContent() {
         setPositions(data)
       } else{
         setPositions(prevPositions => {
-          const newPositions = data.filter((newPosition: any) => !prevPositions.some(existingPosition => existingPosition.positionId === newPosition.positionId));
+          const newPositions = data.filter((newPosition: any) => !prevPositions.some(existingPosition => existingPosition.id === newPosition.id));
           return [...prevPositions, ...newPositions];
         })
       }
@@ -463,7 +463,7 @@ function PositionSearchContent() {
                     
                     return (
                       <PositionCard
-                        key={position.positionId || index}
+                        key={position.id || index}
                         position={position}
                         onPositionUpdate={handlePositionUpdate}
                       />

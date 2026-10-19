@@ -161,20 +161,17 @@ export default function PositionApplicationsPage({ params }: PageProps) {
         }
 
         // Fetch position details
-        const posResponse = await fetch(`/api/positions?id=${clubID}`)
+        const posResponse = await fetch(`/api/positions?id=${clubID}&positionId=${positionId}`)
         if (posResponse.ok) {
-          const positions = await posResponse.json()
-          const currentPosition = positions.find((pos: any) => pos.id === positionId || pos.positionId === positionId)
-          if (currentPosition) {
-            setPosition({
-              id: currentPosition.id || currentPosition.positionId,
-              title: currentPosition.title,
-              description: currentPosition.description,
-              questions: currentPosition.questions,
-              deadline: currentPosition.deadline,
-              clubName: currentPosition.clubName
-            })
-          }
+          const { club, position: currentPosition } = await posResponse.json()
+          setPosition({
+            id: currentPosition.id,
+            title: currentPosition.title,
+            description: currentPosition.description,
+            questions: currentPosition.questions,
+            deadline: currentPosition.deadline,
+            clubName: club.name
+          })
         }
       } catch (error) {
         console.error("Error fetching data:", error)

@@ -134,6 +134,10 @@ export const POST = withAuth(async (request: NextRequest) => { // used to submit
         if (!openPositionDoc.exists) {
             return NextResponse.json({ error: "Position not found in open positions" }, { status: 404 });
         }
+        // Older edits could leave a closed position in OpenPositions
+        if (openPositionDoc.data()?.status === 'closed') {
+            return NextResponse.json({ error: "This position is closed" }, { status: 400 });
+        }
         
         // Check if user has already applied to this position
         const existingApplicationsRef = firestore.collection("Clubs").doc(clubId).collection("submittedApplications");

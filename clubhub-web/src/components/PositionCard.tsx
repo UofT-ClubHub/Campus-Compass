@@ -139,7 +139,7 @@ export default function PositionCard({ position, onPositionUpdate }: PositionCar
         },
         body: JSON.stringify({
           positionId: position.positionId,
-          currentStatus: position.status || 'open',
+          currentStatus: editStatus, // the route moves the position between Open/ClosedPositions on this
           title: editTitle,
           description: editDescription,
           requirements: editRequirements,

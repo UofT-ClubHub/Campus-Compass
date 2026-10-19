@@ -234,6 +234,7 @@ export default function applyPage({ params }: PageProps) {
                           positionId: positionID,
                           userId: user.uid,
                           answers,
+                          isFinalSubmission: true,
                         }),
                       })
                       if (!res.ok) {
