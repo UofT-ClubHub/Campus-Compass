@@ -1,12 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { auth } from "@/model/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import type { Post, User, Club } from "@/model/types"
 import { MapPin, Heart, HeartOff, ExternalLink, Calendar, Edit, Trash2, ArrowLeft, Save, X, Plus } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
+
+// Fields the exec must fill in, in the order they appear on the page
+const REQUIRED_FIELDS: { field: keyof Post; label: string }[] = [
+  { field: 'title', label: 'Title' },
+  { field: 'details', label: 'Description' },
+  { field: 'category', label: 'Category' },
+]
+
+// "!" forces these over each field's normal border colours (Tailwind v4 important modifier)
+const MISSING_FIELD_CLASSES = "border-destructive! focus:border-destructive! ring-2 ring-destructive/30"
 
 export default function PostPage() {
   const { theme } = useTheme()
@@ -33,6 +43,9 @@ export default function PostPage() {
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // Required fields left empty on the last save attempt; highlighted until filled in
+  const [missingFields, setMissingFields] = useState<Array<keyof Post>>([])
+  const fieldRefs = useRef<Partial<Record<keyof Post, HTMLElement | null>>>({})
 
   // Auto-dismiss notifications
   useEffect(() => {
@@ -130,30 +143,48 @@ useEffect(() => {
       const searchParams = new URL(window.location.href).searchParams;
       const clubIdFromQuery = searchParams.get('clubId');
 
-      // If clubId is present, assign it to the blank post's club field
-      const now = new Date().toISOString();
-      const blankPost: Post = {
-        id: "",
-        title: "",
-        details: "",
-        club: clubIdFromQuery || "",
-        campus: "",
-        category: "",
-        date_posted: now,
-        date_occurring: "",
-        image: "",
-        likes: 0,
-        hashtags: [],
-        links: [],
-        department: "",
-        location: "",
+      // The create page only exists for a real club: a missing or unknown
+      // clubId (e.g. a post ID pasted after "new?") leaves post null, which
+      // renders the "Post not found" screen
+      if (!clubIdFromQuery) {
+        setLoading(false);
+        return;
+      }
+
+      let cancelled = false;
+      const initNewPost = async () => {
+        try {
+          const res = await fetch(`/api/clubs?id=${encodeURIComponent(clubIdFromQuery)}`);
+          if (cancelled || !res.ok) return;
+
+          const blankPost: Post = {
+            id: "",
+            title: "",
+            details: "",
+            club: clubIdFromQuery,
+            campus: "",
+            category: "",
+            date_posted: new Date().toISOString(),
+            date_occurring: "",
+            image: "",
+            likes: 0,
+            hashtags: [],
+            links: [],
+            department: "",
+            location: "",
+          };
+          setPost(blankPost);
+          setEditedPost(blankPost);
+          setIsEditing(true);
+          setLikes(0);
+        } catch {
+          // Network error: fall through to "Post not found"
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
       };
-      setPost(blankPost);
-      setEditedPost(blankPost);
-      setIsEditing(true);
-      setLoading(false);
-      setLikes(0);
-      return;
+      initNewPost();
+      return () => { cancelled = true; };
     }
     const fetchPostData = async () => {
       try {
@@ -397,6 +428,22 @@ useEffect(() => {
 
   const handleSave = async () => {
     if (!editedPost) return;
+
+    // Validate required fields before anything is sent
+    if (!editedPost.club) {
+      setError('No club selected. Go back to the Exec page and click "Post" on your club.');
+      return;
+    }
+    const missing = REQUIRED_FIELDS.filter(({ field }) => !String(editedPost[field] ?? '').trim());
+    setMissingFields(missing.map(({ field }) => field));
+    if (missing.length > 0) {
+      setError(`Please fill in the required fields: ${missing.map(({ label }) => label).join(', ')}`);
+      const firstMissing = fieldRefs.current[missing[0].field];
+      firstMissing?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstMissing?.focus({ preventScroll: true });
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     setSuccessMessage(null);
@@ -409,12 +456,6 @@ useEffect(() => {
         return;
       }
       const token = await user.getIdToken();
-
-      // Validate required fields before processing
-      if (!editedPost.title || !editedPost.details || !editedPost.club || !editedPost.category) {
-        setError('Please fill in all required fields (title, details, club, category)');
-        return;
-      }
 
       let finalPost;
       let imageUrl: string | null = null;
@@ -523,6 +564,7 @@ useEffect(() => {
   const handleCancel = () => {
     setEditedPost(post)
     setIsEditing(false)
+    setMissingFields([])
   }
 
   const handleDelete = async () => {
@@ -561,7 +603,13 @@ useEffect(() => {
     if (editedPost) {
       setEditedPost(prev => prev ? { ...prev, [field]: value } : null)
     }
+    // Clear the highlight as soon as a missing field is filled in
+    if (String(value ?? '').trim()) {
+      setMissingFields(prev => prev.filter(f => f !== field))
+    }
   }
+
+  const isMissing = (field: keyof Post) => missingFields.includes(field)
 
   const addHashtag = () => {
     if (editedPost) {
@@ -772,15 +820,20 @@ useEffect(() => {
               {isEditing ? (
                 <div className="relative">
                   <input
+                    ref={(el) => { fieldRefs.current.title = el }}
                     type="text"
                     value={editedPost?.title || ''}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 leading-tight w-full bg-card/60 border-2 border-primary/40 hover:border-primary/60 focus:border-primary focus:outline-none rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-lg transition-all duration-200 focus:bg-card/80"
+                    aria-invalid={isMissing('title')}
+                    className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 leading-tight w-full bg-card/60 border-2 border-primary/40 hover:border-primary/60 focus:border-primary focus:outline-none rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-lg transition-all duration-200 focus:bg-card/80 ${isMissing('title') ? MISSING_FIELD_CLASSES : ''}`}
                     placeholder="Click to edit post title..."
                   />
                   <div className="absolute top-2 right-2 sm:right-3 text-primary/60 text-xs sm:text-sm font-medium pointer-events-none">
                      Editing
                   </div>
+                  {isMissing('title') && (
+                    <p className="text-destructive text-sm mt-1">Title is required</p>
+                  )}
                 </div>
               ) : (
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 leading-tight">{post?.title}</h1>
@@ -1060,13 +1113,20 @@ useEffect(() => {
                   </div>
                   <div className="prose prose-neutral dark:prose-invert max-w-none">
                     {isEditing ? (
-                      <textarea
-                        value={editedPost?.details || ''}
-                        onChange={(e) => handleInputChange('details', e.target.value)}
-                        rows={4}
-                        className="w-full text-muted-foreground leading-relaxed text-sm sm:text-base bg-transparent border border-border rounded-lg p-3 sm:p-4 focus:border-primary focus:outline-none resize-vertical"
-                        placeholder="Post description..."
-                      />
+                      <>
+                        <textarea
+                          ref={(el) => { fieldRefs.current.details = el }}
+                          value={editedPost?.details || ''}
+                          onChange={(e) => handleInputChange('details', e.target.value)}
+                          rows={4}
+                          aria-invalid={isMissing('details')}
+                          className={`w-full text-muted-foreground leading-relaxed text-sm sm:text-base bg-transparent border border-border rounded-lg p-3 sm:p-4 focus:border-primary focus:outline-none resize-vertical ${isMissing('details') ? MISSING_FIELD_CLASSES : ''}`}
+                          placeholder="Post description..."
+                        />
+                        {isMissing('details') && (
+                          <p className="text-destructive text-sm mt-1">Description is required</p>
+                        )}
+                      </>
                     ) : (
                       <div className="text-muted-foreground leading-relaxed text-sm sm:text-base whitespace-pre-wrap">
                         {post?.details}
@@ -1093,13 +1153,16 @@ useEffect(() => {
                   </div>
                   
                   {(post?.category || isEditing) && (
-                    <div className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium text-sm sm:text-base">Category:</span>
                       {isEditing ? (
                         <select
+                          ref={(el) => { fieldRefs.current.category = el }}
                           value={editedPost?.category || ''}
                           onChange={(e) => handleInputChange('category', e.target.value)}
-                          className="text-foreground font-semibold bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm"
+                          aria-invalid={isMissing('category')}
+                          className={`text-foreground font-semibold bg-transparent border border-border rounded px-2 py-1 text-xs sm:text-sm ${isMissing('category') ? MISSING_FIELD_CLASSES : ''}`}
                         >
                           <option value="">Select category</option>
                           <option value="Event">Event</option>
@@ -1110,6 +1173,10 @@ useEffect(() => {
                       ) : (
                         <span className="text-foreground font-semibold text-sm sm:text-base truncate ml-2">{post?.category}</span>
                       )}
+                    </div>
+                    {isMissing('category') && (
+                      <p className="text-destructive text-sm mt-1 text-right">Category is required</p>
+                    )}
                     </div>
                   )}
 
