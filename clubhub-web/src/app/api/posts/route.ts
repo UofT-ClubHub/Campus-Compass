@@ -151,7 +151,8 @@ export const POST = withAuth(async (request: NextRequest) => {
         const postsCollection = firestore.collection('Posts');
 
         // Validate required fields
-        if (!data.title || !data.details || !data.campus || !data.club || !data.category || !data.date_posted) {
+        // campus isn't required: it's taken from the club below, like department
+        if (!data.title || !data.details || !data.club || !data.category || !data.date_posted) {
             return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
@@ -168,12 +169,16 @@ export const POST = withAuth(async (request: NextRequest) => {
             }
         }
 
-        // Get club data to assign department (for both admin and non-admin cases)
+        // Get club data to assign department and campus (for both admin and non-admin cases)
         const clubDoc = await firestore.collection('Clubs').doc(data.club).get();
         const clubData = clubDoc.data() as Club;
 
-        // Automatically assign the club's department to the post
-        data = { ...data, department: clubData?.department || "" };
+        // Automatically assign the club's department and campus to the post
+        data = {
+            ...data,
+            department: clubData?.department || "",
+            campus: clubData?.campus || data.campus || "",
+        };
 
         // Create new post document
         const docRef = await postsCollection.add(data);
