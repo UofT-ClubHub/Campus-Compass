@@ -28,3 +28,9 @@ export const getUpcomingPosts = async (limit = 50) => {
     // Non-date strings like "TBD" sort after digits and would pass the range filter
     .filter(post => /^\d{4}-\d{2}-\d{2}/.test(post.date_occurring));
 };
+
+// Every club's OpenPositions in one read; club is the parent club's id
+export const getOpenPositions = async () => {
+  const snapshot = await firestore.collectionGroup('OpenPositions').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), club: doc.ref.parent.parent?.id })) as any[];
+};
