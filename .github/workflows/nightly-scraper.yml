@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.13.5'
+        python-version: '3.13'  # newest 3.13 built for the runner's OS; exact patches vanish when ubuntu-latest moves
       
     - name: Make execute.sh executable
       run: chmod +x execute.sh
